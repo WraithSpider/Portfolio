@@ -1,0 +1,2754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GridNode — Infrastructure Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet">
+  
+  <link rel="icon" href="FAV.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="theme.css">
+  <script>
+    try { localStorage.setItem('gridnode_authenticated', 'true'); } catch (e) {}
+    (function () {
+      try {
+        var s = JSON.parse(localStorage.getItem('gridnode_settings') || '{}');
+        document.documentElement.setAttribute('data-theme', s.theme === 'light' ? 'light' : 'dark');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
+<style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      font-size: var(--font-size-base);
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-body);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      overflow-x: hidden;
+    }
+
+    /* ===== GROUNDED CAPSULE MIXIN (reusable) ===== */
+    .grounded-capsule {
+      border-radius: 34px 34px 5px 34px;
+    }
+
+    .grounded-capsule-sm {
+      border-radius: 12px 12px 3px 12px;
+    }
+
+    .grounded-capsule-xs {
+      border-radius: 8px 8px 2px 8px;
+    }
+
+    /* .btn-gradient appearance (gradient/color/border/font) unified in theme.css */
+
+    /* ===== SIDEBAR (styles centralized in shared-sidebar.css) ===== */
+
+    .status-panel {
+      background: color-mix(in srgb, var(--status-success) 6%, transparent);
+      border: 1px solid color-mix(in srgb, var(--status-success) 12%, transparent);
+      border-radius: 34px 34px 5px 34px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* .status-dot is unified in theme.css */
+
+    .status-panel p {
+      font-size: var(--font-size-xs);
+      color: var(--text-muted);
+      line-height: 1.3;
+    }
+
+    .status-panel strong {
+      color: var(--text-secondary-strong);
+      font-weight: 600;
+    }
+
+    /* ===== MAIN CONTENT ===== */
+    .main-content {
+      margin-left: 256px;
+      flex: 1;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* The sidebar is fixed, so the workspace starts directly at its edge.
+       Keep the content rail fluid without re-centering it inside the offset
+       flex item (which creates a visible gap on ultra-wide screens). */
+    .main-content > .top-bar,
+    .main-content > .content-body {
+      width: 100%;
+      max-width: 1600px;
+      margin-left: auto;
+      margin-right: auto;
+      align-self: center;
+    }
+
+    /* Keep top-level containers from stretching the viewport on small
+       screens so wide content (tables, terminals) scrolls inside their own
+       card instead of creating a page-wide horizontal scrollbar */
+    main,
+    .main-content,
+    .card,
+    .dashboard-grid,
+    .content-body,
+    .table-section,
+    .terminal-section {
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    /* Top Bar */
+    .top-bar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      min-height: 72px;
+      padding: 24px 32px;
+      border-bottom: 1px solid var(--border-soft);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .top-bar-left { display: flex; flex-direction: column; }
+
+    .top-bar-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .nodes-counter {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: var(--font-size-sm);
+      color: var(--text-muted);
+      background: var(--bg-surface);
+      padding: 0 16px;
+      height: 38px;
+      box-sizing: border-box;
+      border-radius: 19px 19px 4px 19px;
+      border: 1px solid var(--border-muted);
+    }
+
+    /* .counter-dot is unified in theme.css (.status-dot base) */
+
+    .nodes-counter strong {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    /* ===== SERVER SELECTOR ===== */
+    .top-bar-right .server-selector {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 14px;
+      height: 38px;
+      box-sizing: border-box;
+      max-width: 100%;
+      background: var(--bg-card);
+      border-radius: 19px 19px 4px 19px;
+      cursor: pointer;
+      transition: background 0.2s;
+      font-size: var(--font-size-sm);
+      font-weight: 500;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    /* .server-dot is unified in theme.css (.status-dot base) */
+
+    .server-selector .server-name {
+      font-weight: 600;
+      color: var(--text-primary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .server-selector .server-conn {
+      color: var(--text-muted);
+      font-size: var(--font-size-xs);
+    }
+
+    .server-selector .chevron {
+      font-size: var(--font-size-base);
+      color: var(--text-muted);
+      margin-left: 6px;
+      line-height: 1;
+      transform: translateY(1px);
+    }
+
+    /* Global icon micro-alignment for standalone icons */
+    .icon-shift, .nav-item .nav-icon, .support-link .support-icon, .action-btn .icon, .search-icon {
+      display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; transform: none;
+    }
+
+    /* Make action/instance buttons align icons and text with a small gap — primary CTA uses 6px */
+    .action-btn, .instance-btn { gap: 8px; }
+    .btn-new-instance { gap: 6px; }
+
+    /* Increase spacing between search icon and text (if present) */
+    .search-wrap .search-icon { left: 14px; }
+    .search-wrap .search-input { padding-left: 36px; }
+
+    /* Script status badge centering */
+    .status-badge.idle { justify-content: center; }
+
+    .server-dropdown {
+      position: absolute;
+      left: 0;
+      width: max-content;
+      min-width: 100%;
+      top: calc(100% + 8px);
+      background: var(--bg-card);
+      border-radius: 34px 34px 5px 34px;
+      padding: 6px;
+      display: none;
+      flex-direction: column;
+      gap: 4px;
+      z-index: 999;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.30);
+    }
+
+    .server-dropdown.show {
+      display: flex;
+    }
+
+    .server-option { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-radius: 12px 12px 2px 12px; cursor: pointer; transition: background 0.15s; font-size: var(--font-size-sm); color: var(--text-secondary); white-space: nowrap; text-overflow: ellipsis; overflow: hidden; line-height: 1.4; }
+    .server-option .title-row { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .server-option .title-row > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+    /* .server-dot base from theme.css; small contextual nudge inside dropdown rows */
+    .server-option .server-dot { transform: translateY(1px); box-shadow: 0 0 4px rgba(0, 180, 167, 0.40); }
+    .server-option .server-name { font-weight: 600; color: var(--text-primary); display: block; font-size: var(--font-size-sm); }
+    .server-option .server-conn { color: var(--text-muted); font-size: var(--font-size-xs); }
+
+    .btn-new-instance {
+      /* appearance unified in theme.css; local size only */
+      height: 38px;
+      padding: 0 20px;
+    }
+
+    .btn-new-instance .plus-icon {
+      font-size: var(--font-size-lg);
+      transform: translateY(0.7px);
+    }
+
+    /* ===== CONTENT BODY ===== */
+    .content-body {
+      padding: 28px 32px 32px;
+      flex: 1;
+    }
+
+    /* Metrics Grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(240px, 1fr));
+      max-width: 1600px;
+      width: 100%;
+      margin-left: auto;
+      margin-right: auto;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    a.metric-card {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .metric-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 34px 34px 5px 34px;
+      padding: 16px;
+      transition: all 0.2s ease-in-out;
+      display: flex;
+      flex-direction: column;
+      min-height: 120px;
+    }
+
+    .metric-card:hover {
+      background: var(--bg-surface-hover);
+      border-color: rgba(0, 114, 255, 0.25);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.30);
+      transform: scale(1.02);
+    }
+
+    .metric-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .metric-label {
+      font-size: var(--font-size-xs);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-faint);
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .metric-value {
+      font-size: var(--font-size-lg);
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .metric-sub {
+      font-size: var(--font-size-sm);
+      color: var(--text-inverse);
+      flex: 1;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-family: var(--font-head);
+      font-weight: 500;
+      line-height: 1;
+      /* squeeze vertical whitespace around the secondary line (-6px top/bottom) */
+      margin-top: -6px;
+      margin-bottom: -6px;
+    }
+
+    .metric-sub .highlight {
+      color: var(--text-inverse);
+    }
+
+    .metric-sub .accent {
+      color: var(--text-inverse);
+      font-weight: 500;
+    }
+
+    .metric-sub .text-muted {
+      color: var(--text-helper);
+    }
+
+    .metric-sub .slash {
+      margin: 0 3px;
+      color: var(--text-inverse);
+    }
+
+    .metric-sub .arrow-down,
+    .metric-sub .arrow-up {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      color: var(--text-inverse);
+      line-height: 1;
+      vertical-align: middle;
+    }
+
+    .metric-sub .arrow-up {
+      margin-left: 12px;
+    }
+
+    .metric-sub .arrow-down svg,
+    .metric-sub .arrow-up svg {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      vertical-align: middle;
+      flex-shrink: 0;
+      margin: 0;
+      transform: none;
+    }
+
+    .metric-label .text-muted {
+      text-transform: none;
+      font-weight: 500;
+      font-size: var(--font-size-xs);
+      margin-left: 4px;
+      color: var(--text-dim);
+    }
+
+    .metric-bar-track {
+      width: 100%;
+      height: 4px;
+      background: var(--bg-track);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .metric-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      /* gradient unified in theme.css */
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .metric-bar-fill.warning {
+      background: linear-gradient(90deg, var(--accent-orange) 0%, var(--accent-red-deep) 100%);
+    }
+
+    /* ===== TABLE SECTION ===== */
+    .table-section {
+      margin-bottom: 24px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      padding-left: 18px;
+    }
+
+    .section-header h2 {
+      font-size: var(--font-size-lg);
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .section-header .badge-outline {
+      font-size: var(--font-size-xs);
+      color: var(--text-faint);
+      background: var(--bg-hover);
+      padding: 4px 12px;
+      border: 1px solid var(--border-muted);
+      border-radius: 34px 34px 5px 34px;
+      font-weight: 500;
+    }
+
+    .data-table-wrap {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 34px 34px 5px 34px;
+      overflow: hidden;
+    }
+
+    /* Horizontal scroll container for the table on tablets/phones */
+    .table-scroll,
+    .terminal-scroll {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .data-table {
+      width: 100%;
+      min-width: 600px;
+      border-collapse: collapse;
+      font-size: var(--font-size-base);
+      table-layout: auto;
+    }
+
+    /* Prevent process types ("LLM Agent", "File Sync") and statuses from
+       wrapping onto two lines or overlapping neighbouring columns */
+    .data-table thead th,
+    .data-table tbody td {
+      white-space: nowrap;
+    }
+
+    .data-table thead th {
+      text-align: left;
+      padding: 12px 16px;
+      font-weight: 500;
+      font-size: var(--font-size-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-subtle) !important;
+      background: transparent !important;
+      width: 30%;
+    }
+
+    .data-table thead th:nth-child(2) {
+      width: 20%;
+    }
+
+    .data-table thead th:nth-child(3) {
+      width: 20%;
+      padding-left: 28px;
+    }
+
+    .data-table thead th:nth-child(4) {
+      width: 30%;
+      padding-left: 30px;
+    }
+
+    .data-table tbody tr {
+      background: transparent !important;
+      border-bottom: 1px solid var(--border-faint);
+      transition: background 0.15s;
+    }
+
+    .data-table tbody tr:last-child {
+      border-bottom: none;
+    }
+
+    .data-table tbody tr:hover {
+      background: var(--bg-hover-subtle);
+    }
+
+    .data-table tbody td {
+      padding: 12px 18px;
+      color: var(--text-secondary);
+      vertical-align: middle;
+    }
+
+    .script-name {
+      font-family: var(--font-mono);
+      font-size: var(--font-size-base);
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .process-type {
+      font-size: var(--font-size-base);
+      color: var(--text-muted);
+    }
+
+    /* Status badges */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 12px 12px 2px 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      text-align: center;
+      width: fit-content;
+      line-height: 1;
+    }
+
+    .status-badge .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      transform: translateY(-0.75px);
+    }
+
+    .status-badge.running {
+      background: color-mix(in srgb, var(--status-success) 10%, transparent);
+      color: var(--status-success);
+    }
+    .status-badge.running .dot {
+      background: var(--status-success);
+      box-shadow: 0 0 5px color-mix(in srgb, var(--status-success) 40%, transparent);
+    }
+
+    .status-badge.idle {
+      background: var(--bg-hover);
+      color: var(--text-dim);
+    }
+    .status-badge.idle .dot {
+      background: var(--text-dim);
+    }
+
+    .status-badge.failed {
+      background: rgba(255, 45, 45, 0.10);
+      color: var(--accent-red-strong);
+    }
+    .status-badge.failed .dot {
+      background: var(--accent-red-strong);
+      box-shadow: 0 0 5px rgba(255, 45, 45, 0.30);
+    }
+
+    /* Action buttons */
+    .action-group {
+      display: flex;
+      gap: 6px;
+    }
+
+    .action-btn {
+      /* appearance (bg/border/color/radius/typography) unified in theme.css */
+      height: 30px;
+      padding: 0 14px;
+      min-width: 70px;
+      gap: 8px;
+    }
+
+    /* ===== LOGS ACCORDION ===== */
+    .log-panel {
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease, opacity 0.3s ease;
+      background: var(--bg-terminal-alt);
+    }
+
+    .log-panel.active {
+      max-height: 400px;
+      opacity: 1;
+    }
+
+    .log-content {
+      padding: 16px 20px;
+      font-family: var(--font-mono);
+      font-size: var(--font-size-sm);
+      line-height: 1.75;
+      color: var(--text-terminal);
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .log-line {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+
+    .log-ts {
+      color: var(--text-dim);
+      flex-shrink: 0;
+      user-select: none;
+    }
+
+    .log-msg {
+      color: var(--text-terminal-dim);
+    }
+
+    .log-msg.success { color: var(--log-success); }
+    .log-msg.info { color: var(--log-info); }
+    .log-msg.warn { color: var(--log-warn); }
+    .log-msg.error { color: var(--log-error); }
+
+    /* ===== BUTTON STATES ===== */
+    .action-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .action-btn.loading {
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .status-badge.offline {
+      background: color-mix(in srgb, var(--status-danger) 10%, transparent);
+      color: var(--status-danger);
+    }
+
+    .status-badge.offline .dot {
+      background: var(--status-danger);
+      box-shadow: 0 0 5px color-mix(in srgb, var(--status-danger) 30%, transparent);
+    }
+
+    .status-badge.running.flash {
+      animation: statusFlash 0.6s ease;
+    }
+
+    @keyframes statusFlash {
+      0%, 100% { background: color-mix(in srgb, var(--status-success) 10%, transparent); }
+      50% { background: color-mix(in srgb, var(--status-success) 25%, transparent); }
+    }
+
+    /* ===== TERMINAL VIEW ===== */
+    .terminal-section {
+      margin-top: 4px;
+    }
+
+    .terminal-window {
+      background: var(--bg-terminal);
+      border: 1px solid var(--border-muted);
+      border-radius: 34px 34px 5px 34px;
+      overflow: hidden;
+    }
+
+    .terminal-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: var(--bg-terminal-header);
+      border-bottom: 1px solid var(--bg-hover);
+    }
+
+    .terminal-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .terminal-dot.red { background: var(--term-red); }
+    .terminal-dot.yellow { background: var(--term-yellow); }
+    .terminal-dot.green { background: var(--term-green); }
+
+    .terminal-title {
+      font-size: var(--font-size-xs);
+      color: var(--log-success);
+      margin-left: 6px;
+      font-family: var(--font-mono);
+    }
+
+    .terminal-body {
+      min-width: 600px;
+      padding: 16px 18px 18px;
+      font-family: var(--font-mono);
+      font-size: var(--font-size-sm);
+      line-height: 1.75;
+      color: var(--text-terminal);
+      min-height: 220px;
+      max-height: 290px;
+      overflow-y: auto;
+    }
+
+    .terminal-line {
+      display: flex;
+      gap: 10px;
+    }
+
+    .terminal-ts {
+      color: var(--text-dim);
+      flex-shrink: 0;
+      user-select: none;
+    }
+
+    .terminal-prompt {
+      color: var(--log-success);
+      flex-shrink: 0;
+      user-select: none;
+    }
+
+    .terminal-output {
+      color: var(--text-terminal);
+      word-break: break-all;
+    }
+
+    .terminal-output .info {
+      color: var(--log-info);
+    }
+    .terminal-output .success {
+      color: var(--log-success);
+    }
+    .terminal-output .warn {
+      color: var(--log-warn);
+    }
+    .terminal-output .error {
+      color: var(--log-error);
+    }
+    .terminal-output .dim {
+      color: var(--accent-teal-bright);
+    }
+    .terminal-output .gpu {
+      color: var(--log-gpu);
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1279px) {
+      .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 999px) {
+      /* Server selector: hide the connection caption so the dropdown can
+         never be wider than the screen; the server name already truncates. */
+      .server-selector .server-conn {
+        display: none;
+      }
+    }
+
+    @media (max-width: 1024px) {
+      .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      /* Compact action buttons so all three fit on tablets */
+      .action-group {
+        gap: 6px;
+        flex-shrink: 0;
+      }
+
+      .action-btn {
+        gap: 6px;
+        font-size: 11px !important;
+        padding: 4px 8px;
+        height: auto;
+        min-width: 0;
+      }
+    }
+
+    /* Mobile header button — hidden by default, shown only when the
+       sidebar collapses into the mobile header (same breakpoint as
+       shared-sidebar.css) */
+    .mobile-header .btn-new-instance--mobile {
+      display: none;
+    }
+
+    @media (max-width: 999px) {
+      .main-content {
+        margin-left: 0;
+      }
+      .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .top-bar {
+      height: auto;
+      min-height: 72px;
+      padding: 16px 18px;
+    }
+      .content-body {
+        padding: 18px 18px 24px;
+      }
+
+      /* Hide the "+ New Instance" button inside the content header —
+         it moves into the global mobile header instead */
+      .top-bar-right .btn-new-instance {
+        display: none;
+      }
+
+      .mobile-header {
+        justify-content: space-between;
+      }
+
+      .mobile-header .btn-new-instance--mobile {
+        display: inline-flex;
+        align-items: center;
+        height: 34px;
+        padding: 0 14px;
+        font-size: var(--font-size-sm);
+        margin-left: auto;
+      }
+
+      .mobile-header .btn-new-instance--mobile .plus-icon {
+        font-size: var(--font-size-base);
+      }
+    }
+
+    /* Hard rule for mobile: only the mobile-header button stays visible.
+       This guarantees the in-content "+ New Instance" can never duplicate
+       the header one even if other rules change. */
+    @media (max-width: 999px) {
+      .top-bar-right .btn-new-instance {
+        display: none !important;
+      }
+    }
+
+    /* Below 720px the usage cards collapse to a single column */
+    @media (max-width: 720px) {
+      .metrics-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .main-content {
+        margin-left: 0;
+      }
+      .top-bar-right {
+        flex-wrap: wrap;
+      }
+    }
+      /* Light theme: keep terminal log lines readable on light backgrounds */
+[data-theme="light"] .terminal-prompt,
+    [data-theme="light"] .terminal-title,
+    [data-theme="light"] .terminal-output .success,
+    [data-theme="light"] .log-msg.success { color: var(--log-success); }
+    [data-theme="light"] .terminal-output .info,
+    [data-theme="light"] .log-msg.info { color: var(--log-info); }
+    [data-theme="light"] .terminal-output .error,
+    [data-theme="light"] .log-msg.error { color: var(--log-error); }
+    [data-theme="light"] .terminal-output .dim { color: var(--accent-teal); }
+    [data-theme="light"] .terminal-output .gpu { color: var(--log-gpu); }
+
+    /* ===== TOAST ===== */
+    .toast-container {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toast {
+      background: var(--bg-surface-fade);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--border-card);
+      border-radius: 14px 14px 4px 14px;
+      padding: 12px 18px;
+      font-size: var(--font-size-sm);
+      font-weight: 500;
+      font-family: var(--font-head);
+      color: var(--text-primary);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
+      animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .toast svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+
+    .toast--success { border-color: color-mix(in srgb, var(--status-success) 45%, transparent); }
+    .toast--success .toast-icon { color: var(--status-success); }
+
+    @keyframes toastIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes toastOut { to { opacity: 0; transform: translateY(14px); } }
+
+    /* ============================================================
+       ONBOARDING MODAL
+       ============================================================ */
+    .onboarding-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 5000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 22px;
+      background: rgba(2, 6, 23, 0.66);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .onboarding-overlay.open { display: flex; }
+
+    .onboarding-modal {
+      width: min(820px, 100%);
+      max-height: min(90vh, 900px);
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-modal, var(--bg-surface));
+      border: 1px solid var(--border-card);
+      border-radius: 28px 28px 6px 28px;
+      box-shadow: 0 40px 90px rgba(0, 0, 0, 0.45);
+      overflow: hidden;
+      animation: onboardingCardIn 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    @keyframes onboardingCardIn {
+      from { opacity: 0; transform: translateY(18px) scale(0.98); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .onboarding-body {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      scrollbar-gutter: stable;
+      scrollbar-width: thin;
+      scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+      padding: 30px 34px 10px;
+    }
+
+    .onboarding-slide { display: none; }
+    .onboarding-slide.active { display: block; animation: onboardingSlideIn 0.26s ease; }
+
+    @keyframes onboardingSlideIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .onboarding-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-head);
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent-blue-bright);
+      margin-bottom: 10px;
+    }
+
+    .onboarding-kicker svg {
+      width: 14px; height: 14px;
+      stroke: currentColor; fill: none;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+
+    .onboarding-title {
+      font-family: var(--font-head);
+      font-size: var(--font-size-xl);
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .onboarding-desc {
+      color: var(--text-secondary);
+      font-size: var(--font-size-sm);
+      line-height: 1.55;
+      max-width: 480px;
+    }
+
+    .onboarding-grid {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr;
+      gap: 28px;
+      align-items: center;
+    }
+
+    .onboarding-copy {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .onboarding-visual {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 360px;
+      max-width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+      padding: 1rem;
+      margin: 0;
+      overflow: hidden;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .onboarding-mock {
+      width: 560px;
+      max-width: 100%;
+      height: 100%;
+      margin: 0 auto;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform-origin: top center;
+    }
+
+    /* ---- Slide 1: wizard preset card mock ---- */
+    .wz-preset-card {
+      width: 100%;
+      max-width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      background: var(--bg-card);
+      border: 1px solid var(--accent-blue);
+      border-radius: 12px 12px 3px 12px;
+      box-shadow: 0 0 22px rgba(0, 114, 255, 0.22);
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .wz-card-top { display: flex; align-items: center; gap: 12px; min-width: 0; }
+
+    .wz-card-icon {
+      width: 40px; height: 40px;
+      border-radius: 8px 8px 2px 8px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--accent-blue);
+      color: var(--accent-blue);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .wz-card-icon svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+    .wz-card-title {
+      flex: 1 1 auto;
+      font-family: var(--font-head);
+      font-weight: 700;
+      font-size: var(--font-size-base);
+      color: var(--text-primary);
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: normal;
+    }
+
+    .wz-card-desc {
+      color: var(--text-secondary);
+      font-size: var(--font-size-sm);
+      line-height: 1.5;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: normal;
+    }
+
+    .wz-card-meta {
+      margin-left: auto;
+      padding: 5px 9px;
+      border: 1px solid var(--border-muted);
+      border-radius: 10px 10px 3px 10px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: var(--font-size-xs);
+      white-space: nowrap;
+    }
+
+    .wz-stepper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px 12px 3px 12px;
+      background: var(--bg-surface);
+    }
+
+    .wz-step {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+      color: var(--text-muted);
+      font-size: var(--font-size-xs);
+      white-space: nowrap;
+    }
+
+    .wz-step span {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 19px;
+      height: 19px;
+      border: 1px solid var(--border-muted);
+      border-radius: 50%;
+      font-family: var(--font-mono);
+      font-size: 10px;
+    }
+
+    .wz-step.active { color: var(--accent-blue-bright); }
+    .wz-step.active span {
+      color: var(--text-on-accent);
+      background: var(--accent-blue);
+      border-color: var(--accent-blue);
+    }
+
+    .wz-step-line {
+      height: 1px;
+      flex: 1;
+      min-width: 8px;
+      background: var(--border-muted);
+    }
+
+    .wz-fields {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .wz-field {
+      min-width: 0;
+      padding: 9px 11px;
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px 10px 3px 10px;
+      background: var(--bg-surface);
+    }
+
+    .wz-field-label {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--text-muted);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .wz-field-value {
+      display: block;
+      overflow: hidden;
+      color: var(--text-primary);
+      font-size: var(--font-size-xs);
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .wz-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 14px;
+      margin-top: 4px;
+      min-width: 0;
+      flex-wrap: wrap;
+    }
+
+    .wz-spec { display: inline-flex; align-items: center; gap: 8px; min-width: 0; flex-wrap: wrap; }
+
+    .wz-spec-chip {
+      font-family: var(--font-mono);
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px 8px 2px 8px;
+      padding: 4px 10px;
+    }
+
+    .wz-spec-sep { color: var(--text-dim); font-size: var(--font-size-sm); }
+
+    .wz-continue-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      height: 38px;
+      padding: 0 20px;
+      font-family: var(--font-head);
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      color: var(--text-on-accent);
+      background: linear-gradient(var(--grad-angle), var(--brand-stops));
+      border: none;
+      border-radius: 19px 19px 4px 19px;
+      cursor: default;
+      max-width: 100%;
+      flex-shrink: 1;
+      white-space: normal;
+    }
+
+    .wz-continue-btn svg {
+      width: 15px; height: 15px;
+      stroke: currentColor; fill: none;
+      stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    /* ---- Slide 2: metrics analytics mock ---- */
+    .metrics-mock {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+      height: 100%;
+    }
+
+    .metrics-mock-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 0 4px;
+    }
+
+    .metrics-mock-title {
+      font-family: var(--font-head);
+      font-size: var(--font-size-base);
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .metrics-mock-toggle { display: inline-flex; gap: 6px; }
+
+    .metrics-mock-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .metrics-mock-stat {
+      min-width: 0;
+      padding: 9px 10px;
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px 12px 3px 12px;
+      background: var(--bg-surface);
+    }
+
+    .metrics-mock-stat-label {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--text-muted);
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .metrics-mock-stat-value {
+      display: block;
+      overflow: hidden;
+      color: var(--text-primary);
+      font-family: var(--font-head);
+      font-size: var(--font-size-sm);
+      font-weight: 700;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .metrics-mock-stat-value em {
+      color: var(--accent-teal);
+      font-size: var(--font-size-xs);
+      font-style: normal;
+      font-weight: 500;
+    }
+
+    .metrics-mock-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 30px;
+      padding: 0 13px;
+      font-family: var(--font-head);
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      color: var(--text-dim);
+      background: transparent;
+      border: 1px solid var(--border-muted);
+      border-radius: 15px 15px 3px 15px;
+      cursor: default;
+    }
+
+    .metrics-mock-pill.active {
+      background: linear-gradient(135deg, var(--brand-soft-stops));
+      color: var(--text-primary);
+      border-color: color-mix(in srgb, var(--accent-teal) 30%, transparent);
+    }
+
+    .metrics-mock-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 24px 24px 5px 24px;
+      padding: 14px 16px 12px;
+    }
+
+    .metrics-mock-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .metrics-mock-card-head > span:first-child {
+      font-family: var(--font-head);
+      font-weight: 600;
+      font-size: var(--font-size-sm);
+      color: var(--text-primary);
+    }
+
+    .metrics-mock-badge {
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      color: var(--text-faint);
+      background: var(--bg-hover);
+      padding: 4px 12px;
+      border: 1px solid var(--border-muted);
+      border-radius: 12px 12px 3px 12px;
+      white-space: nowrap;
+    }
+
+    .metrics-mock-chart { height: 78px; position: relative; }
+    .metrics-mock-chart svg { width: 100%; height: 100%; display: block; overflow: visible; }
+    .metrics-mock-chart line.grid { stroke: var(--border-faint, rgba(148,163,184,0.18)); stroke-dasharray: 3 3; }
+
+    /* ---- Slide 3: api key card mock ---- */
+    .apikey-mock-card {
+      width: 100%;
+      max-width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 24px 24px 5px 24px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .apikey-mock-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .apikey-mock-name {
+      font-size: var(--font-size-base);
+      font-weight: 700;
+      color: var(--text-primary);
+      min-width: 0;
+    }
+
+    .apikey-mock-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 10px;
+      border-radius: 14px 14px 3px 14px;
+      border: 1px solid var(--border-color);
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      color: var(--text-secondary);
+      background: var(--bg-overlay-soft);
+      white-space: nowrap;
+    }
+
+    .apikey-mock-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--status-success);
+      box-shadow: 0 0 8px color-mix(in srgb, var(--status-success) 35%, transparent);
+    }
+
+    .apikey-mock-label {
+      color: var(--text-muted);
+      font-size: var(--font-size-xs);
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+
+    .apikey-mock-token-row { display: flex; align-items: center; gap: 8px; }
+
+    .apikey-mock-token {
+      font-family: var(--font-mono);
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary);
+      background: var(--bg-hover-subtle);
+      padding: 9px 14px;
+      margin-left: -12px;
+      border-radius: 9999px 9999px 0 9999px;
+      flex: 1;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .apikey-mock-icon {
+      width: 36px; height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: 1px solid var(--border-color);
+      border-radius: 18px 18px 4px 18px;
+      background: var(--bg-surface);
+      color: var(--text-helper);
+    }
+
+    .apikey-mock-icon svg {
+      width: 16px; height: 16px;
+      stroke: currentColor; fill: none;
+      stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+      display: block;
+    }
+
+    .apikey-mock-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .apikey-mock-scope {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 9px 11px;
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px 12px 3px 12px;
+      background: var(--bg-surface);
+      color: var(--text-muted);
+      font-size: var(--font-size-xs);
+    }
+
+    .apikey-mock-scope strong {
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    .apikey-mock-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      background: var(--bg-hover);
+      border: 1px solid var(--border-muted);
+      border-radius: 14px 14px 3px 14px;
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .apikey-mock-tag.full  { color: var(--accent-sky-light); border-color: rgba(56, 189, 248, 0.24); }
+    .apikey-mock-tag.logs  { color: var(--accent-violet);   border-color: rgba(167, 139, 250, 0.24); }
+
+    .apikey-mock-actions {
+      display: flex;
+      gap: 8px;
+      min-width: 0;
+      flex-wrap: wrap;
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 14px;
+    }
+
+    .apikey-mock-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 1 1 0;
+      min-width: 0;
+      gap: 6px;
+      padding: 7px 8px;
+      background: var(--bg-hover-subtle);
+      border: 1px solid var(--bg-hover-bright);
+      border-radius: 15px 15px 3px 15px;
+      color: var(--text-soft);
+      font-size: var(--font-size-sm);
+      font-weight: 500;
+      white-space: normal;
+      cursor: default;
+    }
+
+    .apikey-mock-action svg {
+      width: 14px; height: 14px;
+      stroke: currentColor; fill: none;
+      stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+      display: block;
+    }
+
+    .apikey-mock-action.revoke { color: var(--status-danger); border-color: color-mix(in srgb, var(--status-danger) 30%, transparent); }
+
+    .wz-ready-state {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--accent-teal);
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+    }
+
+    .wz-ready-state::before {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent-teal);
+      box-shadow: 0 0 8px color-mix(in srgb, var(--accent-teal) 45%, transparent);
+      content: "";
+    }
+
+    /* ---- Slide stepper + nav ---- */
+    .onboarding-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-shrink: 0;
+      padding: 16px 26px 18px;
+      border-top: 1px solid var(--border-subtle);
+      background: var(--bg-modal, var(--bg-surface));
+    }
+
+    .onboarding-dots { display: flex; align-items: center; gap: 7px; }
+
+    .onboarding-dot {
+      width: 8px; height: 8px;
+      padding: 0;
+      border: none;
+      border-radius: 99px;
+      background: var(--border-strong);
+      cursor: pointer;
+      transition: width 0.25s ease, background 0.25s ease;
+    }
+
+    .onboarding-dot.active {
+      width: 26px;
+      background: linear-gradient(90deg, var(--brand-stops));
+    }
+
+    .onboarding-actions { display: flex; align-items: center; gap: 12px; }
+
+    /* Button styling inherited from instance-wizard's nav (btn-secondary / btn-nav-cta btn-primary).
+       theme.css owns the appearance; only the wizard's nav sizing is duplicated below. */
+    .onboarding-footer .btn-secondary,
+    .onboarding-footer .btn-nav-cta {
+      min-width: 148px;
+      max-width: 260px;
+      padding: 12px 26px;
+      gap: 8px;
+    }
+
+    .onboarding-footer button svg {
+      width: 16px; height: 16px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+
+    .onboarding-footer #onboardingNext svg {
+      width: 16px !important;
+      height: 16px !important;
+      stroke-width: 2.8 !important;
+      flex-shrink: 0 !important;
+    }
+
+    @media (max-width: 900px) {
+      .onboarding-modal { max-height: 92vh; }
+      .onboarding-body { padding: 20px 20px 4px; }
+      .onboarding-grid { gap: 18px; }
+      .onboarding-visual { height: 320px; max-height: 320px; }
+      .onboarding-title { font-size: var(--font-size-lg); }
+      .onboarding-footer { padding: 14px 18px 16px; }
+    }
+
+    @media (max-width: 768px) {
+      .onboarding-grid { grid-template-columns: 1fr; gap: 14px; }
+      .onboarding-visual { height: 320px; max-height: 320px; }
+    }
+
+    @media (max-width: 480px) {
+      .onboarding-overlay { padding: 12px; }
+      .onboarding-footer { flex-wrap: wrap; }
+      .onboarding-dots { flex: 1 1 100%; order: 2; justify-content: center; }
+      .onboarding-actions { flex: 1; justify-content: space-between; }
+      .onboarding-footer .btn-secondary,
+      .onboarding-footer .btn-nav-cta { min-width: 0; flex: 1 1 0; padding: 12px 18px; }
+    }
+  </style>
+  <link rel="stylesheet" href="shared-dropdown.css">
+  <link rel="stylesheet" href="shared-sidebar.css">
+</head>
+<body>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+    <a href="saas_dashboard.html" class="sidebar-brand-link">
+      <div class="sidebar-brand">
+        <img src="Logo.svg" alt="GridNode" class="brand-logo" data-logo-theme />
+<img src="brand-logo-icon.svg" alt="GridNode icon" class="brand-logo-icon" />
+      </div>
+    </a>
+
+    <nav class="sidebar-nav">
+      <a class="nav-item active" href="saas_dashboard.html">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-6l-2-2H5a2 2 0 0 0-2 2z"></path><line x1="3" y1="12" x2="21" y2="12"></line></svg>
+        </span>
+        <span>Dashboard</span>
+      </a>
+      <a class="nav-item" href="instances.html">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
+        </span>
+        <span>Cloud Instances</span>
+      </a>
+      <a class="nav-item" href="metrics.html">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line><line x1="3" y1="20" x2="21" y2="20"></line></svg>
+        </span>
+        <span>Metrics Analytics</span>
+      </a>
+      <a class="nav-item" href="system_logs.html">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"></rect><line x1="7" y1="9" x2="17" y2="9"></line><line x1="7" y1="12.5" x2="14" y2="12.5"></line><line x1="7" y1="16" x2="10" y2="16"></line></svg>
+        </span>
+        <span>System Logs</span>
+      </a>
+      <a class="nav-item" href="api_keys.html">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><circle cx="12" cy="10" r="1.8"></circle><path d="M12 11.8V16"></path></svg>
+        </span>
+        <span>API Keys</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-profile" id="profileDropdown">
+      <div class="profile-avatar">DU</div>
+      <div class="profile-info">
+        <span class="profile-name">DemoTest User</span>
+        <span class="user-plan-badge">Starter Plan</span>
+      </div>
+      <div class="profile-action-btn">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </div>
+      <div class="profile-popover" id="profilePopover">
+        <a href="pricing.html?mode=app" class="popover-link">
+          <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          Billing &amp; Plan
+        </a>
+        <a href="settings.html" class="popover-link">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Settings
+        </a>
+        <div class="dropdown-divider"></div>
+        <a href="login.html" class="popover-link text-danger">
+          <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Log Out
+        </a>
+      </div>
+    </div>
+
+    <a class="nav-item support-link" href="support.html" title="Tech Support">
+      <span class="nav-icon support-icon">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+      </span>
+      <span>Support</span>
+    </a>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <main class="main-content">
+
+    <!-- Top Bar -->
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <h1>Infrastructure Overview</h1>
+        <p class="page-subtitle">Cluster status &middot; all systems nominal</p>
+      </div>
+      <div class="top-bar-right">
+        <div class="server-selector" title="Active server: ubuntu-24-04-lts-oracle">
+          <span class="server-dot"></span>
+          <span class="server-name">ubuntu-24-04-lts-oracle</span>
+          <span class="server-conn">via OpenSSH Key</span>
+          <span class="chevron">▾</span>
+          <div class="server-dropdown">
+            <div class="server-option" data-server="ubuntu-24-04-lts-oracle">
+              <div class="title-row"><span class="server-dot"></span><span class="server-name">ubuntu-24-04-lts-oracle</span></div>
+              <span class="server-conn">via OpenSSH Key</span>
+            </div>
+            <div class="server-option" data-server="ubuntu-24-04-vps-02">
+              <div class="title-row"><span class="server-dot"></span><span class="server-name">ubuntu-24-04-vps-02</span></div>
+              <span class="server-conn">via OpenSSH Key</span>
+            </div>
+            <div class="server-option" data-server="debian-12-database">
+              <div class="title-row"><span class="server-dot"></span><span class="server-name">debian-12-database</span></div>
+              <span class="server-conn">via OpenSSH Key</span>
+            </div>
+            <div class="server-option" data-server="centos-8-gateway">
+              <div class="title-row"><span class="server-dot"></span><span class="server-name">centos-8-gateway</span></div>
+              <span class="server-conn">via OpenSSH Key</span>
+            </div>
+          </div>
+        </div>
+        <div class="nodes-counter">
+          <div class="counter-dot"></div>
+          <span>Total Nodes: <strong>4 Active</strong></span>
+        </div>
+        <button class="btn-primary btn-new-instance"><span class="plus-icon">+</span> New Instance</button>
+      </div>
+    </header>
+
+    <!-- Content Body -->
+    <div class="content-body">
+
+      <!-- Metrics Grid -->
+      <section class="metrics-grid">
+
+        <!-- CPU -->
+        <a href="metrics.html#cpu" class="metric-card" id="metric-cpu">
+          <div class="metric-header">
+            <span class="metric-label">CPU Usage</span>
+            <span class="metric-value" id="cpu-value">42%</span>
+          </div>
+          <div class="metric-sub" id="cpu-sub"><span class="accent">6 vCPUs</span> <span class="text-muted">2.8 GHz avg</span></div>
+          <div class="metric-bar-track">
+            <div class="metric-bar-fill" id="cpu-bar" style="width: 42%;"></div>
+          </div>
+        </a>
+
+        <!-- RAM -->
+        <a href="metrics.html#ram" class="metric-card" id="metric-ram">
+          <div class="metric-header">
+            <span class="metric-label">RAM Allocation</span>
+            <span class="metric-value" id="ram-value">12.4 <span style="font-size: var(--font-size-xs); color: var(--text-dim);">GB</span></span>
+          </div>
+          <div class="metric-sub" id="ram-sub"><span class="highlight" id="ram-used">12.4 GB</span><span class="slash">/</span><span class="text-muted"><span id="ram-total">32 GB</span> total</span></div>
+          <div class="metric-bar-track">
+            <div class="metric-bar-fill" id="ram-bar" style="width: 38.75%;"></div>
+          </div>
+        </a>
+
+        <!-- VRAM / GPU -->
+        <a href="metrics.html#vram" class="metric-card" id="metric-vram">
+          <div class="metric-header">
+            <span class="metric-label">VRAM / GPU Load</span>
+            <span class="metric-value" id="vram-value">88%</span>
+          </div>
+          <div class="metric-sub" id="vram-sub"><span class="accent">20.2 GB</span><span class="slash">/</span><span class="text-muted">24 GB total</span></div>
+          <div class="metric-bar-track">
+            <div class="metric-bar-fill" id="vram-bar" style="width: 88%;"></div>
+          </div>
+        </a>
+
+        <!-- Network Bandwidth -->
+        <a href="metrics.html#network" class="metric-card" id="metric-net">
+          <div class="metric-header">
+            <span class="metric-label">Network</span>
+            <span class="metric-value" id="net-value">1.4 <span style="font-size: var(--font-size-xs); color: var(--text-dim);">Gbps</span></span>
+          </div>
+          <div class="metric-sub" id="net-sub">
+            <span class="arrow-down"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 6 6 6 6-6"/><path d="m6 12 6 6 6-6"/></svg> 847 Mbps</span>
+            <span class="arrow-up"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m18 12-6-6-6 6"/><path d="m18 18-6-6-6 6"/></svg> 523 Mbps</span>
+          </div>
+          <div class="metric-bar-track">
+            <div class="metric-bar-fill" id="net-bar" style="width: 56%;"></div>
+          </div>
+        </a>
+
+      </section>
+
+      <!-- AI Automation & Scripts Table -->
+      <section class="table-section">
+        <div class="section-header">
+          <h2>AI Automation & Scripts</h2>
+          <span class="badge-outline" id="job-count">3 active jobs</span>
+        </div>
+
+        <div class="data-table-wrap">
+          <div class="table-scroll">
+            <table class="data-table">
+            <thead>
+              <tr>
+                <th>Script Name</th>
+                <th>Process Type</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="scripts-tbody">
+            </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Live Terminal -->
+      <section class="terminal-section">
+        <div class="terminal-window">
+          <div class="terminal-header">
+            <div class="terminal-dot red"></div>
+            <div class="terminal-dot yellow"></div>
+            <div class="terminal-dot green"></div>
+            <span class="terminal-title">gridnode@ssh — /var/log/cluster</span>
+          </div>
+          <div class="terminal-scroll">
+          <div class="terminal-body">
+            <div class="terminal-line">
+              <span class="terminal-ts">[03:34:12]</span>
+              <span class="terminal-prompt">$</span>
+              <span class="terminal-output"><span class="info">[INFO]</span> GPU memory cache flushed — 2.4 GB freed</span>
+            </div>
+            <div class="terminal-line">
+              <span class="terminal-ts">[03:34:14]</span>
+              <span class="terminal-prompt">$</span>
+              <span class="terminal-output"><span class="info">[INFO]</span> CUDA device 0 (RTX 4090) — vRAM usage: 18.7 / 24.0 GB</span>
+            </div>
+            <div class="terminal-line">
+              <span class="terminal-ts">[03:34:17]</span>
+              <span class="terminal-prompt">$</span>
+              <span class="terminal-output"><span class="success">[ OK ]</span> Database handshake <span class="dim">postgresql://primary:5432</span> — 3.2 ms</span>
+            </div>
+            <div class="terminal-line">
+              <span class="terminal-ts">[03:34:21]</span>
+              <span class="terminal-prompt">$</span>
+              <span class="terminal-output"><span class="info">[INFO]</span> LLM layer 24/32 offloaded to GPU — tensor shape [4096, 4096]</span>
+            </div>
+            <div class="terminal-line">
+              <span class="terminal-ts">[03:34:26]</span>
+              <span class="terminal-prompt">$</span>
+              <span class="terminal-output"><span class="success">[ OK ]</span> syncthing peer <span class="dim">node-ea7f</span> — delta 0.4 MB/s</span>
+            </div>
+            <div class="terminal-line">
+              <span class="terminal-ts">[03:34:30]</span>
+              <span class="terminal-prompt">$</span>
+              <span class="terminal-output"><span class="gpu">[GPU ]</span> Kernel launch <span class="dim">flash_attn_v2</span> — 2.1 ms (warm)</span>
+            </div>
+            <div class="terminal-line">
+              <span class="terminal-ts">[03:34:35]</span>
+              <span class="terminal-prompt">$</span>
+              <span class="terminal-output"><span class="warn">[WARN]</span> DB replica lag — 142 ms (within threshold)</span>
+            </div>
+            <div class="terminal-line">
+              <span class="terminal-ts">[03:34:40]</span>
+              <span class="terminal-prompt">$</span>
+              <span class="terminal-output"><span class="success">[ OK ]</span> Heartbeat <span class="dim">node-primary</span> — 4/4 responses</span>
+            </div>
+            <div class="terminal-line">
+              <span class="terminal-ts">[03:34:46]</span>
+              <span class="terminal-prompt">$</span>
+              <span class="terminal-output"><span class="dim">_</span></span>
+            </div>
+          </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <script>
+    // Generic tab navigation: when clicking interactable elements inside Tab 2 or Tab 3, switch to Tab 4
+    (function() {
+      document.addEventListener('click', function(e) {
+        var node = e.target;
+        var attrEl = node.closest('[data-tab-target],[data-nav-tab],[data-tab-target-id]');
+        if (attrEl) {
+          var val = attrEl.getAttribute('data-tab-target') || attrEl.getAttribute('data-nav-tab') || attrEl.getAttribute('data-tab-target-id') || '';
+          if ((/^tab-?2$|^2$|tab2$|^tab-?3$|^3$|tab3$/i).test(val)) {
+            var tab4 = document.querySelector('[data-tab="4"], #tab4, [data-tab-id="tab4"], .tab-4, .tab4');
+            if (tab4) { tab4.click(); }
+            return;
+          }
+        }
+        var panel = node.closest('[data-tab-panel="2"], [data-tab-index="2"], .tab-2, .tab2, #tab2, [data-tab-panel="3"], [data-tab-index="3"], .tab-3, .tab3, #tab3');
+        if (panel) {
+          var tab4 = document.querySelector('[data-tab="4"], #tab4, [data-tab-id="tab4"], .tab-4, .tab4');
+          if (tab4) { tab4.click(); }
+        }
+      });
+    })();
+  </script>
+
+  <script>
+    (function() {
+      // ===== Mock Logs Data =====
+      var mockLogs = {
+        'amy_assistant.py': [
+          { ts: '[12:45:01]', msg: 'Initializing connection...', type: 'info' },
+          { ts: '[12:45:02]', msg: 'Fetching LLM API weights...', type: 'info' },
+          { ts: '[12:45:03]', msg: 'Loading model: llama-3-8b-instruct', type: 'info' },
+          { ts: '[12:45:05]', msg: 'Warming up GPU memory pool — 2.1 GB allocated', type: 'info' },
+          { ts: '[12:45:07]', msg: 'Sync complete.', type: 'success' },
+          { ts: '[12:45:08]', msg: 'Agent heartbeat established — listening on port 8443', type: 'info' },
+          { ts: '[12:45:12]', msg: 'Received prompt batch (24 tokens)', type: 'dim' },
+          { ts: '[12:45:14]', msg: 'Inference latency: 42 ms/token', type: 'gpu' },
+          { ts: '[12:45:18]', msg: 'Response streamed to client', type: 'success' },
+          { ts: '[12:45:25]', msg: 'Context window expanded to 8192 tokens', type: 'info' }
+        ],
+        'data_syncthing_daemon': [
+          { ts: '[13:02:11]', msg: 'Scanning local directory /data/inbound', type: 'info' },
+          { ts: '[13:02:12]', msg: 'Connected to peer node-ea7f (TLS 1.3)', type: 'success' },
+          { ts: '[13:02:14]', msg: 'Detected 3 new files — queuing delta sync', type: 'info' },
+          { ts: '[13:02:16]', msg: 'Delta sync complete — 14.2 MB transferred', type: 'success' },
+          { ts: '[13:02:18]', msg: 'File verification passed (SHA-256)', type: 'success' },
+          { ts: '[13:02:20]', msg: 'Index updated — 1,247 files tracked', type: 'dim' },
+          { ts: '[13:02:22]', msg: 'Bandwidth throttled to 50 Mbps (night mode)', type: 'warn' },
+          { ts: '[13:02:25]', msg: 'Peer ping: 3.4 ms', type: 'info' },
+          { ts: '[13:02:30]', msg: 'No conflicts detected', type: 'success' },
+          { ts: '[13:02:35]', msg: 'Idle — waiting for changes', type: 'dim' }
+        ],
+        'db_backup_cron': [
+          { ts: '[11:30:00]', msg: 'Starting scheduled PostgreSQL backup', type: 'info' },
+          { ts: '[11:30:01]', msg: 'Connecting to postgresql://primary:5432', type: 'info' },
+          { ts: '[11:30:02]', msg: 'pg_dump: dumping database "gridnode_prod"', type: 'info' },
+          { ts: '[11:30:08]', msg: 'WARNING: large object "vector_store" — 4.2 GB', type: 'warn' },
+          { ts: '11:30:45', msg: 'Compressing output with gzip -9', type: 'info' },
+          { ts: '11:31:12', msg: 'Backup complete — 8.7 GB (compressed)', type: 'success' },
+          { ts: '11:31:13', msg: 'Uploading to S3://gridnode-backups/daily', type: 'info' },
+          { ts: '11:31:30', msg: 'S3 upload complete', type: 'success' },
+          { ts: '11:31:31', msg: 'ERROR: retention policy check failed', type: 'error' },
+          { ts: '11:31:32', msg: 'Backup job marked as FAILED', type: 'error' },
+          { ts: '11:31:35', msg: 'Alert sent to ops@gridnode.ai', type: 'warn' }
+        ]
+      };
+
+      // ===== Action Buttons (Event Delegation) =====
+      document.querySelector('.data-table').addEventListener('click', function(e) {
+        var btn = e.target.closest('.action-btn');
+        if (!btn) return;
+
+        var row = btn.closest('tr');
+        var statusBadge = row.querySelector('.status-badge');
+
+        // ===== STOP / START LOGIC =====
+        if (btn.classList.contains('stop') || (btn.classList.contains('restart') && statusBadge.getAttribute('data-status') === 'offline')) {
+          var isStarting = btn.classList.contains('restart') && statusBadge.getAttribute('data-status') === 'offline';
+
+          if (!isStarting) {
+            // STOP action
+            btn.textContent = 'Stopping...';
+            btn.disabled = true;
+
+            setTimeout(function() {
+              statusBadge.classList.remove('running', 'idle', 'failed');
+              statusBadge.classList.add('offline');
+              statusBadge.setAttribute('data-status', 'offline');
+              statusBadge.innerHTML = '<span class="dot"></span> Offline';
+
+              btn.textContent = 'Start';
+              btn.disabled = false;
+              btn.classList.remove('stop');
+              btn.classList.add('restart');
+            }, 1500);
+            return;
+          }
+
+          // START action (from offline -> running)
+          btn.textContent = 'Starting...';
+          btn.disabled = true;
+
+          setTimeout(function() {
+            statusBadge.classList.remove('offline');
+            statusBadge.classList.add('running');
+            statusBadge.setAttribute('data-status', 'running');
+            statusBadge.innerHTML = '<span class="dot"></span> Running';
+
+            btn.textContent = 'Stop';
+            btn.disabled = false;
+            btn.classList.remove('restart');
+            btn.classList.add('stop');
+          }, 1500);
+          return;
+        }
+
+        // ===== RESTART LOGIC =====
+        if (btn.classList.contains('restart')) {
+          btn.textContent = 'Restarting...';
+          btn.classList.add('loading');
+          btn.disabled = true;
+
+          setTimeout(function() {
+            statusBadge.classList.add('flash');
+
+            setTimeout(function() {
+              statusBadge.classList.remove('flash');
+              btn.textContent = 'Restart';
+              btn.classList.remove('loading');
+              btn.disabled = false;
+
+              // Change status to running if it was failed
+              if (statusBadge.getAttribute('data-status') === 'failed') {
+                statusBadge.classList.remove('failed');
+                statusBadge.classList.add('running');
+                statusBadge.setAttribute('data-status', 'running');
+                statusBadge.innerHTML = '<span class="dot"></span> Running';
+              }
+            }, 600);
+          }, 2000);
+          return;
+        }
+
+        // ===== LOGS LOGIC =====
+        if (btn.classList.contains('logs')) {
+          var logRow = row.nextElementSibling;
+          var logPanel = logRow.querySelector('.log-panel');
+          var logContent = logPanel.querySelector('.log-content');
+          var scriptName = row.querySelector('.script-name').textContent;
+
+          var isActive = logPanel.classList.contains('active');
+
+          // Close all other log panels
+          document.querySelectorAll('.log-panel.active').forEach(function(panel) {
+            panel.classList.remove('active');
+          });
+
+          // If it wasn't active, open it
+          if (!isActive) {
+            // Generate mock logs if empty
+            if (logContent.children.length === 0 && mockLogs[scriptName]) {
+              mockLogs[scriptName].forEach(function(log) {
+                var line = document.createElement('div');
+                line.className = 'log-line';
+                line.innerHTML = '<span class="log-ts">' + log.ts + '</span>' +
+                                 '<span class="log-msg ' + log.type + '">' + log.msg + '</span>';
+                logContent.appendChild(line);
+              });
+            }
+            logPanel.classList.add('active');
+          }
+        }
+      });
+    })();
+  </script>
+
+  <script>
+    (function() {
+      // ===== Server Profiles =====
+      var serverProfiles = {
+        'ubuntu-24-04-lts-oracle': {
+          conn: 'via OpenSSH Key',
+          metrics: {
+            cpu: { value: '42%', sub: '<span class="accent">6 vCPUs</span> <span class="text-muted">2.8 GHz avg</span>', bar: 42 },
+            ram: { value: '12.4', unit: 'GB', used: '12.4 GB', total: '32 GB', bar: 38.75, sub: '12.4 GB / 32 GB total' },
+            vram: { value: '88%', bar: 88, sub: '<span class="accent">20.2 GB</span><span class="slash">/</span><span class="text-muted">24 GB total</span>' },
+            net: { value: '1.4', unit: 'Gbps', max: '2.5 Gbps max', sub: '<span class="arrow-down"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 6 6 6 6-6"/><path d="m6 12 6 6 6-6"/></svg> 847 Mbps</span><span class="arrow-up"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m18 12-6-6-6 6"/><path d="m18 18-6-6-6 6"/></svg> 523 Mbps</span>', bar: 56 }
+          },
+          scripts: [
+            { name: 'amy_assistant.py', type: 'LLM Agent', status: 'running' },
+            { name: 'data_syncthing_daemon', type: 'File Sync', status: 'idle' },
+            { name: 'db_backup_cron', type: 'Database', status: 'failed' }
+          ]
+        },
+        'ubuntu-24-04-vps-02': {
+          conn: 'via OpenSSH Key',
+          metrics: {
+            cpu: { value: '15%', sub: '<span class="accent">2 vCPUs</span> <span class="text-muted">1.5 GHz avg</span>', bar: 15 },
+            ram: { value: '6.2', unit: 'GB', used: '6.2 GB', total: '16 GB', bar: 38.75, sub: '6.2 GB / 16 GB total' },
+            vram: { value: '0%', bar: 0, sub: '<span class="accent">0 GB</span><span class="slash">/</span><span class="text-muted">8 GB total</span>' },
+            net: { value: '145', unit: 'Mbps', max: '1 Gbps max', sub: '<span class="arrow-down"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 6 6 6 6-6"/><path d="m6 12 6 6 6-6"/></svg> 82 Mbps</span><span class="arrow-up"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m18 12-6-6-6 6"/><path d="m18 18-6-6-6 6"/></svg> 63 Mbps</span>', bar: 14.5 }
+          },
+          scripts: [
+            { name: 'data_syncthing_daemon', type: 'File Sync', status: 'running' }
+          ]
+        },
+        'debian-12-database': {
+          conn: 'via OpenSSH Key',
+          metrics: {
+            cpu: { value: '68%', sub: '<span class="accent">8 vCPUs</span> <span class="text-muted">3.6 GHz avg</span>', bar: 68 },
+            ram: { value: '26.8', unit: 'GB', used: '26.8 GB', total: '32 GB', bar: 83.75, sub: '26.8 GB / 32 GB total' },
+            vram: { value: '0%', bar: 0, sub: '<span class="text-muted">No GPU hardware</span>' },
+            net: { value: '850', unit: 'Mbps', max: '10 Gbps max', sub: '<span class="arrow-down"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 6 6 6 6-6"/><path d="m6 12 6 6 6-6"/></svg> 510 Mbps</span><span class="arrow-up"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m18 12-6-6-6 6"/><path d="m18 18-6-6-6 6"/></svg> 340 Mbps</span>', bar: 85 }
+          },
+          scripts: [
+            { name: 'db_backup_cron', type: 'Database', status: 'running' },
+            { name: 'pg_vacuum_task', type: 'Database', status: 'running' }
+          ]
+        },
+        'centos-8-gateway': {
+          conn: 'via OpenSSH Key',
+          metrics: {
+            cpu: { value: '12%', sub: '<span class="accent">2 vCPUs</span> <span class="text-muted">2.0 GHz avg</span>', bar: 12 },
+            ram: { value: '3.8', unit: 'GB', used: '3.8 GB', total: '8 GB', bar: 47.5, sub: '3.8 GB / 8 GB total' },
+            vram: { value: '0%', bar: 0, sub: '<span class="text-muted">No GPU hardware</span>' },
+            net: { value: '210', unit: 'Mbps', max: '1 Gbps max', sub: '<span class="arrow-down"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 6 6 6 6-6"/><path d="m6 12 6 6 6-6"/></svg> 120 Mbps</span><span class="arrow-up"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m18 12-6-6-6 6"/><path d="m18 18-6-6-6 6"/></svg> 90 Mbps</span>', bar: 21 }
+          },
+          scripts: []
+        }
+      };
+
+      // ===== DOM References =====
+      var serverSelector = document.querySelector('.server-selector');
+      var serverDropdown = document.querySelector('.server-dropdown');
+      var serverNameEl = serverSelector.querySelector('.server-name');
+      var serverConnEl = serverSelector.querySelector('.server-conn');
+      var currentServer = 'ubuntu-24-04-lts-oracle';
+      var tbody = document.getElementById('scripts-tbody');
+      var jobCountEl = document.getElementById('job-count');
+      var logsContainer = {};
+
+      // ===== Metric Card Refs =====
+      var cpuValue = document.getElementById('cpu-value');
+      var cpuSub = document.getElementById('cpu-sub');
+      var cpuBar = document.getElementById('cpu-bar');
+
+      var ramValue = document.getElementById('ram-value');
+      var ramUsed = document.getElementById('ram-used');
+      var ramTotal = document.getElementById('ram-total');
+      var ramBar = document.getElementById('ram-bar');
+
+      var vramValue = document.getElementById('vram-value');
+      var vramSub = document.getElementById('vram-sub');
+      var vramBar = document.getElementById('vram-bar');
+
+      var netValue = document.getElementById('net-value');
+      var netSub = document.getElementById('net-sub');
+      var netBar = document.getElementById('net-bar');
+      var netMax = document.getElementById('net-max');
+
+      // ===== Helper: Build Script Row HTML =====
+      function buildScriptRow(script, index) {
+        var statusClasses = {
+          'running': 'running',
+          'idle': 'idle',
+          'failed': 'failed'
+        };
+        return '<tr>' +
+          '<td><span class="script-name">' + script.name + '</span></td>' +
+          '<td><span class="process-type">' + script.type + '</span></td>' +
+          '<td>' +
+            '<span class="status-badge ' + (statusClasses[script.status] || 'idle') + '" data-status="' + script.status + '">' +
+              '<span class="dot"></span> ' + script.status.charAt(0).toUpperCase() + script.status.slice(1) +
+            '</span>' +
+          '</td>' +
+          '<td>' +
+            '<div class="action-group">' +
+              '<button class="action-btn restart">Restart</button>' +
+              '<button class="action-btn' + (script.status === 'running' ? ' stop' : ' restart') + '">' + (script.status === 'running' ? 'Stop' : 'Start') + '</button>' +
+              '<button class="action-btn logs">Logs</button>' +
+            '</div>' +
+          '</td>' +
+        '</tr>' +
+        '<tr class="log-row" data-script="' + script.name + '">' +
+          '<td colspan="4" style="padding: 0;">' +
+            '<div class="log-panel">' +
+              '<div class="log-content"></div>' +
+            '</div>' +
+          '</td>' +
+        '</tr>';
+      }
+
+      // ===== Helper: Build Metric Value Inner HTML =====
+      function buildMetricValue(rawValue, unit) {
+        if (unit === 'GB' || unit === 'Mbps' || unit === 'Gbps') {
+          return rawValue + ' <span style="font-size: var(--font-size-xs); color: var(--text-dim);">' + unit + '</span>';
+        }
+        return rawValue;
+      }
+
+      function updateMetricBar(bar, value, burst) {
+        var previous = parseFloat(bar.style.width) || 0;
+        bar.style.width = value + '%';
+        if (!burst || value === previous) return;
+        var track = bar.parentElement;
+        if (!track) return;
+        track.classList.remove('pulse-burst-up', 'pulse-burst-down');
+        void track.offsetWidth;
+        track.classList.add(value > previous ? 'pulse-burst-up' : 'pulse-burst-down');
+        window.setTimeout(function () {
+          track.classList.remove('pulse-burst-up', 'pulse-burst-down');
+        }, 1200);
+      }
+
+      function animateMetricValue(element, from, to, formatter) {
+        var start = performance.now();
+        var duration = 600;
+        function frame(now) {
+          var progress = Math.min((now - start) / duration, 1);
+          var eased = 1 - Math.pow(1 - progress, 3);
+          element.innerHTML = formatter(from + (to - from) * eased);
+          if (progress < 1) window.requestAnimationFrame(frame);
+        }
+        window.requestAnimationFrame(frame);
+      }
+
+      function randomMetricValue(value, min, max, variance) {
+        return Math.max(min, Math.min(max, value + (Math.random() * 2 - 1) * variance));
+      }
+
+      var refreshTimer = null;
+      var refreshIntervals = { '10s': 10000, '30s': 30000, '1m': 60000 };
+
+      function refreshDashboardMetrics() {
+        var profile = serverProfiles[currentServer];
+        if (!profile) return;
+        var metrics = profile.metrics;
+        var cpu = randomMetricValue(metrics.cpu.bar, 0, 100, 8);
+        var ram = randomMetricValue(metrics.ram.bar, 0, 100, 5);
+        var vram = randomMetricValue(metrics.vram.bar, 0, 100, 10);
+        var net = randomMetricValue(metrics.net.bar, 0, 100, 9);
+        var ramUsedValue = ram * parseFloat(metrics.ram.total) / 100;
+        var netValueNumber = net * (metrics.net.unit === 'Gbps' ? 2.5 : 1000) / 100;
+
+        animateMetricValue(cpuValue, parseFloat(metrics.cpu.value), cpu, function (value) {
+          return Math.round(value) + '%';
+        });
+        animateMetricValue(ramValue, parseFloat(metrics.ram.value), ramUsedValue, function (value) {
+          return buildMetricValue(value.toFixed(1), 'GB');
+        });
+        animateMetricValue(vramValue, parseFloat(metrics.vram.value), vram, function (value) {
+          return Math.round(value) + '%';
+        });
+        animateMetricValue(netValue, parseFloat(metrics.net.value), netValueNumber, function (value) {
+          return buildMetricValue(value.toFixed(1), metrics.net.unit);
+        });
+
+        metrics.cpu.value = Math.round(cpu) + '%';
+        metrics.cpu.bar = cpu;
+        metrics.ram.value = ramUsedValue.toFixed(1);
+        metrics.ram.used = metrics.ram.value + ' GB';
+        metrics.ram.bar = ram;
+        metrics.vram.value = Math.round(vram) + '%';
+        metrics.vram.bar = vram;
+        metrics.net.value = netValueNumber.toFixed(1);
+        metrics.net.bar = net;
+        ramUsed.textContent = metrics.ram.used;
+        updateMetricBar(cpuBar, cpu, true);
+        updateMetricBar(ramBar, ram, true);
+        updateMetricBar(vramBar, vram, true);
+        updateMetricBar(netBar, net, true);
+      }
+
+      function readRefreshInterval() {
+        try {
+          var settings = JSON.parse(localStorage.getItem('gridnode_settings') || '{}');
+          return refreshIntervals[settings.refresh] || 0;
+        } catch (error) {
+          return refreshIntervals['30s'];
+        }
+      }
+
+      function configureRefreshTimer() {
+        if (refreshTimer !== null) {
+          window.clearInterval(refreshTimer);
+          refreshTimer = null;
+        }
+        var interval = readRefreshInterval();
+        if (interval) refreshTimer = window.setInterval(refreshDashboardMetrics, interval);
+      }
+
+      // ===== Switch Server =====
+      function switchServer(serverKey) {
+        var profile = serverProfiles[serverKey];
+        if (!profile) return;
+        currentServer = serverKey;
+
+        // Update selector header
+        serverNameEl.textContent = serverKey;
+        serverConnEl.textContent = profile.conn;
+        serverSelector.setAttribute('title', 'Active server: ' + serverKey);
+
+        // Close dropdown
+        serverDropdown.classList.remove('show');
+
+        // Update CPU
+        var cpu = profile.metrics.cpu;
+        cpuValue.innerHTML = cpu.value;
+        cpuSub.innerHTML = cpu.sub;
+        updateMetricBar(cpuBar, cpu.bar, false);
+
+        // Update RAM
+        var ram = profile.metrics.ram;
+        ramValue.innerHTML = buildMetricValue(ram.value, ram.unit);
+        ramUsed.textContent = ram.used;
+        ramTotal.textContent = ram.total;
+        updateMetricBar(ramBar, ram.bar, false);
+
+        // Update VRAM
+        var vram = profile.metrics.vram;
+        vramValue.innerHTML = vram.value;
+        vramSub.innerHTML = vram.sub;
+        updateMetricBar(vramBar, vram.bar, false);
+
+        // Update Network
+        var net = profile.metrics.net;
+        netValue.innerHTML = buildMetricValue(net.value, net.unit);
+        netSub.innerHTML = net.sub;
+        if (netMax) netMax.textContent = '(' + net.max + ')';
+        updateMetricBar(netBar, net.bar, false);
+
+        // Rebuild scripts table
+        tbody.innerHTML = '';
+        var scripts = profile.scripts || [];
+        scripts.forEach(function(script, idx) {
+          tbody.insertAdjacentHTML('beforeend', buildScriptRow(script, idx));
+        });
+
+        // Update job count badge
+        var count = scripts.length;
+        jobCountEl.textContent = count + ' active job' + (count !== 1 ? 's' : '');
+      }
+
+      // ===== Initialize =====
+      // Load default server
+      switchServer('ubuntu-24-04-lts-oracle');
+      configureRefreshTimer();
+      window.addEventListener('storage', function (event) {
+        if (event.key === 'gridnode_settings') configureRefreshTimer();
+      });
+
+      // ===== Dropdown Toggle =====
+      if (serverSelector && serverDropdown) {
+        serverSelector.addEventListener('click', function(e) {
+          if (e.target.closest('.server-option')) return;
+          e.stopPropagation();
+          serverDropdown.classList.toggle('show');
+        });
+
+        document.addEventListener('click', function() {
+          serverDropdown.classList.remove('show');
+        });
+
+        serverDropdown.addEventListener('click', function(e) {
+          e.stopPropagation();
+        });
+
+        // ===== Server Options =====
+        var serverOptions = document.querySelectorAll('.server-option');
+        serverOptions.forEach(function(option) {
+          option.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var navLink = this.getAttribute('data-nav-link');
+            if (navLink) {
+              window.location.href = navLink;
+              return;
+            }
+            var serverKey = this.getAttribute('data-server');
+            switchServer(serverKey);
+          });
+        });
+      }
+    })();
+  </script>
+
+  <script>
+    (function () {
+      // Delegated handler so the "+ New Instance" button works both in the
+      // top bar and on its clone inside the mobile header
+      document.addEventListener('click', function (e) {
+        var btn = e.target.closest('.btn-new-instance');
+        if (btn) {
+          window.location.href = 'instance-wizard.html';
+        }
+      });
+
+      var toastContainer = document.getElementById('toastContainer');
+      function showToast(msg, variant) {
+        if (!toastContainer) return;
+        var toast = document.createElement('div');
+        toast.className = 'toast' + (variant ? ' ' + variant : '');
+        toast.innerHTML = '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m8.5 12.5 2.5 2.5 5-5.5"/></svg>';
+        var span = document.createElement('span');
+        span.textContent = msg;
+        toast.appendChild(span);
+        toastContainer.appendChild(toast);
+        setTimeout(function () { toast.remove(); }, 3200);
+      }
+
+      var params = new URLSearchParams(window.location.search);
+      if (params.get('deploy') === 'success') {
+        showToast('New instance deployment initialized successfully', 'toast--success');
+        history.replaceState(null, '', window.location.pathname);
+      }
+
+      try {
+        if (sessionStorage.getItem('showAuthToast') === 'true') {
+          sessionStorage.removeItem('showAuthToast');
+          showToast('Authorized as DemoTest', 'toast--success');
+        }
+      } catch (ex) {}
+    })();
+  </script>
+
+
+  <script src="shared-sidebar.js" defer></script>
+  <script src="auth-links.js" defer></script>
+
+  <script>
+    // Move "+ New Instance" into the global mobile header (which replaces
+    // the sidebar on screens <= 780px). shared-sidebar.js is deferred, so it
+    // has already created .mobile-header by the time DOMContentLoaded fires.
+    document.addEventListener('DOMContentLoaded', function () {
+      var header = document.querySelector('.mobile-header');
+      var sourceBtn = document.querySelector('.top-bar-right .btn-new-instance');
+      if (!header || !sourceBtn || header.querySelector('.btn-new-instance--mobile')) return;
+
+      var mobileBtn = sourceBtn.cloneNode(true);
+      mobileBtn.classList.add('btn-new-instance--mobile');
+      mobileBtn.setAttribute('aria-label', 'New Instance');
+      header.appendChild(mobileBtn);
+    });
+  </script>
+
+  <!-- ===== ONBOARDING MODAL ===== -->
+  <div class="onboarding-overlay" id="onboardingModal" role="dialog" aria-modal="true" aria-label="Welcome to GridNode">
+    <div class="onboarding-modal">
+
+      <div class="onboarding-body">
+
+        <!-- SLIDE 1 -->
+        <section class="onboarding-slide active" data-slide="0">
+          <div class="onboarding-grid">
+            <div class="onboarding-visual">
+              <div class="onboarding-mock">
+                <div class="wz-preset-card">
+                  <div class="wz-card-top">
+                    <div class="wz-card-icon"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div>
+                    <div class="wz-card-title">Custom</div>
+                    <span class="wz-card-meta">WIZARD / 01</span>
+                  </div>
+                  <div class="wz-card-desc">Configure a production-ready node with guided steps and visible resource choices.</div>
+                  <div class="wz-stepper">
+                    <div class="wz-step active"><span>1</span>Configure</div>
+                    <div class="wz-step-line"></div>
+                    <div class="wz-step"><span>2</span>Review</div>
+                    <div class="wz-step-line"></div>
+                    <div class="wz-step"><span>3</span>Deploy</div>
+                  </div>
+                  <div class="wz-fields">
+                    <div class="wz-field"><span class="wz-field-label">Image</span><span class="wz-field-value">Ubuntu 24.04 LTS</span></div>
+                    <div class="wz-field"><span class="wz-field-label">Region</span><span class="wz-field-value">Frankfurt / EU-Central</span></div>
+                  </div>
+                  <div class="wz-card-footer">
+                    <div class="wz-spec">
+                      <span class="wz-spec-chip">1 vCPU</span>
+                      <span class="wz-spec-sep">/</span>
+                      <span class="wz-spec-chip">2 GB</span>
+                    </div>
+                    <span class="wz-ready-state">Configuration ready</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="onboarding-copy">
+              <div class="onboarding-kicker">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Deploy
+              </div>
+              <h2 class="onboarding-title">Spin Up Instances in Seconds</h2>
+              <p class="onboarding-desc">Choose pre-configured presets or create custom nodes in seconds with built-in wizard steps.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- SLIDE 2 -->
+        <section class="onboarding-slide" data-slide="1">
+          <div class="onboarding-grid">
+            <div class="onboarding-visual">
+              <div class="onboarding-mock">
+                <div class="metrics-mock">
+                  <div class="metrics-mock-head">
+                    <span class="metrics-mock-title">Metrics Analytics</span>
+                    <div class="metrics-mock-toggle">
+                      <span class="metrics-mock-pill active">1h</span>
+                      <span class="metrics-mock-pill">24h</span>
+                    </div>
+                  </div>
+                  <div class="metrics-mock-summary">
+                    <div class="metrics-mock-stat"><span class="metrics-mock-stat-label">CPU</span><span class="metrics-mock-stat-value">42% <em>stable</em></span></div>
+                    <div class="metrics-mock-stat"><span class="metrics-mock-stat-label">VRAM</span><span class="metrics-mock-stat-value">20.2 GB <em>of 24</em></span></div>
+                    <div class="metrics-mock-stat"><span class="metrics-mock-stat-label">Network</span><span class="metrics-mock-stat-value">1.4 Gbps <em>live</em></span></div>
+                  </div>
+                  <div class="metrics-mock-card">
+                    <div class="metrics-mock-card-head">
+                      <span>CPU Usage</span>
+                      <span class="metrics-mock-badge">Avg 42%</span>
+                    </div>
+                    <div class="metrics-mock-chart">
+                      <svg viewBox="0 0 520 120" preserveAspectRatio="none">
+                        <defs>
+                          <linearGradient id="onbCpuGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stop-color="var(--chart-1)" stop-opacity="0.30"/>
+                            <stop offset="95%" stop-color="var(--chart-1)" stop-opacity="0.02"/>
+                          </linearGradient>
+                        </defs>
+                        <line class="grid" x1="45" y1="14"  x2="510" y2="14"/>
+                        <line class="grid" x1="45" y1="38"  x2="510" y2="38"/>
+                        <line class="grid" x1="45" y1="62"  x2="510" y2="62"/>
+                        <line class="grid" x1="45" y1="86"  x2="510" y2="86"/>
+                        <line class="grid" x1="45" y1="110" x2="510" y2="110"/>
+                        <path fill="url(#onbCpuGrad)" d="M45,70 L88,66 L131,69 L174,63 L217,67 L260,72 L303,65 L346,68 L389,62 L432,70 L475,66 L510,69 L510,110 L45,110 Z"/>
+                        <path fill="none" stroke="var(--chart-1)" stroke-width="1.5" d="M45,70 L88,66 L131,69 L174,63 L217,67 L260,72 L303,65 L346,68 L389,62 L432,70 L475,66 L510,69"/>
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="metrics-mock-card">
+                    <div class="metrics-mock-card-head">
+                      <span>RAM Allocation</span>
+                      <span class="metrics-mock-badge">37% used</span>
+                    </div>
+                    <div class="metrics-mock-chart">
+                      <svg viewBox="0 0 520 120" preserveAspectRatio="none">
+                        <defs>
+                          <linearGradient id="onbRamGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stop-color="var(--chart-2)" stop-opacity="0.30"/>
+                            <stop offset="95%" stop-color="var(--chart-2)" stop-opacity="0.02"/>
+                          </linearGradient>
+                        </defs>
+                        <line class="grid" x1="45" y1="14"  x2="510" y2="14"/>
+                        <line class="grid" x1="45" y1="38"  x2="510" y2="38"/>
+                        <line class="grid" x1="45" y1="62"  x2="510" y2="62"/>
+                        <line class="grid" x1="45" y1="86"  x2="510" y2="86"/>
+                        <line class="grid" x1="45" y1="110" x2="510" y2="110"/>
+                        <path fill="url(#onbRamGrad)" d="M45,75 L88,72 L131,74 L174,70 L217,73 L260,76 L303,72 L346,74 L389,71 L432,75 L475,73 L510,74 L510,110 L45,110 Z"/>
+                        <path fill="none" stroke="var(--chart-2)" stroke-width="1.5" d="M45,75 L88,72 L131,74 L174,70 L217,73 L260,76 L303,72 L346,74 L389,71 L432,75 L475,73 L510,74"/>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="onboarding-copy">
+              <div class="onboarding-kicker">
+                <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                Monitor
+              </div>
+              <h2 class="onboarding-title">Total Control Over Compute &amp; Costs</h2>
+              <p class="onboarding-desc">Monitor CPU, VRAM, and RAM utilization metrics in real time from a single view.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- SLIDE 3 -->
+        <section class="onboarding-slide" data-slide="2">
+          <div class="onboarding-grid">
+            <div class="onboarding-visual">
+              <div class="onboarding-mock">
+                <div class="apikey-mock-card">
+                  <div class="apikey-mock-header">
+                    <span class="apikey-mock-name">Production Server Backup</span>
+                    <span class="apikey-mock-status"><span class="apikey-mock-dot"></span>Active</span>
+                  </div>
+                  <div class="apikey-mock-label">KEY TOKEN</div>
+                  <div class="apikey-mock-token-row">
+                    <span class="apikey-mock-token">gn_live_9f8a...76f</span>
+                    <span class="apikey-mock-icon"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></span>
+                    <span class="apikey-mock-icon"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
+                  </div>
+                  <div class="apikey-mock-tags">
+                    <span class="apikey-mock-tag full">Full Access</span>
+                    <span class="apikey-mock-tag logs">Logs Stream</span>
+                  </div>
+                  <div class="apikey-mock-scope"><span>Scope <strong>Production nodes</strong></span><span>Expires <strong>Never</strong></span></div>
+                  <div class="apikey-mock-actions">
+                    <span class="apikey-mock-action"><svg viewBox="0 0 24 24"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>Edit</span>
+                    <span class="apikey-mock-action"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/><path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"/></svg>Roll Key</span>
+                    <span class="apikey-mock-action revoke"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>Revoke</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="onboarding-copy">
+              <div class="onboarding-kicker">
+                <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Automate
+              </div>
+              <h2 class="onboarding-title">Built for Your Developer Workflow</h2>
+              <p class="onboarding-desc">Generate scoped API keys, manage SSH credentials, and automate node deployments.</p>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <div class="onboarding-footer">
+        <div class="onboarding-dots" id="onboardingDots">
+          <button class="onboarding-dot active" type="button" data-slide="0" aria-label="Go to slide 1 of 3"></button>
+          <button class="onboarding-dot" type="button" data-slide="1" aria-label="Go to slide 2 of 3"></button>
+          <button class="onboarding-dot" type="button" data-slide="2" aria-label="Go to slide 3 of 3"></button>
+        </div>
+        <div class="onboarding-actions">
+          <button class="btn-secondary" id="onboardingSkip" type="button">Skip</button>
+          <button class="btn-nav-cta btn-primary" id="onboardingNext" type="button">Next<svg viewBox="0 0 34 24"><path d="M5 12h21"/><path d="m22 5 7 7-7 7"/></svg></button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var KEY = 'gridnode_onboarding_seen';
+      var overlay = document.getElementById('onboardingModal');
+      var slides = Array.prototype.slice.call(document.querySelectorAll('.onboarding-slide'));
+      var dots = Array.prototype.slice.call(document.querySelectorAll('.onboarding-dot'));
+      var nextBtn = document.getElementById('onboardingNext');
+      var skipBtn = document.getElementById('onboardingSkip');
+      var current = 0;
+      var finalLabel = 'Go to Dashboard<svg viewBox="0 0 34 24"><path d="M5 12h21"/><path d="m22 5 7 7-7 7"/></svg>';
+      var nextLabel = 'Next<svg viewBox="0 0 34 24"><path d="M5 12h21"/><path d="m22 5 7 7-7 7"/></svg>';
+
+      if (!overlay || !slides.length) return;
+
+      function shouldShow() {
+        try { return !localStorage.getItem(KEY); }
+        catch (e) { return true; }
+      }
+
+      function markSeen() {
+        try { localStorage.setItem(KEY, 'true'); } catch (e) {}
+      }
+
+      function closeOnboarding() {
+        overlay.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+
+      function fitPreviews() {
+        var wrap = document.querySelector('.onboarding-slide.active .onboarding-visual');
+        if (!wrap) return;
+        var mock = wrap.querySelector('.onboarding-mock');
+        if (!mock) return;
+        mock.style.transform = 'scale(1)';
+        var naturalW = mock.offsetWidth;
+        var naturalH = mock.offsetHeight;
+        if (!naturalW || !naturalH) return;
+        var avail = wrap.clientWidth;
+        var availH = wrap.clientHeight;
+        var s = Math.min(1, avail / naturalW, availH / naturalH);
+        mock.style.transform = 'scale(' + s + ')';
+      }
+
+      function goTo(index) {
+        current = index;
+        slides.forEach(function (s, i) { s.classList.toggle('active', i === current); });
+        dots.forEach(function (d, i) { d.classList.toggle('active', i === current); });
+        nextBtn.innerHTML = current === slides.length - 1 ? finalLabel : nextLabel;
+        requestAnimationFrame(fitPreviews);
+      }
+
+      nextBtn.addEventListener('click', function () {
+        if (current < slides.length - 1) {
+          goTo(current + 1);
+        } else {
+          markSeen();
+          closeOnboarding();
+        }
+      });
+
+      skipBtn.addEventListener('click', function () {
+        markSeen();
+        closeOnboarding();
+      });
+
+      overlay.addEventListener('click', function (e) {
+        if (e.target === overlay) {
+          markSeen();
+          closeOnboarding();
+        }
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (!overlay.classList.contains('open')) return;
+        if (e.key === 'Escape') { markSeen(); closeOnboarding(); }
+        else if (e.key === 'ArrowRight') { e.preventDefault(); nextBtn.click(); }
+        else if (e.key === 'ArrowLeft' && current > 0) { e.preventDefault(); goTo(current - 1); }
+      });
+
+      dots.forEach(function (d) {
+        d.addEventListener('click', function () {
+          goTo(parseInt(d.getAttribute('data-slide'), 10));
+        });
+      });
+
+      window.addEventListener('resize', fitPreviews);
+
+      if (!shouldShow()) return;
+      overlay.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      goTo(0);
+    })();
+  </script>
+</body>
+</html>

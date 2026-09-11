@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign up — GridNode</title>
+  <meta name="description" content="Create your GridNode account to manage nodes, monitoring and cloud infrastructure." />
+  <meta name="theme-color" content="#060814" />
+  <meta name="color-scheme" content="light dark" />
+  <link rel="icon" href="FAV.svg" type="image/svg+xml" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:opsz@14..32&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="theme.css" />
+
+  <style>
+    :root {
+    }
+
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg-body);
+      color: var(--text-secondary);
+      font-family: var(--font-body);
+      font-size: var(--font-size-base);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    [data-theme="dark"] body {
+      background: var(--bg-level-0);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.075;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+      z-index: -1;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; }
+
+    a:focus-visible,
+    button:focus-visible,
+    input:focus-visible {
+      outline: 2px solid var(--accent-blue-bright);
+      outline-offset: 2px;
+    }
+
+    /* ===== Ambient blurred background ===== */
+    .auth-bg {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .auth-bg .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(90px);
+      opacity: 0.35;
+    }
+    .auth-bg .blob-1 {
+      width: 480px; height: 480px;
+      left: -120px; top: -120px;
+      background: radial-gradient(circle, var(--accent-blue) 0%, transparent 70%);
+    }
+    .auth-bg .blob-2 {
+      width: 420px; height: 420px;
+      right: -110px; bottom: -110px;
+      background: radial-gradient(circle, var(--accent-teal) 0%, transparent 70%);
+    }
+    .auth-bg .blob-3 {
+      width: 340px; height: 340px;
+      left: 40%; top: 55%;
+      background: radial-gradient(circle, var(--accent-violet) 0%, transparent 70%);
+      opacity: 0.22;
+    }
+
+    /* ===== Layout ===== */
+    .auth-shell {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 20px;
+    }
+
+    /* ===== Theme toggle ===== */
+    .theme-toggle {
+      position: fixed;
+      top: 34px;
+      right: 44px;
+      z-index: 30;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-on-accent);
+      transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+    }
+    .theme-toggle:hover {
+      border-color: rgba(255,255,255,0.35);
+      background: rgba(255,255,255,0.09);
+      transform: translateY(-1px);
+    }
+    .theme-toggle svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+    }
+    .theme-toggle .icon-sun { display: block; }
+    .theme-toggle .icon-moon { display: none; }
+    [data-theme="light"] .theme-toggle .icon-sun { display: none; }
+    [data-theme="light"] .theme-toggle .icon-moon { display: block; }
+    [data-theme="light"] .theme-toggle {
+      background: rgba(15,23,42,0.04);
+      border-color: rgba(154,164,178,0.64);
+      color: var(--text-primary);
+    }
+    [data-theme="light"] .theme-toggle:hover {
+      background: rgba(15,23,42,0.14);
+      border-color: var(--border-muted);
+    }
+
+    /* ===== Auth card (glassmorphic) ===== */
+    .auth-card {
+      width: 100%;
+      max-width: 560px;
+      background: var(--bg-level-1);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border-card);
+      border-radius: 28px 28px 8px 28px;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.20), 0 12px 40px rgba(0, 0, 0, 0.10);
+      padding: 40px 36px 36px;
+    }
+    [data-theme="light"] .auth-card {
+      background: var(--bg-surface-fade);
+    }
+    [data-theme="dark"] .auth-card {
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.50), 0 14px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    /* ===== Terms disclaimer (below the card on desktop, in the form flow on mobile) ===== */
+    .auth-terms {
+      font-size: 12px;
+      text-align: center;
+      color: var(--text-muted);
+      opacity: 0.8;
+      margin: 16px 0 0;
+    }
+    .auth-terms a {
+      color: var(--text-muted);
+      text-decoration: underline;
+      text-decoration-color: rgba(128, 138, 158, 0.4);
+      text-underline-offset: 2px;
+      transition: color 0.15s ease, text-decoration-color 0.15s ease;
+    }
+    .auth-terms a:hover {
+      color: var(--accent-blue-bright);
+      text-decoration-color: var(--accent-blue-bright);
+    }
+
+    /* ===== Brand corner (fixed top-left, inline SVG) ===== */
+    .brand-corner {
+      position: fixed;
+      top: 32px;
+      left: 48px;
+      z-index: 30;
+      display: block;
+    }
+    .brand-corner .brand-logo {
+      height: 36px;
+      width: auto;
+      display: block;
+    }
+    .brand-corner .brand-wordmark {
+      fill: var(--text-primary);
+    }
+
+    .auth-heading {
+      text-align: center;
+      font-family: var(--font-head);
+      font-size: var(--font-size-xl);
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: var(--text-primary);
+    }
+    .auth-sub {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: var(--font-size-base);
+      margin-top: 8px;
+      margin-bottom: 26px;
+    }
+
+    /* ===== Social buttons (secondary outline style) ===== */
+    .social-btns {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 32px;
+    }
+    /* Appearance (bg/border/font) comes from the shared theme.css (.social-btn).
+       Only size + blur stays here. */
+    .social-btn {
+      gap: 8px;
+      width: 100%;
+      height: 46px;
+      padding: 0 32px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-radius: 23px 23px 5px 23px;
+    }
+    .social-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+    /* ===== Divider ===== */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 24px 0;
+      color: var(--text-muted);
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      letter-spacing: 0.12em;
+    }
+    .divider::before,
+    .divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--border-soft);
+    }
+
+    /* ===== Form ===== */
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .field { display: flex; flex-direction: column; gap: 7px; }
+    .field label {
+      font-family: var(--font-head);
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      color: var(--text-secondary-strong);
+    }
+    .field .input-wrap { position: relative; }
+
+    .form-input {
+      width: 100%;
+      height: 46px;
+      padding: 0 14px;
+    }
+
+    .row-between {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      font-size: var(--font-size-sm);
+    }
+    .forgot-link {
+      color: var(--text-muted);
+      font-weight: 500;
+      transition: color 0.15s ease;
+      cursor: not-allowed;
+      opacity: 0.85;
+    }
+
+    /* .submit-btn appearance (gradient/color/border/font) unified in theme.css */
+    .submit-btn {
+      width: 100%;
+      height: 42px;
+      margin-top: 4px;
+      gap: 8px;
+      border-radius: 21px 21px 4px 21px;
+    }
+
+    .auth-foot {
+      margin-top: 22px;
+      text-align: center;
+      font-size: var(--font-size-sm);
+      color: var(--text-muted);
+    }
+    .auth-foot a {
+      color: var(--accent-blue-bright);
+      font-weight: 600;
+      transition: color 0.15s ease;
+    }
+    [data-theme="dark"] .auth-foot a:hover,
+    .auth-foot a:hover {
+      color: var(--text-on-accent);
+    }
+    [data-theme="light"] .auth-foot a,
+    [data-theme="light"] .auth-foot a:hover {
+      color: var(--accent-blue);
+    }
+
+    /* ===== Toast ===== */
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 32px;
+      transform: translateX(-50%) translateY(20px);
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      max-width: calc(100vw - 40px);
+      padding: 12px 18px;
+      border-radius: 14px 14px 4px 14px;
+      background: var(--bg-surface-fade);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--border-card);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
+      color: var(--text-primary);
+      font-family: var(--font-head);
+      font-size: var(--font-size-sm);
+      font-weight: 500;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    .toast svg {
+      width: 18px; height: 18px;
+      stroke: currentColor; fill: none; stroke-width: 2;
+      stroke-linecap: round; stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+    .toast .toast-icon { color: var(--status-warning); }
+
+    /* ===== Password strength meter ===== */
+    .pw-strength {
+      display: flex;
+      gap: 4px;
+      margin-top: 6px;
+      height: 4px;
+    }
+    .pw-strength .bar {
+      flex: 1;
+      border-radius: 2px;
+      background: var(--border-soft);
+      transition: background 0.25s ease;
+    }
+    .pw-strength[data-strength="weak"] .bar:nth-child(1) { background: #ef4444; }
+    .pw-strength[data-strength="medium"] .bar:nth-child(1),
+    .pw-strength[data-strength="medium"] .bar:nth-child(2) { background: #f59e0b; }
+    .pw-strength[data-strength="strong"] .bar:nth-child(1),
+    .pw-strength[data-strength="strong"] .bar:nth-child(2),
+    .pw-strength[data-strength="strong"] .bar:nth-child(3) { background: #22c55e; }
+    .pw-strength-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 3px;
+      min-height: 15px;
+      transition: color 0.2s ease;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 480px) {
+      .theme-toggle { top: 16px; right: 16px; }
+      .brand-corner { top: 26px; left: 40px; }
+      .brand-corner .brand-logo { height: 30px; }
+      .auth-card { padding: 32px 22px 28px; }
+      .auth-heading { font-size: var(--font-size-xl); }
+    }
+
+    /* ===== Seamless mobile view (<600px): card wrapper removed =====
+       The form sits directly on a flat, solid page background — no glass
+       card, no glows, no blur, no noise. Inputs and buttons keep crisp,
+       high-contrast rendering against the solid surface. */
+    @media (max-width: 600px) {
+      /* Flat solid background: hide the decorative blurred blobs and the
+         noise overlay that sit above/behind the page color */
+      body {
+        background: var(--bg-body);
+      }
+
+      [data-theme="dark"] body {
+        background: var(--bg-level-0);
+      }
+
+      body::before {
+        display: none;
+      }
+
+      .auth-bg {
+        display: none;
+      }
+
+      .auth-card,
+      [data-theme="light"] .auth-card,
+      [data-theme="dark"] .auth-card {
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        border-radius: 0;
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        padding: 24px 16px;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+      }
+
+      /* Pull the disclaimer up so it hugs the account section */
+      .auth-terms {
+        margin-top: -16px;
+        margin-bottom: 0;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .social-btn, .submit-btn, .toast { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-bg" aria-hidden="true">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <button class="theme-toggle" id="themeToggle" type="button" title="Toggle theme" aria-label="Toggle theme" aria-pressed="false">
+    <svg class="icon-sun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+    <svg class="icon-moon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
+
+  <a class="brand-corner" href="index.html" title="GridNode" aria-label="GridNode home">
+  <img src="Logo.svg" alt="GridNode" class="brand-logo" data-logo-theme />
+  </a>
+  <main class="auth-shell">
+    <div class="auth-card" role="main" aria-label="Sign up form">
+
+      <h1 class="auth-heading">Create your account</h1>
+
+      <div class="social-btns">
+        <button class="social-btn" id="googleBtn" type="button">
+          <svg viewBox="0 0 48 48" aria-hidden="true">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+          </svg>
+          Sign up with Google
+        </button>
+
+        <button class="social-btn" id="githubBtn" type="button">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 .5C5.37.5 0 5.78 0 12.29c0 5.21 3.44 9.63 8.21 11.19.6.11.82-.26.82-.57 0-.28-.01-1.03-.02-2.02-3.34.71-4.04-1.58-4.04-1.58-.55-1.37-1.34-1.73-1.34-1.73-1.09-.73.08-.72.08-.72 1.2.08 1.84 1.21 1.84 1.21 1.07 1.8 2.81 1.28 3.5.98.11-.76.42-1.28.76-1.58-2.66-.3-5.47-1.31-5.47-5.82 0-1.29.47-2.34 1.24-3.16-.13-.3-.54-1.51.12-3.15 0 0 1.01-.32 3.3 1.2.96-.26 1.98-.39 3-.4 1.02 0 2.04.14 3 .4 2.28-1.52 3.29-1.2 3.29-1.2.66 1.64.25 2.85.12 3.15.77.82 1.24 1.87 1.24 3.16 0 4.52-2.82 5.52-5.49 5.81.43.37.82 1.1.82 2.22 0 1.6-.01 2.89-.01 3.28 0 .32.21.7.83.57C20.56 21.92 24 17.5 24 12.29 24 5.78 18.63.5 12 .5z"/>
+          </svg>
+          Sign up with GitHub
+        </button>
+      </div>
+
+      <div class="divider">OR CONTINUE WITH EMAIL</div>
+
+      <form class="auth-form" id="authForm" novalidate>
+        <div class="field">
+          <label for="email">Email</label>
+          <div class="input-wrap">
+            <input class="form-input" type="email" id="email" name="email" placeholder="you@example.com.." autocomplete="email" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="password">Create password</label>
+          <div class="input-wrap">
+            <input class="form-input" type="password" id="password" name="password" placeholder="Create a password (min 6 characters).." autocomplete="new-password" aria-label="Create password" />
+          </div>
+          <div class="pw-strength" id="pwStrength" data-strength="">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+          </div>
+          <span class="pw-strength-label" id="pwStrengthLabel"></span>
+        </div>
+
+        <button class="submit-btn" id="signUpBtn" type="submit">Sign Up</button>
+      </form>
+
+      <p class="auth-foot">Already have an account? <a href="login.html">Sign in</a></p>
+    </div>
+
+    <p class="auth-terms">By continuing, you agree to GridNode's <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.</p>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">
+    <svg class="toast-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+    <span id="toastMsg">OAuth authentication is currently unavailable in demo mode.</span>
+  </div>
+
+  <script src="theme-transition.js" defer></script>
+  <script>
+    (function () {
+      const KEY = 'gridnode-theme';
+      const btn = document.getElementById('themeToggle');
+      const html = document.documentElement;
+
+      function apply(theme) {
+        html.setAttribute('data-theme', theme);
+        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#060814' : '#fafbfc');
+        btn?.setAttribute('aria-pressed', theme === 'dark' ? 'false' : 'true');
+        try { localStorage.setItem(KEY, theme); } catch (e) {}
+      }
+
+      let saved = null;
+      try { saved = localStorage.getItem(KEY); } catch (e) {}
+      if (saved === 'light' || saved === 'dark') {
+        apply(saved);
+      }
+
+      btn?.addEventListener('click', function () {
+        const cur = html.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+        const next = cur === 'dark' ? 'light' : 'dark';
+        window.themeTransition(btn, () => apply(next));
+      });
+    })();
+  </script>
+
+  <script>
+    (function () {
+      const toast = document.getElementById('toast');
+      const msg = document.getElementById('toastMsg');
+      let timer = null;
+
+      function showToast(text) {
+        msg.textContent = text;
+        toast.classList.add('show');
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(function () { toast.classList.remove('show'); }, 3200);
+      }
+
+      function oauthHandler(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        showToast('OAuth authentication is currently unavailable in demo mode.');
+      }
+
+      document.getElementById('googleBtn')?.addEventListener('click', oauthHandler);
+      document.getElementById('githubBtn')?.addEventListener('click', oauthHandler);
+
+      var pwInput = document.getElementById('password');
+      var pwBar = document.getElementById('pwStrength');
+      var pwLabel = document.getElementById('pwStrengthLabel');
+
+      function strengthScore(pw) {
+        var s = 0;
+        if (pw.length >= 6) s++;
+        if (pw.length >= 10) s++;
+        if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) s++;
+        if (/\d/.test(pw)) s++;
+        if (/[^A-Za-z0-9]/.test(pw)) s++;
+        return s;
+      }
+
+      var strengthMap = [
+        { max: 1, level: 'weak',   label: 'Weak' },
+        { max: 3, level: 'medium', label: 'Medium' },
+        { max: 5, level: 'strong', label: 'Strong' }
+      ];
+
+      pwInput?.addEventListener('input', function () {
+        var val = pwInput.value;
+        if (!val) {
+          pwBar.setAttribute('data-strength', '');
+          pwLabel.textContent = '';
+          return;
+        }
+        var score = strengthScore(val);
+        var info = strengthMap.find(function (r) { return score <= r.max; }) || strengthMap[2];
+        pwBar.setAttribute('data-strength', info.level);
+        pwLabel.textContent = info.label;
+      });
+
+      const form = document.getElementById('authForm');
+      form?.addEventListener('submit', function (e) {
+        e.preventDefault();
+        showToast('Authorized as DemoTest');
+        setTimeout(function () {
+          window.location.href = 'saas_dashboard.html';
+        }, 1800);
+      });
+    })();
+  </script>
+</body>
+</html>
+

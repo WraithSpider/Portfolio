@@ -1,0 +1,2680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GridNode — Instance Wizard</title>
+<link rel="icon" href="FAV.svg" type="image/svg+xml">
+<link rel="stylesheet" href="theme.css">
+<link rel="stylesheet" href="shared-dropdown.css">
+<script>
+  (function () {
+    try {
+      var s = JSON.parse(localStorage.getItem('gridnode_settings') || '{}');
+      document.documentElement.setAttribute('data-theme', s.theme === 'light' ? 'light' : 'dark');
+    } catch (e) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:opsz@14..32&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: var(--font-size-base); scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg-body);
+    color: var(--text-primary);
+    min-height: 100vh;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+
+  /* ===== LAYOUT ===== */
+  .wizard-layout {
+    display: grid;
+    grid-template-columns: 7fr 3fr;
+    column-gap: 28px;
+    height: 100vh;
+  }
+
+  .wizard-main {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .wizard-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 72px;
+    padding: 0 32px;
+    border-bottom: 1px solid var(--border-subtle);
+    flex-shrink: 0;
+  }
+
+  .brand-logo {
+    height: 36px;
+    width: auto;
+    display: block;
+  }
+
+  .header-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+  }
+
+  /* Base .status-dot + @keyframes pulse-dot now live in theme.css; only the
+     contextual offset for the header meta line stays local. */
+  .header-meta .status-dot {
+    position: relative;
+    right: 5px;
+    transform: translateY(-1px);
+  }
+
+  /* ===== STEPPER ===== */
+  .stepper {
+    display: flex;
+    gap: 0;
+    padding: 16px 32px;
+    border-bottom: 1px solid var(--border-subtle);
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .stepper-line {
+    flex: 1;
+    height: 2px;
+    background: var(--bg-track);
+    position: relative;
+    top: 14px;
+  }
+
+  .stepper-line.completed { background: var(--accent-blue); }
+
+  .step-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    position: relative;
+    z-index: 1;
+    padding: 0 4px;
+  }
+
+  .step-circle {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: var(--bg-elevated);
+    border: 2px solid var(--border-subtle);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-head);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    transition: all 0.25s ease;
+  }
+
+  .step-indicator.active .step-circle,
+  .step-indicator.completed .step-circle {
+    /* Primary button (--btn-primary / Continue) accent style:
+       default 160deg brand gradient + signature brand glow */
+    --grad-angle: 160deg;
+    background: linear-gradient(var(--grad-angle), var(--brand-stops));
+    border: none;
+    color: var(--text-on-accent);
+    box-shadow: none;
+    position: relative;
+  }
+
+  .step-indicator.active .step-circle::after,
+  .step-indicator.completed .step-circle::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    padding: 0.5px;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.50) 0%, rgba(255,255,255,0.25) 40%, rgba(0,0,0,0.20) 60%, rgba(0,0,0,0.50) 100%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+  }
+
+  .step-indicator.completed .step-circle {
+    opacity: 0.75;
+  }
+
+  .step-label {
+    font-size: var(--font-size-xs);
+    color: var(--text-dim);
+    text-align: center;
+    max-width: 90px;
+    transition: color 0.15s ease;
+    line-height: 1.2;
+  }
+
+  .step-indicator.active .step-label { color: var(--text-primary); }
+  .step-indicator.completed .step-label { color: var(--accent-blue); }
+
+  /* ===== STEP CONTENT AREA ===== */
+  .wizard-content {
+    flex: 1;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+    padding: 28px 32px 0;
+  }
+
+  .step-content { display: none; }
+  .step-content.active { display: block; animation: fadeIn 0.2s ease; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ===== NAV BAR (fixed bottom) ===== */
+  .wizard-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 32px;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-body);
+    flex-shrink: 0;
+  }
+
+  .wizard-nav button svg {
+    width: 16px; height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex-shrink: 0;
+  }
+
+  .wizard-nav #btnPrev svg { transform: scaleX(-1) translateY(0.5px); }
+  .wizard-nav #btnNext svg { transform: translateY(0.5px); }
+  .wizard-nav svg.confirm-check { stroke-width: 2; }
+
+  .wizard-nav .btn-secondary {
+    min-width: 148px;
+    max-width: 260px;
+    padding: 12px 26px;
+    gap: 8px;
+  }
+
+  .btn-ghost {
+    padding: 10px 22px;
+    border-radius: 19px 19px 4px 19px;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    border: 1px solid var(--border-subtle);
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: var(--font-head);
+  }
+
+  .btn-ghost:hover {
+    border-color: var(--border-strong);
+    color: var(--text-primary);
+    transform: translateY(-1px);
+  }
+
+  .btn-nav-cta {
+    min-width: 148px;
+    max-width: 260px;
+    padding: 12px 26px;
+    gap: 8px;
+  }
+
+  .btn-nav-cta svg {
+    width: 16px !important;
+    height: 16px !important;
+    stroke-width: 2.8 !important;
+    flex-shrink: 0 !important;
+  }
+
+  .btn-ghost svg { width: 15px; height: 15px; margin-right: 6px; vertical-align: -2px; flex-shrink: 0; }
+
+  /* ===== SECTION TITLES ===== */
+  .section-title {
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+    margin-bottom: 4px;
+    letter-spacing: 0.02em;
+  }
+
+  .section-subtitle {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    margin-bottom: 20px;
+  }
+
+  /* ===== CARD SYSTEM ===== */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px 12px 3px 12px;
+    padding: 18px;
+    transition: all 0.25s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card:hover {
+    border-color: var(--border-toggle);
+    background: var(--bg-surface-hover);
+  }
+
+  .card.selected {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 20px rgba(0, 114, 255, 0.18);
+    background: var(--bg-surface-hover);
+  }
+
+  .card.selected::after {
+    content: '';
+    position: absolute;
+    top: 10px; right: 10px;
+    width: 18px; height: 18px;
+    --grad-angle: 135deg;
+    background: linear-gradient(var(--grad-angle), var(--brand-stops));
+    border-radius: 50%;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E");
+    background-size: 12px;
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+
+  .card-icon {
+    width: 40px; height: 40px;
+    border-radius: 8px 8px 2px 8px;
+    background: var(--bg-elevated);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 10px;
+    border: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+    transition: border-color 0.15s ease, color 0.15s ease;
+  }
+
+  .card-icon svg {
+    width: 18px; height: 18px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .card.selected .card-icon { border-color: var(--accent-blue); color: var(--accent-blue); }
+
+  .card-title {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--text-primary);
+  }
+
+  .card-desc {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+
+  /* ===== PRESET GRID (desktop: 2-column, icon above text) ===== */
+  .preset-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  /* ===== PARAMS PREVIEW ===== */
+  .params-preview {
+    display: none;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px 12px 3px 12px;
+    padding: 16px;
+  }
+
+  .params-preview.show {
+    display: block;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .params-preview h3 {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .param-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--border-faint);
+    font-size: var(--font-size-sm);
+  }
+
+  .param-row:last-child { border-bottom: none; }
+  .param-key { color: var(--text-secondary); }
+  .param-val { color: var(--text-primary); font-family: var(--font-mono); font-size: var(--font-size-sm); }
+
+  .params-note {
+    font-size: var(--font-size-xs);
+    color: var(--text-dim);
+    margin: -6px 0 10px;
+    line-height: 1.45;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border-faint);
+  }
+
+  .region-pick {
+    color: var(--accent-blue-bright) !important;
+    cursor: pointer;
+    text-decoration: none;
+    transition: color 0.15s ease;
+  }
+  .region-pick:hover { color: var(--accent-blue-pale); }
+
+  /* ===== REGION CARDS ===== */
+  .region-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .region-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px 12px 3px 12px;
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    text-align: center;
+  }
+
+  .region-card:hover { border-color: var(--border-toggle); background: var(--bg-surface-hover); }
+  .region-card.selected {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 20px rgba(0, 114, 255, 0.18);
+  }
+
+  .region-name { font-weight: 600; font-size: var(--font-size-sm); margin-bottom: 4px; }
+  .region-ping { font-family: var(--font-mono); font-size: var(--font-size-xs); color: var(--text-dim); }
+  .region-ping span { color: var(--status-success); }
+  .region-code { font-size: var(--font-size-xs); color: var(--text-dim); margin-top: 3px; font-family: var(--font-mono); }
+
+  /* ===== SPEC GROUPS ===== */
+  .spec-group { margin-bottom: 18px; }
+
+  .spec-group-label {
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+  }
+
+  .spec-options {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .spec-option {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px 8px 2px 8px;
+    padding: 8px 14px;
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    font-family: var(--font-mono);
+    color: var(--text-secondary);
+    transition: all 0.15s ease;
+    text-align: center;
+    min-width: 68px;
+  }
+
+  .spec-option:hover { border-color: var(--border-toggle); color: var(--text-primary); }
+  .spec-option.selected {
+    border-color: var(--accent-blue);
+    color: var(--text-primary);
+    background: var(--bg-elevated);
+    box-shadow: 0 0 10px rgba(0, 114, 255, 0.15);
+  }
+
+  /* ===== FLEXIBLE SERVER CLASS / SLIDERS ===== */
+  .profile-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 8px;
+  }
+
+  .profile-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px 12px 3px 12px;
+    padding: 12px 12px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .profile-card:hover { border-color: var(--border-toggle); transform: translateY(-1px); }
+
+  .profile-card.selected {
+    border-color: var(--accent-blue);
+    background: var(--bg-elevated);
+    box-shadow: 0 0 10px rgba(0, 114, 255, 0.15);
+  }
+
+  .profile-name {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: var(--font-size-sm);
+    color: var(--text-primary);
+    margin-bottom: 5px;
+  }
+
+  .profile-chip {
+    font-size: var(--font-size-xs);
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    line-height: 1.3;
+  }
+
+  .slider-val {
+    color: var(--accent-blue-bright);
+    font-family: var(--font-mono);
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  .spec-range {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--bg-track);
+    outline: none;
+    margin: 12px 0 4px;
+  }
+
+  .spec-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: linear-gradient(var(--grad-angle), var(--brand-stops));
+    cursor: pointer;
+    border: 2px solid var(--bg-body);
+    box-shadow: 0 2px 6px rgba(0, 114, 255, 0.3);
+  }
+
+  .spec-range::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: linear-gradient(var(--grad-angle), var(--brand-stops));
+    cursor: pointer;
+    border: 2px solid var(--bg-body);
+  }
+
+  .spec-range::-moz-range-track {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--bg-track);
+  }
+
+  .range-scale {
+    display: flex;
+    justify-content: space-between;
+    font-size: var(--font-size-xs);
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    padding: 0 4px;
+  }
+
+  /* ===== RECOMMENDED MICRO-TEXT + BADGES ===== */
+  .rec-micro {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--font-size-xs);
+    color: var(--status-success);
+    margin-bottom: 10px;
+    font-weight: 500;
+    transition: color 0.2s ease;
+  }
+  .rec-micro svg { width: 13px; height: 13px; flex-shrink: 0; }
+  .rec-micro.off { color: var(--text-dim); font-weight: 400; }
+
+  .spec-module {
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px 12px 3px 12px;
+    padding: 14px;
+    margin-bottom: 14px;
+    background: var(--bg-card);
+  }
+
+  .spec-module-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .spec-module-head .spec-group-label { margin-bottom: 0; }
+
+  /* ===== STEP 2 SELECTOR GRID (2×2) ===== */
+  .spec-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+    align-items: start;
+  }
+  .spec-grid .spec-module { margin-bottom: 0; }
+  
+  @media (max-width: 640px) {
+    .spec-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ===== STEP 2 SLIDERS ROW (RAM / NVMe) ===== */
+  .sliders-module {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .sliders-module .slider-block { min-width: 0; }
+  .sliders-module .spec-range { margin-top: 14px; }
+  @media (max-width: 780px) {
+    .sliders-module { grid-template-columns: 1fr; gap: 18px; }
+  }
+
+  .rec-badge {
+    display: none;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-teal-bright);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    font-family: var(--font-mono);
+  }
+  .rec-badge.show { display: inline-flex; }
+  .rec-badge svg { width: 11px; height: 11px; }
+
+  .spec-select {
+    width: 100%;
+    background: var(--bg-dropdown-inset);
+    border: none;
+    border-radius: 10px 10px 3px 10px;
+    padding: 9px 12px;
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-sm);
+    outline: none;
+    cursor: pointer;
+    transition: box-shadow 0.15s ease;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+  }
+  .spec-select:focus {
+    box-shadow: 0 0 0 3px rgba(0, 114, 255, 0.15);
+  }
+  .spec-select optgroup {
+    font-family: var(--font-body);
+    color: var(--text-secondary);
+  }
+
+  .spec-option.gpu-option { font-family: var(--font-head); min-width: 0; flex: 1; white-space: nowrap; }
+
+  @media (max-width: 640px) {
+    .spec-option.gpu-option { white-space: normal; }
+  }
+
+  /* Tab bar styling unified in theme.css (.toggle-group/.toggle-option).
+     Page-specific bits only: vertical spacing. */
+  .toggle-group {
+    margin-bottom: 18px;
+  }
+
+  .toggle-panel { display: none; }
+  .toggle-panel.active { display: block; animation: fadeIn 0.15s ease; }
+
+  .ssh-key-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  .ssh-key-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: space-between;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px 8px 2px 8px;
+    padding: 8px 12px;
+    font-family: var(--font-mono);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+
+  .ssh-key-item:hover { border-color: var(--border-toggle); }
+  .ssh-key-item.selected { border-color: var(--accent-blue); background: var(--bg-elevated); }
+
+  .ssh-radio {
+    width: 15px; height: 15px;
+    border-radius: 50%;
+    border: 2px solid var(--border-toggle);
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: border-color 0.15s ease;
+  }
+  .ssh-key-item.selected .ssh-radio { border-color: var(--accent-blue); }
+  .ssh-key-item.selected .ssh-radio::after {
+    content: '';
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--accent-blue);
+  }
+
+  .ssh-key-item .key-name { color: var(--text-primary); font-weight: 500; flex: 1; margin-left: 2px; }
+  .ssh-key-item .key-date { color: var(--text-dim); font-size: var(--font-size-xs); }
+
+  .btn-add-key {
+    border-radius: 8px 8px 2px 8px;
+    padding: 8px 14px;
+    cursor: pointer;
+    font-family: var(--font-head);
+    width: 100%;
+    text-align: center;
+  }
+
+  .checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px 8px 2px 8px;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-size: var(--font-size-sm);
+  }
+
+  .checkbox-item:hover { border-color: var(--border-toggle); }
+  .checkbox-item.checked { border-color: var(--accent-blue); background: var(--bg-elevated); }
+
+  .checkbox-box {
+    width: 18px; height: 18px;
+    border-radius: 4px;
+    border: 2px solid var(--border-toggle);
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+    font-size: var(--font-size-xs);
+    color: transparent;
+  }
+
+  .checkbox-item.checked .checkbox-box {
+    background: var(--accent-blue);
+    border-color: transparent;
+    color: var(--text-on-accent);
+  }
+
+  /* ===== LAUNCH CARDS ===== */
+  .launch-modes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .launch-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px 12px 3px 12px;
+    padding: 18px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    text-align: center;
+  }
+
+  .launch-card:hover { border-color: var(--border-toggle); }
+  .launch-card.selected {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 20px rgba(0, 114, 255, 0.18);
+  }
+
+  .launch-icon {
+    width: 40px; height: 40px;
+    margin: 0 auto 8px;
+    border-radius: 8px 8px 2px 8px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .launch-icon svg {
+    width: 20px; height: 20px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .launch-title { font-weight: 600; font-size: var(--font-size-sm); margin-bottom: 3px; }
+  .launch-desc { font-size: var(--font-size-xs); color: var(--text-secondary); margin-bottom: 8px; }
+
+  .fee-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 99px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    color: var(--accent-teal-bright);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    font-family: var(--font-mono);
+  }
+
+  .task-field {
+    display: none;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px 12px 3px 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .task-field.visible { display: block; animation: fadeIn 0.15s ease; }
+
+  .task-field label {
+    display: block;
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+
+  .task-input {
+    width: 100%;
+    background: var(--bg-input);
+    border: 1px solid var(--border-muted);
+    border-radius: 10px 10px 3px 10px;
+    padding: 10px 14px;
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: var(--font-size-sm);
+    resize: vertical;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    outline: none;
+  }
+
+  .task-input:focus {
+    border-color: var(--accent-blue-bright);
+    box-shadow: 0 0 0 2px rgba(0, 114, 255, 0.12);
+  }
+  .task-input::placeholder { color: var(--text-dim); }
+
+  .task-note {
+    margin-top: 8px;
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+    line-height: 1.5;
+  }
+
+  /* ===== PASSWORD STRENGTH ===== */
+  .pw-meter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .pw-bar {
+    flex: 1;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--bg-track);
+    overflow: hidden;
+  }
+
+  .pw-fill {
+    display: block;
+    height: 100%;
+    width: 0%;
+    border-radius: 3px;
+    background: var(--status-danger);
+    transition: width 0.25s ease, background 0.25s ease;
+  }
+
+  .pw-label {
+    font-size: var(--font-size-xs);
+    font-family: var(--font-mono);
+    color: var(--status-danger);
+    min-width: 44px;
+    text-align: right;
+    font-weight: 600;
+    transition: color 0.25s ease;
+  }
+
+  .pw-check {
+    width: 16px; height: 16px;
+    color: var(--status-success);
+    display: none;
+    flex-shrink: 0;
+  }
+  .pw-check.show { display: block; }
+
+  .pw-strength-label { font-size: var(--font-size-xs); color: var(--text-dim); }
+
+  /* ===== TIP NOTE ===== */
+  .tip-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 12px;
+    border-left: 3px solid var(--border-strong);
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    line-height: 1.45;
+    margin-bottom: 4px;
+  }
+
+  .tip-note strong {
+    color: var(--text-primary);
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .tip-note svg {
+    width: 14px; height: 14px;
+    color: var(--text-dim);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  /* ===== SSH KEY MODAL OVERLAY ===== */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(2, 6, 23, 0.64);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+
+  .modal-overlay.open {
+    display: flex;
+  }
+
+  .modal {
+    width: min(480px, 100%);
+    max-width: 100%;
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-card);
+    border-radius: 16px 16px 4px 16px;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .modal-header h3 {
+    font-family: var(--font-head);
+    font-size: var(--font-size-base);
+    letter-spacing: 0.01em;
+  }
+
+  .modal-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-dim);
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  .modal-close:hover {
+    background: var(--bg-card);
+    color: var(--text-primary);
+  }
+
+  .modal-body {
+    padding: 18px;
+  }
+
+  /* ===== SSH KEY MODAL FORM ===== */
+  .ssh-modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .ssh-modal-form label {
+    display: block;
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin-bottom: 5px;
+    font-weight: 500;
+  }
+
+  .ssh-modal-form .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .ssh-modal-form .modal-actions .btn-nav-cta { min-width: 0; padding: 9px 20px; font-size: var(--font-size-sm); }
+  .ssh-modal-form .modal-actions .btn-ghost { padding: 9px 20px; font-size: var(--font-size-sm); }
+
+  /* ===== SIDEBAR ===== */
+  .wizard-sidebar {
+    background: var(--bg-surface);
+    border-left: 1px solid var(--border-subtle);
+    padding: 22px 20px 20px;
+    overflow-y: auto;
+    min-width: 295px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .sidebar-title {
+    font-size: var(--font-size-base);
+    font-weight: 700;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .sidebar-title svg {
+    width: 17px; height: 17px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex-shrink: 0;
+  }
+
+  .sidebar-subtitle {
+    font-size: var(--font-size-xs);
+    color: var(--text-dim);
+    margin-bottom: 0;
+    line-height: 1.5;
+  }
+
+  .safety-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px 12px 3px 12px;
+    padding: 14px;
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+
+  .safety-section h4 {
+    font-size: var(--font-size-xs);
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 10px;
+  }
+
+  /* ===== SIDEBAR BUTTONS ===== */
+  .btn-sm {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 9px 14px;
+    border-radius: 15px 15px 3px 15px;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+    font-family: var(--font-head);
+    text-align: center;
+    border: none;
+  }
+
+  .btn-sm svg {
+    width: 15px; height: 15px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex-shrink: 0;
+  }
+
+  .btn-sm + .btn-sm { margin-top: 6px; }
+
+  .btn-chat,
+  .btn-managed {
+    background: rgba(15, 23, 42, 0.03);
+    color: #1f2328;
+    border: 1px solid rgba(154, 164, 178, 0.80);
+  }
+
+  .btn-chat:hover,
+  .btn-managed:not(.active):hover {
+    color: #1f2328;
+    background: rgba(15, 23, 42, 0.05);
+    border-color: rgba(107, 114, 128, 0.80);
+    transform: translateY(-1px);
+  }
+
+  .btn-managed.active {
+    background: linear-gradient(var(--grad-angle), var(--brand-soft-stops-strong));
+    color: var(--text-on-accent);
+    border: 1px solid color-mix(in srgb, var(--accent-blue) 55%, transparent);
+  }
+
+  .btn-managed.active:hover {
+    background: linear-gradient(var(--grad-angle), var(--brand-soft-stops-strong));
+    color: var(--text-on-accent);
+    border-color: color-mix(in srgb, var(--accent-blue) 65%, transparent);
+    transform: translateY(-1px);
+    filter: none;
+  }
+
+  [data-theme="dark"] .btn-chat,
+  [data-theme="dark"] .btn-managed {
+    color: var(--text-on-accent);
+    background: rgba(255, 255, 255, 0.02);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  [data-theme="dark"] .btn-chat:hover,
+  [data-theme="dark"] .btn-managed:not(.active):hover {
+    color: var(--text-on-accent);
+    background: rgba(255, 255, 255, 0.035);
+    border-color: rgba(255, 255, 255, 0.28);
+  }
+
+  [data-theme="dark"] .btn-managed.active,
+  [data-theme="dark"] .btn-managed.active:hover {
+    background: linear-gradient(var(--grad-angle), var(--brand-soft-stops-strong));
+    color: var(--text-on-accent);
+    border: 1px solid color-mix(in srgb, var(--accent-blue) 55%, transparent);
+  }
+
+  [data-theme="light"] .btn-managed.active,
+  [data-theme="light"] .btn-managed.active:hover {
+    color: #1f2328;
+    border-color: color-mix(in srgb, var(--accent-blue) 55%, transparent);
+  }
+
+  /* ===== SUMMARY ===== */
+  .summary-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .summary-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: var(--font-size-sm);
+    padding: 3px 0;
+  }
+
+  .summary-item .s-label { color: var(--text-dim); }
+  .summary-item .s-value { color: var(--text-primary); font-family: var(--font-mono); font-size: var(--font-size-xs); }
+
+  /* ===== COST CALCULATOR ===== */
+  .cost-box {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px 10px 3px 10px;
+    padding: 14px;
+    text-align: center;
+  }
+
+  .cost-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 4px 0;
+  }
+
+  .cost-row + .cost-row { border-top: 1px solid var(--border-faint); }
+
+  .cost-label { font-size: var(--font-size-xs); color: var(--text-secondary); }
+  .cost-value { font-family: var(--font-mono); font-weight: 700; font-size: var(--font-size-base); color: var(--text-primary); }
+
+  .cost-total {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+
+  .cost-total .cost-label { color: var(--text-primary); font-weight: 600; }
+  .cost-total .cost-value { color: var(--accent-blue-bright); font-size: var(--font-size-lg); }
+
+  /* ===== MANAGED INFO ===== */
+  .specialist-plate {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: color-mix(in srgb, var(--accent-blue) 8%, var(--bg-card));
+    border: 1px solid color-mix(in srgb, var(--accent-blue) 30%, var(--border-subtle));
+    border-radius: 12px 12px 3px 12px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    color: var(--text-primary);
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+    font-family: var(--font-head);
+    animation: fadeIn 0.2s ease;
+  }
+
+  .specialist-plate svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex-shrink: 0;
+    margin-top: 1px;
+    color: var(--accent-blue-bright);
+  }
+
+  .managed-info {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px 12px 3px 12px;
+    padding: 14px;
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+
+  .managed-info h4 {
+    font-size: var(--font-size-xs);
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+  }
+
+  .managed-info p {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  /* ===== SIDEBAR VIEWS (Summary + Inline Chat) ===== */
+  .sidebar-view { display: none; flex-direction: column; gap: 12px; flex: 1 1 auto; min-height: 0; }
+  .sidebar-view.active { display: flex; }
+
+  .sidebar-view-summary {
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+    margin-right: -20px;
+    padding-right: 20px;
+  }
+
+  /* Inline Chat View */
+  .sidebar-view-chat {
+    overflow: hidden;
+  }
+
+  .inline-chat-back {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px 12px 3px 12px;
+    padding: 8px 14px;
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    font-family: var(--font-head);
+    cursor: pointer;
+    transition: border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+    flex-shrink: 0;
+  }
+
+  .inline-chat-back:hover {
+    border-color: var(--border-strong);
+    color: var(--text-primary);
+    transform: translateY(-1px);
+  }
+
+  .inline-chat-back svg {
+    width: 15px; height: 15px;
+    stroke: currentColor; fill: none;
+    stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round;
+    flex-shrink: 0;
+  }
+
+  .inline-chat-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px 12px 3px 12px;
+    flex-shrink: 0;
+  }
+
+  .inline-chat-avatar {
+    width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+    background: var(--bg-terminal-dark, #050508);
+    border: 1px solid var(--border-subtle);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .inline-chat-avatar img { width: 18px; height: 18px; display: block; }
+
+  .inline-chat-meta { flex: 1; min-width: 0; line-height: 1.3; }
+  .inline-chat-name { font-family: var(--font-head); font-size: var(--font-size-sm); font-weight: 600; color: var(--text-primary); }
+  .inline-chat-status { display: flex; align-items: center; gap: 6px; font-size: var(--font-size-xs); color: var(--text-muted); }
+
+  .inline-chat-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+    min-height: 0;
+  }
+
+  .inline-chat-msg {
+    max-width: 85%;
+    padding: 9px 12px;
+    border-radius: 12px 12px 12px 3px;
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+    background: var(--bg-hover-strong);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+  }
+
+  .inline-chat-msg.user {
+    align-self: flex-end;
+    border-radius: 12px 12px 3px 12px;
+    background: color-mix(in srgb, var(--accent-primary, #0080ff) 20%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent-primary, #0080ff) 35%, transparent);
+    color: var(--text-primary);
+  }
+
+  .inline-chat-footer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-top: 1px solid var(--border-subtle);
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px 12px 3px 12px;
+    flex-shrink: 0;
+  }
+
+  .inline-chat-input {
+    flex: 1;
+    min-width: 0;
+    height: 36px;
+    padding: 0 12px;
+    font-size: var(--font-size-sm);
+    font-family: inherit;
+    color: var(--text-primary);
+    background: var(--bg-input);
+    border: 1px solid var(--border-input);
+    border-radius: 12px 12px 3px 12px;
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+  .inline-chat-input::placeholder { color: var(--text-faint); }
+  .inline-chat-input:focus { border-color: var(--accent-blue); }
+
+  .inline-chat-send {
+    width: 36px; height: 36px;
+    border-radius: 12px 12px 3px 12px;
+    border: none; flex-shrink: 0;
+    background: linear-gradient(var(--grad-angle), var(--brand-stops));
+    color: var(--text-on-accent);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.15s ease, filter 0.15s ease;
+  }
+  .inline-chat-send:hover { transform: translateY(-1px); filter: brightness(1.12); }
+  .inline-chat-send svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  .input-wrap { --field-ring-radius: 10px 10px 3px 10px; }
+
+  /* ===== TOAST ===== */
+  .toast-container {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .toast {
+    background: var(--bg-surface-fade);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--border-card);
+    border-radius: 14px 14px 4px 14px;
+    padding: 12px 18px;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    font-family: var(--font-head);
+    color: var(--text-primary);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
+    animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .toast svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex-shrink: 0;
+  }
+
+  .toast .toast-icon { color: var(--accent-blue-bright); }
+
+  @keyframes toastIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes toastOut { to { opacity: 0; transform: translateY(14px); } }
+
+  /* ===== RESPONSIVE ===== */
+
+  /* Desktop (> 1024px): 2-column preset grid, icon above the text */
+  @media (min-width: 1025px) {
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .preset-grid .card {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 18px;
+    }
+
+    .preset-grid .card-icon {
+      margin-bottom: 10px;
+      flex: 0 0 auto;
+    }
+
+    .preset-grid .card-title {
+      margin-bottom: 4px;
+    }
+
+    .preset-grid .card-desc {
+      flex: none;
+      margin-left: 0;
+      line-height: 1.4;
+    }
+  }
+
+  /* Two-column (main + sidebar) is retained down to 701px.
+     Only the main column narrows, so its internal grids stack. */
+  @media (max-width: 1024px) {
+    .wizard-layout {
+      grid-template-columns: 7fr 3fr;
+      column-gap: 18px;
+      max-width: 100%;
+    }
+
+    .wizard-header,
+    .wizard-content,
+    .wizard-nav,
+    .wizard-sidebar,
+    .step-content,
+    .card,
+    .spec-module {
+      max-width: 100%;
+    }
+
+    .wizard-content { padding: 22px 20px 0; }
+    .wizard-sidebar { padding: 18px 14px; }
+    .wizard-nav { padding: 12px 20px; }
+
+    /* Narrower main column -> stack multi-column grids vertically */
+    .region-grid { grid-template-columns: 1fr; }
+    .launch-modes { grid-template-columns: 1fr; }
+    .spec-grid { grid-template-columns: 1fr; gap: 14px; }
+    .sliders-module { grid-template-columns: 1fr; gap: 18px; }
+    .profile-grid { grid-template-columns: 1fr; }
+
+    /* Compact list view for preset cards */
+    .preset-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .preset-grid .card {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
+      column-gap: 12px;
+      row-gap: 4px;
+      padding: 10px 14px;
+    }
+
+    .preset-grid .card-icon {
+      margin-bottom: 0;
+      flex: 0 0 auto;
+    }
+
+    .preset-grid .card-title {
+      margin-bottom: 0;
+      flex: 0 1 auto;
+      min-width: 0;
+    }
+
+    .preset-grid .card-desc {
+      flex: 1 1 100%;
+      margin: 0 0 0 52px;
+      line-height: 1.4;
+    }
+
+    /* Stepper flex-shrink */
+    .stepper { gap: clamp(8px, 2vw, 24px); padding: 12px 16px; max-width: 100%; overflow-x: auto; }
+    .stepper-circle { width: 28px; height: 28px; font-size: 12px; flex-shrink: 0; }
+    .stepper-label { font-size: 11px; }
+  }
+
+  /* Only at 700px and below does the layout switch to a single vertical column */
+  @media (max-width: 700px) {
+    .wizard-layout {
+      grid-template-columns: 1fr;
+      height: auto;
+      min-height: 100vh;
+      max-width: 100%;
+    }
+
+    body { overflow: auto; }
+
+    .wizard-header { padding: 0 16px; }
+    .wizard-main { height: auto; min-height: 0; overflow: visible; }
+    .wizard-content { overflow: visible; padding: 20px 16px 32px; }
+
+    .wizard-nav {
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 12px 16px;
+      position: relative;
+      z-index: 1;
+    }
+    .wizard-nav button { min-width: 0; flex: 1 1 0; }
+
+    /* Sidebar flows below the main column */
+    .wizard-sidebar {
+      height: auto;
+      max-height: none;
+      overflow: visible;
+      border-left: none;
+      border-top: 1px solid var(--border-subtle);
+      padding: 20px 16px;
+      box-shadow: none;
+      background: var(--bg-surface);
+      position: static;
+    }
+
+    .sidebar-view { height: auto; }
+    .sidebar-view-chat { min-height: auto; }
+    .sidebar-view-summary {
+      margin-right: -16px;
+      padding-right: 16px;
+    }
+
+    .stepper { overflow-x: auto; }
+
+    /* Keep modal within the viewport */
+    .modal-overlay { padding: 12px; }
+  }
+
+  @media (max-width: 1024px) and (min-width: 768px) {
+    .stepper-label { font-size: 12px; }
+  }
+
+  @media (min-width: 1025px) and (max-width: 1045px) {
+    .btn-sm,
+    .sidebar-action-btn,
+    .expert-assist-btn,
+    [class*="hand-over"],
+    [class*="expert"] {
+      height: auto !important;
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      white-space: nowrap;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="wizard-layout">
+  <!-- ===== MAIN ===== -->
+  <main class="wizard-main">
+    <div class="wizard-header">
+      <a href="saas_dashboard.html" class="brand" aria-label="GridNode dashboard">
+        <img src="Logo.svg" alt="GridNode" class="brand-logo" data-logo-theme />
+      </a>
+      <div class="header-meta">
+        <span><span class="status-dot"></span> API Active</span>
+        <span id="stepIndicatorHeader">Step 1 of 4</span>
+      </div>
+    </div>
+
+    <div class="stepper">
+      <div class="step-indicator active" data-step="1" onclick="goToStep(1)">
+        <div class="step-circle">1</div>
+        <div class="step-label">Purpose</div>
+      </div>
+      <div class="stepper-line" id="line1"></div>
+      <div class="step-indicator" data-step="2" onclick="goToStep(2)">
+        <div class="step-circle">2</div>
+        <div class="step-label">Specs</div>
+      </div>
+      <div class="stepper-line" id="line2"></div>
+      <div class="step-indicator" data-step="3" onclick="goToStep(3)">
+        <div class="step-circle">3</div>
+        <div class="step-label">Access</div>
+      </div>
+      <div class="stepper-line" id="line3"></div>
+      <div class="step-indicator" data-step="4" onclick="goToStep(4)">
+        <div class="step-circle">4</div>
+        <div class="step-label">Deploy</div>
+      </div>
+    </div>
+
+    <div class="wizard-content">
+
+      <!-- ===== STEP 1 ===== -->
+      <div class="step-content active" id="step1">
+        <h2 class="section-title">Instance Purpose</h2>
+        <p class="section-subtitle">Select a workload scenario — parameters will be configured automatically</p>
+
+        <div class="preset-grid">
+          <div class="card" data-preset="telegram" onclick="selectPreset(this, 'telegram')">
+            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></div>
+            <div class="card-title">Telegram Bot / Python Host</div>
+            <div class="card-desc">Lightweight host for bots & scripts. Optimized for asyncio and long-polling.</div>
+          </div>
+          <div class="card" data-preset="docker" onclick="selectPreset(this, 'docker')">
+            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></div>
+            <div class="card-title">Docker Environment</div>
+            <div class="card-desc">Containerization with Docker Engine, Compose, and Registry support.</div>
+          </div>
+          <div class="card" data-preset="ai" onclick="selectPreset(this, 'ai')">
+            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="2" x2="9" y2="5"/><line x1="15" y1="2" x2="15" y2="5"/><line x1="9" y1="19" x2="9" y2="22"/><line x1="15" y1="19" x2="15" y2="22"/><line x1="2" y1="9" x2="5" y2="9"/><line x1="2" y1="15" x2="5" y2="15"/><line x1="19" y1="9" x2="22" y2="9"/><line x1="19" y1="15" x2="22" y2="15"/></svg></div>
+            <div class="card-title">AI Inference / GPU</div>
+            <div class="card-desc">GPU-accelerated instances for ML models, inference, and training.</div>
+          </div>
+          <div class="card" data-preset="web" onclick="selectPreset(this, 'web')">
+            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+            <div class="card-title">Web App / API Host</div>
+            <div class="card-desc">Host web apps & REST APIs. Balanced CPU/RAM with auto HTTPS.</div>
+          </div>
+          <div class="card" data-preset="db" onclick="selectPreset(this, 'db')">
+            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/></svg></div>
+            <div class="card-title">Database Node</div>
+            <div class="card-desc">Dedicated node for PostgreSQL / Redis. High I/O NVMe, tuned memory.</div>
+          </div>
+          <div class="card" data-preset="custom" onclick="selectPreset(this, 'custom')">
+            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div>
+            <div class="card-title">Custom</div>
+            <div class="card-desc">Start clean and fully configure every parameter yourself on Step 2.</div>
+          </div>
+        </div>
+
+        <div class="params-preview" id="paramsPreview">
+          <h3>Preset Configuration</h3>
+          <p class="params-note">All proposed specs are recommended baselines and can be fully customized on Step 2.</p>
+          <div id="paramsContent"></div>
+        </div>
+      </div>
+
+      <!-- ===== STEP 2 ===== -->
+      <div class="step-content" id="step2">
+        <h2 class="section-title">Specs & Region</h2>
+        <p class="section-subtitle">Configure compute, memory and storage — recommended presets are pre-selected</p>
+
+        <div class="specialist-plate" id="specialistPlate" style="display: none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+          <span>Specialist Mode Active — You can set target specs below or keep defaults. Our engineer will review and optimize the node for your workload.</span>
+        </div>
+
+        <div class="spec-grid">
+          <div class="spec-module">
+            <div class="spec-module-head">
+              <span class="spec-group-label">Deployment Region</span>
+            </div>
+          <div class="custom-select" id="regionSelect">
+            <button type="button" class="custom-select-trigger" aria-haspopup="listbox" aria-expanded="false">
+              <span class="cs-label">Select a region…</span>
+              <span class="chevron">&#9662;</span>
+            </button>
+            <div class="custom-select-menu" role="listbox">
+              <div class="custom-select-option" data-value="us-east" role="option"><span>US East · Virginia</span></div>
+              <div class="custom-select-option" data-value="us-west" role="option"><span>US West · California</span></div>
+              <div class="custom-select-option" data-value="eu-central" role="option"><span>EU Central · Frankfurt</span><span class="service-tag">Recommended</span></div>
+              <div class="custom-select-option" data-value="eu-west" role="option"><span>EU West · Ireland</span></div>
+              <div class="custom-select-option" data-value="uk" role="option"><span>United Kingdom · London</span></div>
+              <div class="custom-select-option" data-value="asia-east" role="option"><span>Asia East · Tokyo</span></div>
+              <div class="custom-select-option" data-value="asia-south" role="option"><span>Asia South · Singapore</span></div>
+              <div class="custom-select-option" data-value="latam-north" role="option"><span>LatAm North · Mexico City</span></div>
+              <div class="custom-select-option" data-value="latam-south" role="option"><span>LatAm South · São Paulo</span></div>
+            </div>
+          </div>
+        </div>
+
+          <div class="spec-module">
+            <div class="spec-module-head">
+              <span class="spec-group-label">CPU Architecture / Family</span>
+            </div>
+            <div class="custom-select" id="cpuFamilySelect">
+              <button type="button" class="custom-select-trigger" aria-haspopup="listbox" aria-expanded="false">
+                <span class="cs-label">Shared vCPU</span>
+                <span class="chevron">&#9662;</span>
+              </button>
+              <div class="custom-select-menu" role="listbox">
+                <div class="custom-select-option selected" data-value="shared" role="option"><span>Shared vCPU</span></div>
+                <div class="custom-select-option" data-value="epyc9006" role="option"><span>AMD EPYC 9006</span></div>
+                <div class="custom-select-option" data-value="epyc7003" role="option"><span>AMD EPYC 7002 / 7003</span></div>
+                <div class="custom-select-option" data-value="xeonplat" role="option"><span>Intel Xeon Platinum</span></div>
+                <div class="custom-select-option" data-value="xeonlegacy" role="option"><span>Intel Xeon Legacy (E3 / E5)</span></div>
+                <div class="custom-select-option" data-value="intelcore" role="option"><span>Intel Core · Consumer</span></div>
+                <div class="custom-select-option" data-value="amdryzen" role="option"><span>AMD Ryzen · Consumer</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="spec-module">
+            <div class="spec-module-head">
+              <span class="spec-group-label">CPU Specs / Core Count</span>
+            </div>
+            <div class="custom-select" id="cpuSpecSelect">
+              <button type="button" class="custom-select-trigger" aria-haspopup="listbox" aria-expanded="false">
+                <span class="cs-label">4 vCPU</span>
+                <span class="chevron">&#9662;</span>
+              </button>
+              <div class="custom-select-menu" role="listbox" id="cpuSpecMenu"></div>
+            </div>
+          </div>
+
+          <div class="spec-module">
+            <div class="spec-module-head">
+              <span class="spec-group-label">GPU Acceleration</span>
+            </div>
+            <div class="custom-select" id="gpuSelect">
+              <button type="button" class="custom-select-trigger" aria-haspopup="listbox" aria-expanded="false">
+                <span class="cs-label">None</span>
+                <span class="chevron">&#9662;</span>
+              </button>
+              <div class="custom-select-menu" role="listbox">
+                <div class="custom-select-group">No GPU</div>
+                <div class="custom-select-option" data-value="none" role="option"><span>None</span></div>
+                <div class="custom-select-group">Consumer / Gaming</div>
+                <div class="custom-select-option" data-value="rtx3060" role="option"><span>NVIDIA RTX 3060 12GB</span></div>
+                <div class="custom-select-option" data-value="rtx4060" role="option"><span>NVIDIA RTX 4060 8GB</span></div>
+                <div class="custom-select-option" data-value="gtx1080ti" role="option"><span>NVIDIA GTX 1080 Ti</span></div>
+                <div class="custom-select-option" data-value="rtx3080" role="option"><span>NVIDIA RTX 3080 10GB</span></div>
+                <div class="custom-select-option" data-value="rtx4070s" role="option"><span>NVIDIA RTX 4070 Super</span></div>
+                <div class="custom-select-option" data-value="rtx4080s" role="option"><span>NVIDIA RTX 4080 Super</span></div>
+                <div class="custom-select-option" data-value="rtx4090" role="option"><span>NVIDIA RTX 4090</span><span class="service-tag">Recommended</span></div>
+                <div class="custom-select-group">Budget / Alternative</div>
+                <div class="custom-select-option" data-value="arc-a770" role="option"><span>Intel Arc A770 16GB</span></div>
+                <div class="custom-select-option" data-value="rx7900xtx" role="option"><span>AMD Radeon RX 7900 XTX</span></div>
+                <div class="custom-select-option" data-value="p100" role="option"><span>NVIDIA Tesla P100</span></div>
+                <div class="custom-select-option" data-value="t4" role="option"><span>NVIDIA Tesla T4</span></div>
+                <div class="custom-select-group">Enterprise / Datacenter</div>
+                <div class="custom-select-option" data-value="a100-80" role="option"><span>NVIDIA A100 80GB</span></div>
+                <div class="custom-select-option" data-value="h100-sxm" role="option"><span>NVIDIA H100 SXM</span></div>
+                <div class="custom-select-option" data-value="hgx200" role="option"><span>NVIDIA HGX H200 · 8×</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="spec-module sliders-module">
+          <div class="slider-block">
+            <div class="spec-module-head">
+              <span class="spec-group-label">RAM / Memory</span>
+              <span class="slider-val" id="ramVal">8 GB</span>
+            </div>
+            <input type="range" class="spec-range" id="ramRange" min="2" max="1024" step="2" value="8" aria-label="RAM size in GB">
+            <div class="range-scale"><span>2 GB</span><span>512 GB</span><span>1024 GB</span></div>
+          </div>
+          <div class="slider-block">
+            <div class="spec-module-head">
+              <span class="spec-group-label">NVMe Storage</span>
+              <span class="slider-val" id="nvmeVal">50 GB</span>
+            </div>
+            <input type="range" class="spec-range" id="nvmeRange" min="20" max="8000" step="10" value="50" aria-label="NVMe storage size in GB">
+            <div class="range-scale"><span>20 GB</span><span>4 TB</span><span>8 TB</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== STEP 3 ===== -->
+      <div class="step-content" id="step3">
+        <h2 class="section-title">Access & Security</h2>
+        <p class="section-subtitle">Configure authentication and network rules</p>
+
+        <div class="spec-group">
+          <div class="spec-group-label">Authentication Method</div>
+          <div class="toggle-group">
+            <button class="toggle-option active" data-mode="ssh" onclick="setAuthMode(this)">SSH Key</button>
+            <button class="toggle-option" data-mode="password" onclick="setAuthMode(this)">Root Password</button>
+          </div>
+        </div>
+
+        <div class="toggle-panel active" id="panelSSH">
+          <div class="spec-group">
+            <div class="spec-group-label">Existing Keys</div>
+            <div class="ssh-key-list" id="sshKeyList">
+              <div class="ssh-key-item selected" data-key="id_ed25519_gridnode" onclick="selectSshKey(this)">
+                <span class="ssh-radio"></span>
+                <span class="key-name">id_ed25519_gridnode</span>
+                <span class="key-date">2025-08-15</span>
+              </div>
+              <div class="ssh-key-item" data-key="deploy_key_prod" onclick="selectSshKey(this)">
+                <span class="ssh-radio"></span>
+                <span class="key-name">deploy_key_prod</span>
+                <span class="key-date">2025-06-02</span>
+              </div>
+            </div>
+            <button class="btn-add-key btn-secondary" onclick="openSshModal()">+ Add SSH Key</button>
+          </div>
+        </div>
+
+        <div class="toggle-panel" id="panelPassword">
+          <div class="spec-group">
+            <div class="spec-group-label">Root Password</div>
+            <div class="input-wrap"><input type="password" class="task-input" id="rootPassword" placeholder="Enter a strong root password..." oninput="checkPassword(this)" style="margin-bottom: 10px;"></div>
+            <div class="pw-meter">
+              <div class="pw-bar"><span class="pw-fill" id="pwFill"></span></div>
+              <span class="pw-label" id="pwLabel">Weak</span>
+              <svg class="pw-check" id="pwCheck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="tip-note">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              <strong>Tip:</strong><span>Use an SSH key for production</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="spec-group">
+          <div class="spec-group-label">Firewall — Allowed Rules</div>
+          <div class="checkbox-group">
+            <div class="checkbox-item" onclick="toggleCheckbox(this)">
+              <div class="checkbox-box">✓</div>
+              <span>Allow Web (80/443)</span>
+            </div>
+            <div class="checkbox-item" onclick="toggleCheckbox(this)">
+              <div class="checkbox-box">✓</div>
+              <span>Allow database access</span>
+            </div>
+            <div class="checkbox-item" onclick="toggleCheckbox(this)">
+              <div class="checkbox-box">✓</div>
+              <span>Allow Custom Port</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== STEP 4 ===== -->
+      <div class="step-content" id="step4">
+        <h2 class="section-title">Final Deployment</h2>
+        <p class="section-subtitle">Choose a deployment mode</p>
+
+        <div class="launch-modes">
+          <div class="launch-card selected" data-mode="auto" onclick="selectLaunchMode(this)">
+            <div class="launch-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+            <div class="launch-title">Automatic Launch</div>
+            <div class="launch-desc">30–60 seconds until ready</div>
+          </div>
+          <div class="launch-card" data-mode="managed" onclick="selectLaunchMode(this)">
+            <div class="launch-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div>
+            <div class="launch-title">Delegate to Specialist</div>
+            <div class="launch-desc">Specialist builds the config from your brief</div>
+            <span class="fee-badge">+$49 One-time setup fee</span>
+          </div>
+        </div>
+
+        <div class="task-field" id="taskField">
+          <label>Technical Brief / GitHub Link</label>
+          <div class="input-wrap"><textarea class="task-input" rows="4" placeholder="Describe the task or paste a GitHub repository link so the specialist can start building..."></textarea></div>
+          <p class="task-note">Note: Our specialist will configure the server based on your brief. We may reach out via your account email if technical clarification is required.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- NAV (fixed at bottom) -->
+    <div class="wizard-nav">
+      <button class="btn-secondary" id="btnPrev" onclick="prevStep()" style="visibility: hidden;"><svg width="16" height="16" viewBox="0 0 34 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h21"/><path d="m22 5 7 7-7 7"/></svg>Back</button>
+      <button class="btn-nav-cta btn-primary" id="btnNext" onclick="nextStep()">Continue<svg width="16" height="16" viewBox="0 0 34 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h21"/><path d="m22 5 7 7-7 7"/></svg></button>
+    </div>
+  </main>
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="wizard-sidebar">
+
+    <!-- ===== View 1: Summary View (default) ===== -->
+    <div class="sidebar-view sidebar-view-summary active" id="sidebarViewSummary">
+      <div class="sidebar-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Specialist Safety Net</div>
+      <div class="sidebar-subtitle">Guidance at every step. Real-time cost calculator.</div>
+
+      <div class="safety-section">
+        <h4>Expert Assistance</h4>
+        <button class="btn-sm btn-chat" onclick="openChat()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Ask about this step</button>
+        <button class="btn-sm btn-managed" id="btnManaged" onclick="toggleManaged()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg><span id="btnManagedText">Hand over setup to engineer</span></button>
+      </div>
+
+      <div class="safety-section">
+        <h4>Summary</h4>
+        <div class="summary-list" id="summaryList">
+          <div class="summary-item"><span class="s-label">Scenario</span><span class="s-value" id="sumPreset">—</span></div>
+          <div class="summary-item"><span class="s-label">Region</span><span class="s-value" id="sumRegion">Select</span></div>
+          <div class="summary-item"><span class="s-label">Class</span><span class="s-value" id="sumClass">Standard</span></div>
+          <div class="summary-item"><span class="s-label">CPU</span><span class="s-value" id="sumCPU">4</span></div>
+          <div class="summary-item"><span class="s-label">RAM</span><span class="s-value" id="sumRAM">8 GB</span></div>
+          <div class="summary-item"><span class="s-label">NVMe</span><span class="s-value" id="sumNVMe">50 GB</span></div>
+          <div class="summary-item" id="sumGPURow" style="display:none;"><span class="s-label">GPU</span><span class="s-value" id="sumGPU">—</span></div>
+          <div class="summary-item"><span class="s-label">Access</span><span class="s-value" id="sumAuth">SSH</span></div>
+          <div class="summary-item"><span class="s-label">Mode</span><span class="s-value" id="sumMode">Auto</span></div>
+        </div>
+      </div>
+
+      <div class="safety-section">
+        <h4>Estimated Cost</h4>
+        <div class="cost-box">
+          <div class="cost-row">
+            <span class="cost-label">$/hour</span>
+            <span class="cost-value" id="costHour">$0.024</span>
+          </div>
+          <div class="cost-row">
+            <span class="cost-label">$/month</span>
+            <span class="cost-value" id="costMonth">$17.28</span>
+          </div>
+          <div class="cost-total">
+            <span class="cost-label">Total / mo</span>
+            <span class="cost-value" id="costTotal">$17.28</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="managed-info" id="managedInfo" style="display: none;">
+        <h4>Managed Mode</h4>
+        <p>The specialist will receive your request and build the infrastructure. You only provide the brief/GitHub link — build time drops to 2–4 hours.</p>
+      </div>
+    </div>
+
+    <!-- ===== View 2: Inline Chat View (hidden by default) ===== -->
+    <div class="sidebar-view sidebar-view-chat" id="sidebarViewChat">
+      <button class="inline-chat-back" onclick="closeChat()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+        Back to Summary
+      </button>
+
+      <div class="inline-chat-header">
+        <div class="inline-chat-avatar" aria-hidden="true"><img src="brand-logo-icon.svg" alt="" /></div>
+        <div class="inline-chat-meta">
+          <div class="inline-chat-name">Expert Assistant</div>
+          <div class="inline-chat-status"><span class="status-dot success"></span>Online</div>
+        </div>
+      </div>
+
+      <div class="inline-chat-body" id="chatBody">
+        <div class="inline-chat-msg">Hi! How can I help you configure your GridNode instance?</div>
+        <div class="inline-chat-msg">For example, specify the region, resource size, or specific network requirements.</div>
+      </div>
+
+      <form class="inline-chat-footer" id="chatForm" onsubmit="return false;">
+        <input class="inline-chat-input" id="chatInput" type="text" placeholder="Type your message..." autocomplete="off" aria-label="Type your message" onkeydown="if(event.key==='Enter')sendChat()" />
+        <button class="inline-chat-send" type="button" onclick="sendChat()" aria-label="Send message">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </form>
+    </div>
+
+  </aside>
+</div>
+
+<!-- Add SSH Key Modal -->
+<div class="modal-overlay" id="sshKeyModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Add SSH Key</h3>
+      <button class="modal-close" onclick="closeSshModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="ssh-modal-form">
+        <div>
+          <label for="sshKeyName">Key Name</label>
+          <div class="input-wrap"><input class="task-input" id="sshKeyName" placeholder="e.g. deploy_key_prod"></div>
+        </div>
+        <div>
+          <label for="sshKeyBody">Public Key</label>
+          <div class="input-wrap"><textarea class="task-input" id="sshKeyBody" rows="4" placeholder="ssh-ed25519 AAAA..."></textarea></div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-ghost" onclick="closeSshModal()">Cancel</button>
+          <button class="btn-nav-cta btn-primary" onclick="addSshKey()">Add key</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+  const state = {
+    currentStep: 1,
+    totalSteps: 4,
+    preset: null,
+    region: null,
+    cpu: 'v3-4',
+    cpuFamily: 'shared',
+    ram: '8',
+    nvme: '50',
+    gpu: 'none',
+    rec: { cpu: 'v3-4', ram: '8', nvme: '50', gpu: 'none' },
+    authMode: 'ssh',
+    sshKey: 'id_ed25519_gridnode',
+    firewall: { web: false, db: false, custom: false },
+    launchMode: 'auto',
+    managedMode: false
+  };
+
+  const presetConfig = {
+    telegram: { cpu: 'v3-2', ram: '4', nvme: '20', gpu: 'none', label: 'Telegram Bot' },
+    docker: { cpu: 'v3-4', ram: '8', nvme: '100', gpu: 'none', label: 'Docker Environment' },
+    ai: { cpu: 'v3-16', ram: '64', nvme: '500', gpu: 'rtx4090', label: 'AI Inference' },
+    web: { cpu: 'v3-4', ram: '8', nvme: '100', gpu: 'none', label: 'Web App / API Host' },
+    db: { cpu: 'v3-8', ram: '32', nvme: '500', gpu: 'none', label: 'Database Node' },
+    custom: { cpu: 'v3-1', ram: '2', nvme: '20', gpu: 'none', label: 'Custom' }
+  };
+
+  const regionConfig = {
+    'us-east': { label: 'US East', ping: 12 },
+    'us-west': { label: 'US West', ping: 29 },
+    'eu-central': { label: 'EU Central', ping: 28 },
+    'eu-west': { label: 'EU West', ping: 22 },
+    'uk': { label: 'United Kingdom', ping: 26 },
+    'asia-east': { label: 'Asia East', ping: 165 },
+    'asia-south': { label: 'Asia South', ping: 78 },
+    'latam-north': { label: 'LatAm North', ping: 55 },
+    'latam-south': { label: 'LatAm South', ping: 92 }
+  };
+
+  const cpuFamilies = {
+    shared:     { label: 'Shared vCPU', default: 'v3-4' },
+    epyc9006:   { label: 'AMD EPYC 9006', default: 'epyc-16' },
+    epyc7003:   { label: 'AMD EPYC 7002 / 7003', default: 'epyc3-32' },
+    xeonplat:   { label: 'Intel Xeon Platinum', default: 'xeon-16' },
+    xeonlegacy: { label: 'Intel Xeon Legacy (E3 / E5)', default: 'xeon-e5' },
+    intelcore:  { label: 'Intel Core (Consumer)', default: 'i7-14700k' },
+    amdryzen:   { label: 'AMD Ryzen (Consumer)', default: 'r9-7950x' }
+  };
+
+  const cpuOptions = [
+    { value: 'v3-1', family: 'shared', label: '1 vCPU', cores: 1, mult: 1 },
+    { value: 'v3-2', family: 'shared', label: '2 vCPU', cores: 2, mult: 1 },
+    { value: 'v3-4', family: 'shared', label: '4 vCPU', cores: 4, mult: 1 },
+    { value: 'v3-8', family: 'shared', label: '8 vCPU', cores: 8, mult: 1 },
+    { value: 'v3-16', family: 'shared', label: '16 vCPU', cores: 16, mult: 1 },
+    { value: 'v3-32', family: 'shared', label: '32 vCPU', cores: 32, mult: 1 },
+    { value: 'v3-64', family: 'shared', label: '64 vCPU', cores: 64, mult: 1 },
+    { value: 'epyc-8', family: 'epyc9006', label: 'EPYC 9006 · 8 cores', cores: 8, mult: 2.5 },
+    { value: 'epyc-16', family: 'epyc9006', label: 'EPYC 9006 · 16 cores', cores: 16, mult: 2.5 },
+    { value: 'epyc-32', family: 'epyc9006', label: 'EPYC 9006 · 32 cores', cores: 32, mult: 2.5 },
+    { value: 'epyc-64', family: 'epyc9006', label: 'EPYC 9006 · 64 cores', cores: 64, mult: 2.5 },
+    { value: 'epyc3-16', family: 'epyc7003', label: 'EPYC 7313 · 16 cores', cores: 16, mult: 1.6 },
+    { value: 'epyc3-32', family: 'epyc7003', label: 'EPYC 7532 · 32 cores', cores: 32, mult: 1.6 },
+    { value: 'epyc3-48', family: 'epyc7003', label: 'EPYC 7663 · 48 cores', cores: 48, mult: 1.6 },
+    { value: 'xeon-8', family: 'xeonplat', label: 'Xeon 8470 · 8 cores', cores: 8, mult: 2.2 },
+    { value: 'xeon-16', family: 'xeonplat', label: 'Xeon 8470 · 16 cores', cores: 16, mult: 2.2 },
+    { value: 'xeon-24', family: 'xeonplat', label: 'Xeon 8470 · 24 cores', cores: 24, mult: 2.2 },
+    { value: 'xeon-32', family: 'xeonplat', label: 'Xeon 8470 · 32 cores', cores: 32, mult: 2.2 },
+    { value: 'xeon-48', family: 'xeonplat', label: 'Xeon 8470 · 48 cores', cores: 48, mult: 2.2 },
+    { value: 'xeon-64', family: 'xeonplat', label: 'Xeon 8470 · 64 cores', cores: 64, mult: 2.2 },
+    { value: 'xeon-96', family: 'xeonplat', label: 'Xeon 8470 · 96 cores', cores: 96, mult: 2.2 },
+    { value: 'xeon-e3', family: 'xeonlegacy', label: 'Xeon E3-1270 v6 · 4 cores', cores: 4, mult: 0.7 },
+    { value: 'xeon-e5', family: 'xeonlegacy', label: 'Xeon E5-2680 v4 · 14 cores', cores: 14, mult: 0.8 },
+    { value: 'i7-14700k', family: 'intelcore', label: 'Intel Core i7-14700K · 20 cores', cores: 20, mult: 1.0 },
+    { value: 'i9-14900k', family: 'intelcore', label: 'Intel Core i9-14900K · 24 cores', cores: 24, mult: 1.15 },
+    { value: 'r7-7800x3d', family: 'amdryzen', label: 'Ryzen 7 7800X3D · 8 cores', cores: 8, mult: 0.95 },
+    { value: 'r9-7950x', family: 'amdryzen', label: 'Ryzen 9 7950X · 16 cores', cores: 16, mult: 1.15 },
+    { value: 'r9-9950x', family: 'amdryzen', label: 'Ryzen 9 9950X · 16 cores', cores: 16, mult: 1.25 }
+  ];
+
+  const gpuOptions = {
+    none: { label: 'None', count: 0, price: 0 },
+    'rtx3060': { label: 'NVIDIA RTX 3060 12GB', count: 1, price: 0.12 },
+    'rtx4060': { label: 'NVIDIA RTX 4060 8GB', count: 1, price: 0.15 },
+    'gtx1080ti': { label: 'NVIDIA GTX 1080 Ti', count: 1, price: 0.10 },
+    'rtx3080': { label: 'NVIDIA RTX 3080 10GB', count: 1, price: 0.22 },
+    'rtx4070s': { label: 'NVIDIA RTX 4070 Super', count: 1, price: 0.25 },
+    'rtx4080s': { label: 'NVIDIA RTX 4080 Super', count: 1, price: 0.35 },
+    rtx4090: { label: 'NVIDIA RTX 4090', count: 1, price: 0.50 },
+    'arc-a770': { label: 'Intel Arc A770 16GB', count: 1, price: 0.12 },
+    'rx7900xtx': { label: 'AMD Radeon RX 7900 XTX', count: 1, price: 0.30 },
+    p100: { label: 'NVIDIA Tesla P100', count: 1, price: 0.15 },
+    t4: { label: 'NVIDIA Tesla T4', count: 1, price: 0.25 },
+    'a100-80': { label: 'NVIDIA A100 80GB', count: 1, price: 1.20 },
+    'h100-sxm': { label: 'NVIDIA H100 SXM', count: 1, price: 2.10 },
+    hgx200: { label: 'NVIDIA HGX H200 · 8×', count: 8, price: 9.50 }
+  };
+
+  const costConfig = {
+    cpuPerCore: 0.008,
+    ramPerGb: 0.001,
+    nvmePerGb: 0.00004,
+    managedPerMo: 25
+  };
+
+  function goToStep(n) {
+    if (n < 1 || n > state.totalSteps) return;
+    state.currentStep = n;
+    renderStep();
+  }
+
+  function nextStep() {
+    if (state.currentStep === 1 && !state.preset) {
+      showToast('Please select a workload scenario');
+      return;
+    }
+    if (state.currentStep < state.totalSteps) {
+      state.currentStep++;
+      renderStep();
+    }
+  }
+
+  function prevStep() {
+    if (state.currentStep > 1) {
+      state.currentStep--;
+      renderStep();
+    }
+  }
+
+  function renderStep() {
+    document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+    document.getElementById('step' + state.currentStep).classList.add('active');
+
+    document.querySelectorAll('.step-indicator').forEach(el => {
+      el.classList.remove('active', 'completed');
+      const step = parseInt(el.dataset.step);
+      if (step === state.currentStep) el.classList.add('active');
+      else if (step < state.currentStep) el.classList.add('completed');
+    });
+
+    for (let i = 1; i < state.totalSteps; i++) {
+      const line = document.getElementById('line' + i);
+      if (line) line.classList.toggle('completed', i < state.currentStep);
+    }
+
+    document.getElementById('stepIndicatorHeader').textContent = 'Step ' + state.currentStep + ' of ' + state.totalSteps;
+    document.getElementById('btnPrev').style.visibility = state.currentStep === 1 ? 'hidden' : 'visible';
+    document.getElementById('btnNext').innerHTML = state.currentStep === state.totalSteps
+      ? '<svg class="confirm-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Confirm'
+      : 'Continue<svg width="16" height="16" viewBox="0 0 34 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h21"/><path d="m22 5 7 7-7 7"/></svg>';
+
+    document.querySelector('.wizard-content').scrollTop = 0;
+    syncControls();
+    updateSummary();
+    updateCost();
+  }
+
+  function selectPreset(el, preset) {
+    document.querySelectorAll('[data-preset]').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    state.preset = preset;
+    const cfg = presetConfig[preset];
+    state.cpu = cfg.cpu;
+    state.ram = cfg.ram;
+    state.nvme = cfg.nvme;
+    state.gpu = cfg.gpu;
+    state.rec = { cpu: cfg.cpu, ram: cfg.ram, nvme: cfg.nvme, gpu: cfg.gpu };
+    syncControls();
+    renderParamsPreview();
+    updateSummary();
+    updateCost();
+  }
+
+  function renderParamsPreview() {
+    const box = document.getElementById('paramsPreview');
+    const el = document.getElementById('paramsContent');
+    if (!state.preset) {
+      box.classList.remove('show');
+      el.innerHTML = '';
+      return;
+    }
+    box.classList.add('show');
+    const cfg = presetConfig[state.preset];
+    const cpu = getCpu(state.cpu).label;
+    const gpuRow = state.gpu !== 'none'
+      ? '<div class="param-row"><span class="param-key">GPU</span><span class="param-val">' + gpuOptions[state.gpu].label + '</span></div>'
+      : '';
+    el.innerHTML =
+      '<div class="param-row"><span class="param-key">Scenario</span><span class="param-val">' + cfg.label + '</span></div>' +
+      gpuRow +
+      '<div class="param-row"><span class="param-key">CPU</span><span class="param-val">' + cpu + '</span></div>' +
+      '<div class="param-row"><span class="param-key">RAM</span><span class="param-val">' + state.ram + ' GB</span></div>' +
+      '<div class="param-row"><span class="param-key">NVMe</span><span class="param-val">' + formatNvme() + '</span></div>' +
+      '<div class="param-row"><span class="param-key">Region</span><span class="param-val region-pick" onclick="goToStep(2)">' + Object.keys(regionConfig).length + ' Regions Available</span></div>';
+  }
+
+  function getCpu(v) {
+    return cpuOptions.find(o => o.value === v) || cpuOptions[2];
+  }
+
+  function formatNvme() {
+    const n = Number(state.nvme);
+    return n >= 1000 ? (n / 1000) + ' TB' : n + ' GB';
+  }
+
+  function syncControls() {
+    const defs = [
+      { wrap: 'regionSelect', value: state.region, fallback: 'Select a region…' },
+      { wrap: 'gpuSelect', value: state.gpu, fallback: 'No GPU' }
+    ];
+    defs.forEach(function (d) {
+      const w = document.getElementById(d.wrap);
+      if (!w) return;
+      const labelEl = w.querySelector('.cs-label');
+      let matched = null;
+      w.querySelectorAll('.custom-select-option').forEach(function (o) {
+        const isSel = d.value !== null && o.dataset.value === String(d.value);
+        o.classList.toggle('selected', isSel);
+        if (isSel) matched = o;
+      });
+      if (labelEl) {
+        if (matched) {
+          const s = matched.querySelector('span');
+          labelEl.textContent = s ? s.textContent : matched.textContent;
+        } else {
+          labelEl.textContent = d.fallback;
+        }
+      }
+    });
+    syncSliders();
+    renderCpuSpecs();
+  }
+
+  function syncSliders() {
+    const r = document.getElementById('ramRange');
+    const n = document.getElementById('nvmeRange');
+    if (r) {
+      r.value = Number(state.ram);
+      const v = document.getElementById('ramVal');
+      if (v) v.textContent = Number(state.ram) + ' GB';
+    }
+    if (n) {
+      n.value = Number(state.nvme);
+      const v = document.getElementById('nvmeVal');
+      if (v) v.textContent = formatNvme();
+    }
+  }
+
+  function setSelectOption(wrap, value, label) {
+    const w = document.getElementById(wrap);
+    if (!w) return;
+    const labelEl = w.querySelector('.cs-label');
+    if (labelEl && label) labelEl.textContent = label;
+    w.querySelectorAll('.custom-select-option').forEach(function (o) {
+      o.classList.toggle('selected', o.dataset.value === String(value));
+    });
+  }
+
+  function closeAllSelects() {
+    document.querySelectorAll('.custom-select.open').forEach(function (w) {
+      w.classList.remove('open');
+      const t = w.querySelector('.custom-select-trigger');
+      if (t) t.setAttribute('aria-expanded', 'false');
+    });
+  }
+  document.addEventListener('click', closeAllSelects);
+
+  function wireSelect(wrapId, onChange) {
+    const wrap = document.getElementById(wrapId);
+    if (!wrap) return;
+    const trigger = wrap.querySelector('.custom-select-trigger');
+    const menu = wrap.querySelector('.custom-select-menu');
+    if (!trigger || !menu) return;
+    trigger.addEventListener('click', function (e) {
+      e.stopPropagation();
+      const wasOpen = wrap.classList.contains('open');
+      closeAllSelects();
+      wrap.classList.toggle('open', !wasOpen);
+      trigger.setAttribute('aria-expanded', String(!wasOpen));
+    });
+    menu.addEventListener('click', function (e) {
+      const opt = e.target.closest('.custom-select-option');
+      if (!opt) return;
+      const labelSpan = opt.querySelector('span');
+      const label = labelSpan ? labelSpan.textContent : opt.textContent;
+      const value = opt.dataset.value;
+      setSelectOption(wrapId, value, label);
+      onChange(value);
+      closeAllSelects();
+    });
+  }
+
+  function cpuModelOf(v) {
+    return cpuOptions.find(function (o) { return o.value === v; }) || null;
+  }
+
+  function familyDefault(family) {
+    const def = cpuFamilies[family] ? cpuFamilies[family].default : 'v3-4';
+    return cpuModelOf(def) ? def : cpuOptions[0].value;
+  }
+
+  function renderCpuSpecs(keepFamily) {
+    const menu = document.getElementById('cpuSpecMenu');
+    if (!menu) return;
+
+    let family = cpuFamilies[state.cpuFamily] ? state.cpuFamily : 'shared';
+    if (!keepFamily) {
+      const m = cpuModelOf(state.cpu);
+      if (m && cpuFamilies[m.family]) family = m.family;
+    }
+    state.cpuFamily = family;
+
+    const model = cpuModelOf(state.cpu);
+    if (!model || model.family !== family) state.cpu = familyDefault(family);
+
+    const models = cpuOptions.filter(function (o) { return o.family === family; });
+    menu.innerHTML = models.map(function (o) {
+      const rec = o.value === cpuFamilies[family].default ? '<span class="service-tag">Recommended</span>' : '';
+      const sel = o.value === state.cpu ? ' selected' : '';
+      return '<div class="custom-select-option' + sel + '" data-value="' + o.value + '" role="option"><span>' + o.label + '</span>' + rec + '</div>';
+    }).join('');
+
+    const labelEl = document.querySelector('#cpuSpecSelect .cs-label');
+    const cur = cpuModelOf(state.cpu);
+    if (labelEl && cur) labelEl.textContent = cur.label;
+
+    const famWrap = document.getElementById('cpuFamilySelect');
+    if (famWrap) {
+      famWrap.querySelectorAll('.custom-select-option').forEach(function (o) {
+        o.classList.toggle('selected', o.dataset.value === family);
+      });
+      const famLabelEl = famWrap.querySelector('.cs-label');
+      if (famLabelEl) famLabelEl.textContent = cpuFamilies[family].label;
+    }
+  }
+
+  function cpuClassLabel() {
+    const m = cpuModelOf(state.cpu);
+    if (m && cpuFamilies[m.family]) return cpuFamilies[m.family].label;
+    return 'Shared vCPU';
+  }
+
+  function refreshModules() {
+    updateSummary();
+    updateCost();
+  }
+
+  function setAuthMode(btn) {
+    document.querySelectorAll('.toggle-option').forEach(o => o.classList.remove('active'));
+    btn.classList.add('active');
+    state.authMode = btn.dataset.mode;
+    document.getElementById('panelSSH').classList.toggle('active', state.authMode === 'ssh');
+    document.getElementById('panelPassword').classList.toggle('active', state.authMode === 'password');
+    updateSummary();
+  }
+
+  function selectSshKey(el) {
+    document.querySelectorAll('.ssh-key-item').forEach(i => i.classList.remove('selected'));
+    el.classList.add('selected');
+    state.sshKey = el.dataset.key;
+    updateSummary();
+  }
+
+  function openSshModal() {
+    document.getElementById('sshKeyModal').classList.add('open');
+  }
+
+  function closeSshModal() {
+    document.getElementById('sshKeyModal').classList.remove('open');
+  }
+
+  function escapeHtml(s) {
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  function addSshKey() {
+    const name = document.getElementById('sshKeyName').value.trim();
+    const body = document.getElementById('sshKeyBody').value.trim();
+    if (!name || !body) {
+      showToast('Provide both a key name and the public key');
+      return;
+    }
+    const date = new Date().toISOString().slice(0, 10);
+    const item = document.createElement('div');
+    item.className = 'ssh-key-item';
+    item.setAttribute('data-key', name);
+    item.setAttribute('onclick', 'selectSshKey(this)');
+    item.innerHTML = '<span class="ssh-radio"></span><span class="key-name">' + escapeHtml(name) + '</span><span class="key-date">' + date + '</span>';
+    const list = document.getElementById('sshKeyList');
+    list.appendChild(item);
+    document.querySelectorAll('.ssh-key-item').forEach(i => i.classList.remove('selected'));
+    item.classList.add('selected');
+    state.sshKey = name;
+    document.getElementById('sshKeyName').value = '';
+    document.getElementById('sshKeyBody').value = '';
+    closeSshModal();
+    updateSummary();
+    showToast('SSH key added');
+  }
+
+  function checkPassword(input) {
+    const v = input.value;
+    const fill = document.getElementById('pwFill');
+    const label = document.getElementById('pwLabel');
+    const check = document.getElementById('pwCheck');
+    let score = 0;
+    if (v.length >= 6) score++;
+    if (v.length >= 10) score++;
+    if (v.length >= 14) score++;
+    if (/[a-z]/.test(v) && /[A-Z]/.test(v)) score++;
+    if (/\d/.test(v)) score++;
+    if (/[^A-Za-z0-9]/.test(v)) score++;
+
+    let level, pct, color;
+    if (score >= 5) { level = 'Strong'; pct = 100; color = 'var(--status-success)'; }
+    else if (score >= 3) { level = 'Medium'; pct = 66; color = 'var(--status-warning)'; }
+    else { level = 'Weak'; pct = Math.min(score * 16.5, 33); color = 'var(--status-danger)'; }
+
+    if (!v) { level = 'Weak'; pct = 0; color = 'var(--status-danger)'; }
+    fill.style.width = pct + '%';
+    fill.style.background = color;
+    label.textContent = level;
+    label.style.color = color;
+    check.classList.toggle('show', !!v && score >= 5);
+  }
+
+  function toggleCheckbox(el) {
+    el.classList.toggle('checked');
+    const label = el.querySelector('span') ? el.querySelector('span').textContent : '';
+    if (label.includes('Web')) state.firewall.web = !state.firewall.web;
+    else if (label.includes('database')) state.firewall.db = !state.firewall.db;
+    else if (label.includes('Custom')) state.firewall.custom = !state.firewall.custom;
+  }
+
+  function applyManagedState(on) {
+    state.managedMode = on;
+    const btn = document.getElementById('btnManaged');
+    if (btn) btn.classList.toggle('active', on);
+    const text = document.getElementById('btnManagedText');
+    if (text) text.textContent = on ? 'Engineer connected' : 'Hand over setup to engineer';
+    const info = document.getElementById('managedInfo');
+    if (info) info.style.display = on ? 'block' : 'none';
+    const plate = document.getElementById('specialistPlate');
+    if (plate) plate.style.display = on ? 'flex' : 'none';
+  }
+
+  function setLaunchMode(mode) {
+    state.launchMode = mode;
+    document.querySelectorAll('.launch-card').forEach(function (c) {
+      c.classList.toggle('selected', c.dataset.mode === mode);
+    });
+    const tf = document.getElementById('taskField');
+    if (tf) tf.classList.toggle('visible', mode === 'managed');
+  }
+
+  function selectLaunchMode(el) {
+    const mode = el.dataset.mode;
+    setLaunchMode(mode);
+    applyManagedState(mode === 'managed');
+    updateSummary();
+    updateCost();
+  }
+
+  function toggleManaged() {
+    const on = !state.managedMode;
+    applyManagedState(on);
+    setLaunchMode(on ? 'managed' : 'auto');
+    if (on) {
+      showToast('Managed Mode activated — the engineer will receive your request');
+    }
+    updateSummary();
+    updateCost();
+  }
+
+  function updateSummary() {
+    const preset = state.preset ? presetConfig[state.preset].label : '—';
+    const region = state.region ? regionConfig[state.region].label : 'Select on Step 2';
+    document.getElementById('sumPreset').textContent = preset;
+    document.getElementById('sumRegion').textContent = region;
+    document.getElementById('sumClass').textContent = cpuClassLabel();
+    document.getElementById('sumCPU').textContent = getCpu(state.cpu).label;
+    document.getElementById('sumRAM').textContent = state.ram + ' GB';
+    document.getElementById('sumNVMe').textContent = formatNvme();
+    const gpuRow = document.getElementById('sumGPURow');
+    if (state.gpu !== 'none') {
+      gpuRow.style.display = 'flex';
+      document.getElementById('sumGPU').textContent = gpuOptions[state.gpu].count + '× GPU';
+    } else {
+      gpuRow.style.display = 'none';
+    }
+    document.getElementById('sumAuth').textContent = state.authMode === 'ssh'
+      ? (state.sshKey ? 'SSH / ' + state.sshKey : 'SSH')
+      : 'Password';
+    document.getElementById('sumMode').textContent = state.managedMode ? 'Managed' : (state.launchMode === 'auto' ? 'Auto' : 'Delegated');
+  }
+
+  function updateCost() {
+    const cpuOpt = getCpu(state.cpu);
+    const cpuRate = cpuOpt.cores * costConfig.cpuPerCore * cpuOpt.mult;
+    const ramRate = Number(state.ram) * costConfig.ramPerGb;
+    const nvmeRate = Number(state.nvme) * costConfig.nvmePerGb;
+    const gpuRate = gpuOptions[state.gpu].price;
+    const totalHour = cpuRate + ramRate + nvmeRate + gpuRate;
+    const managedFee = state.managedMode ? costConfig.managedPerMo : 0;
+    const totalMonth = totalHour * 730 + managedFee;
+
+    document.getElementById('costHour').textContent = '$' + totalHour.toFixed(4);
+    document.getElementById('costMonth').textContent = '$' + totalMonth.toFixed(2);
+    document.getElementById('costTotal').textContent = '$' + totalMonth.toFixed(2);
+  }
+
+  function openChat() {
+    document.getElementById('sidebarViewSummary').classList.remove('active');
+    document.getElementById('sidebarViewChat').classList.add('active');
+    setTimeout(function() {
+      var inp = document.getElementById('chatInput');
+      if (inp) inp.focus();
+    }, 50);
+  }
+
+  function closeChat() {
+    document.getElementById('sidebarViewChat').classList.remove('active');
+    document.getElementById('sidebarViewSummary').classList.add('active');
+  }
+
+  function sendChat() {
+    var input = document.getElementById('chatInput');
+    var msg = input.value.trim();
+    if (!msg) return;
+    var body = document.getElementById('chatBody');
+    var userMsg = document.createElement('div');
+    userMsg.className = 'inline-chat-msg user';
+    userMsg.textContent = msg;
+    body.appendChild(userMsg);
+    input.value = '';
+    body.scrollTop = body.scrollHeight;
+
+    setTimeout(function() {
+      var engMsg = document.createElement('div');
+      engMsg.className = 'inline-chat-msg';
+      var responses = [
+        'Got it! Let me clarify your requirements and find the optimal configuration.',
+        'Thanks for the question. I recommend balancing CPU and RAM for your scenario.',
+        'Great question! For your scenario, the EU Central region would give the lowest latency.',
+        'Sure! I\'ll add that to your recommendations. Make sure to review the firewall rules before deploy.'
+      ];
+      engMsg.textContent = responses[Math.floor(Math.random() * responses.length)];
+      body.appendChild(engMsg);
+      body.scrollTop = body.scrollHeight;
+    }, 800 + Math.random() * 600);
+  }
+
+function confirmLaunch() {
+    window.location.href = 'saas_dashboard.html?deploy=success';
+  }
+
+  function showToast(msg) {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
+    const span = document.createElement('span');
+    span.textContent = msg;
+    toast.appendChild(span);
+    container.appendChild(toast);
+    setTimeout(function() { toast.remove(); }, 3200);
+  }
+
+  document.getElementById('btnNext').addEventListener('click', function() {
+    if (state.currentStep === state.totalSteps) confirmLaunch();
+  });
+
+  wireSelect('regionSelect', function (v) { state.region = v; updateSummary(); });
+  wireSelect('cpuFamilySelect', function (v) { state.cpuFamily = v; renderCpuSpecs(true); refreshModules(); });
+  wireSelect('cpuSpecSelect', function (v) { state.cpu = v; renderCpuSpecs(); refreshModules(); });
+  wireSelect('gpuSelect', function (v) { state.gpu = v; refreshModules(); });
+
+  document.getElementById('ramRange').addEventListener('input', function () {
+    state.ram = Number(this.value);
+    document.getElementById('ramVal').textContent = state.ram + ' GB';
+    refreshModules();
+  });
+  document.getElementById('nvmeRange').addEventListener('input', function () {
+    state.nvme = Number(this.value);
+    document.getElementById('nvmeVal').textContent = formatNvme();
+    refreshModules();
+  });
+
+  renderStep();
+  updateSummary();
+  updateCost();
+  syncControls();
+</script>
+<script src="auth-links.js" defer></script>
+
+</body>
+</html>

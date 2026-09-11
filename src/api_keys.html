@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GridNode — API Keys</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet">
+  
+  <link rel="icon" href="FAV.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="theme.css">
+  <script>
+    (function () {
+      try {
+        var s = JSON.parse(localStorage.getItem('gridnode_settings') || '{}');
+        document.documentElement.setAttribute('data-theme', s.theme === 'light' ? 'light' : 'dark');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
+<style>
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      font-size: var(--font-size-base);
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-body);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      overflow-x: hidden;
+    }
+
+    .grounded-capsule {
+      border-radius: 34px 34px 5px 34px;
+    }
+
+    /* ===== SIDEBAR (styles centralized in shared-sidebar.css) ===== */
+
+    .main-content {
+      margin-left: 256px;
+      flex: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .top-bar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      min-height: 72px;
+      padding: 24px 32px;
+      border-bottom: 1px solid var(--border-soft);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .top-bar-left {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .top-bar-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .content-body {
+      padding: 28px 32px 32px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .filter-bar {
+      display: flex;
+      flex-direction: row;
+      gap: 12px;
+      align-items: center;
+      width: 100%;
+      padding: 12px 18px;
+      background: var(--bg-surface-fade);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 34px 34px 5px 34px;
+      position: relative;
+      z-index: 100;
+      overflow: visible;
+    }
+
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 220px;
+    }
+
+    .search-wrap .search-icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-dim);
+      pointer-events: none;
+      line-height: 1;
+    }
+
+    .search-wrap .search-icon svg {
+      width: 16px;
+      height: 16px;
+      display: block;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .search-input {
+      width: 100%;
+      height: 40px;
+      box-sizing: border-box;
+      padding: 0 12px 0 40px;
+    }
+
+    .action-btn,
+    .console-action-btn {
+      gap: 8px;
+    }
+
+    .btn-icon {
+      display: inline-block;
+      margin: 0;
+    }
+
+    .btn-primary {
+      /* appearance unified in theme.css; local size only */
+      height: 38px;
+      padding: 0 20px;
+      gap: 6px;
+    }
+
+    .btn-primary .plus-icon {
+      font-size: var(--font-size-lg);
+      transform: translateY(0.7px);
+    }
+
+    .btn-secondary {
+      /* appearance (bg/border/font) unified in theme.css; size stays local */
+      padding: 0 18px;
+      height: 38px;
+    }
+
+    .service-selector {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      height: 40px;
+      box-sizing: border-box;
+      padding: 0 12px;
+      background: var(--bg-card);
+      border-radius: 19px 19px 4px 19px;
+      cursor: pointer;
+      transition: background 0.2s;
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+    .service-selector:focus-visible {
+      box-shadow: 0 0 0 3px rgba(0, 114, 255, 0.15);
+      outline: none;
+    }
+
+    .service-selector .service-name {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .service-selector .chevron {
+      font-size: var(--font-size-base);
+      color: var(--text-muted);
+      line-height: 1;
+      transform: translateY(1px);
+    }
+
+    .service-menu {
+      position: absolute;
+      left: 0;
+      width: max-content;
+      min-width: 100%;
+      top: calc(100% + 4px);
+      background: var(--bg-card);
+      border-radius: 34px 34px 5px 34px;
+      padding: 6px;
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 9999 !important;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+
+    .service-menu.show {
+      display: flex;
+    }
+
+    .service-option {
+      padding: 12px 16px;
+      border-radius: 12px 12px 2px 12px;
+      cursor: pointer;
+      transition: background 0.15s;
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      line-height: 1.4;
+    }
+
+    .keys-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      grid-auto-rows: 1fr;
+      align-items: stretch;
+      gap: 18px;
+    }
+
+    .key-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 24px 24px 5px 24px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      gap: 20px;
+      transition: box-shadow 0.3s ease, border-color 0.3s ease;
+    }
+
+    .key-card.flash-success {
+      animation: card-success-flash 1s ease;
+    }
+
+    @keyframes card-success-flash {
+      0% {
+        border-color: color-mix(in srgb, var(--status-success) 45%, transparent);
+        box-shadow: 0 0 0 1px color-mix(in srgb, var(--status-success) 35%, transparent), 0 0 28px color-mix(in srgb, var(--status-success) 18%, transparent);
+      }
+      100% {
+        border-color: var(--border-card);
+        box-shadow: none;
+      }
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .key-info {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .key-name {
+      font-size: var(--font-size-base);
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .key-purpose {
+      margin-top: 6px;
+      margin-bottom: 8px;
+      color: var(--text-muted);
+      font-size: var(--font-size-sm);
+      line-height: 1.5;
+      min-height: 40px;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      flex-shrink: 0;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 14px 14px 3px 14px;
+      border: 1px solid var(--border-color);
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      color: var(--text-secondary);
+      background: var(--bg-overlay-soft);
+    }
+
+    .status-pill.is-revoked {
+      color: var(--status-danger);
+      border-color: color-mix(in srgb, var(--status-danger) 28%, transparent);
+      background: color-mix(in srgb, var(--status-danger) 8%, transparent);
+    }
+
+    /* .status-dot base is unified in theme.css; only colour modifiers stay local */
+    .status-dot.active {
+      background: var(--status-success);
+      box-shadow: 0 0 10px color-mix(in srgb, var(--status-success) 30%, transparent);
+      animation: none;
+    }
+
+    .status-dot.revoked {
+      background: var(--status-danger);
+      box-shadow: 0 0 10px color-mix(in srgb, var(--status-danger) 25%, transparent);
+      animation: none;
+    }
+
+    .status-dot.expired {
+      background: var(--text-muted);
+      box-shadow: 0 0 10px rgba(138, 143, 168, 0.18);
+      animation: none;
+    }
+
+    .key-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .section-label {
+      color: var(--text-muted);
+      font-size: var(--font-size-xs);
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+
+    .key-token-row {
+      width: 100%;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .key-token {
+      font-family: var(--font-mono);
+      color: var(--text-secondary);
+      background: var(--bg-hover-subtle);
+      padding: 10px 12px;
+      margin-left: -12px;
+      border-radius: 9999px 9999px 0px 9999px;
+      flex: 1;
+      width: 100%;
+      min-width: 0;
+      overflow-wrap: anywhere;
+      transition: background 0.35s ease;
+    }
+
+    .key-token.flash-roll {
+      animation: token-roll-flash 1s ease;
+    }
+
+    @keyframes token-roll-flash {
+      0%,
+      40% {
+        background: color-mix(in srgb, var(--status-success) 20%, transparent);
+      }
+      100% {
+        background: var(--bg-hover-subtle);
+      }
+    }
+
+    .key-card[data-status="revoked"] .key-token {
+      opacity: 0.5;
+    }
+
+    .key-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .icon-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      width: 38px;
+      height: 38px;
+      border: 1px solid var(--border-color);
+      border-radius: 19px 19px 4px 19px;
+      background: var(--bg-surface);
+      color: var(--text-helper);
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+      position: relative;
+    }
+
+    .icon-btn:hover {
+      background: var(--bg-hover-strong);
+      border-color: var(--bg-overlay);
+      color: var(--text-inverse);
+    }
+
+    .icon-btn svg {
+      width: 16px;
+      height: 16px;
+      display: block;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .icon-btn.copy-success {
+      color: var(--status-success);
+      border-color: color-mix(in srgb, var(--status-success) 30%, transparent);
+    }
+
+    .icon-btn .copy-tooltip {
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg-tooltip);
+      color: var(--status-success);
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: 12px 12px 3px 12px;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    .icon-btn.copy-success .copy-tooltip {
+      opacity: 1;
+    }
+
+    .pill-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-left: -10px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      background: var(--bg-hover);
+      border: 1px solid var(--border-muted);
+      border-radius: 14px 14px 3px 14px;
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .badge.full {
+      color: var(--accent-sky-light);
+      border-color: rgba(56, 189, 248, 0.24);
+    }
+
+    .badge.read {
+      color: var(--accent-amber);
+      border-color: rgba(251, 191, 36, 0.22);
+    }
+
+    .badge.logs {
+      color: var(--accent-violet);
+      border-color: rgba(167, 139, 250, 0.24);
+    }
+
+    .card-bottom {
+      margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .meta-value {
+      font-size: var(--font-size-sm);
+      color: var(--text-muted);
+    }
+
+    .action-group {
+      width: 100%;
+      display: flex;
+      gap: 8px;
+    }
+
+    .text-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      text-align: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: var(--bg-hover-subtle);
+      border: 1px solid var(--bg-hover-bright);
+      border-radius: 15px 15px 3px 15px;
+      color: var(--text-soft);
+      font-size: var(--font-size-sm);
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+
+    .text-button:hover {
+      background: var(--bg-hover-bright);
+      color: var(--text-inverse);
+    }
+
+    .text-button svg {
+      width: 14px;
+      height: 14px;
+      display: block;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .text-button.btn-revoke:hover {
+      border-color: color-mix(in srgb, var(--status-danger) 30%, transparent);
+      color: var(--status-danger);
+    }
+
+    .text-button.btn-reactivate {
+      background: rgba(59, 130, 246, 0.1);
+      color: var(--accent-blue-mid);
+      border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+
+    .text-button.btn-reactivate:hover {
+      background: rgba(59, 130, 246, 0.18);
+      color: var(--accent-blue-pale);
+      border-color: rgba(59, 130, 246, 0.35);
+    }
+
+    .key-card[data-status="revoked"] .btn-edit,
+    .text-button.btn-edit:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: var(--overlay-bg);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal-card {
+      width: min(560px, 100%);
+      background: var(--bg-modal);
+      border: 1px solid var(--border-strong);
+      border-radius: 24px 24px 5px 24px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .modal-title {
+      font-size: var(--font-size-lg);
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .modal-copy {
+      color: var(--text-muted);
+      font-size: var(--font-size-sm);
+      line-height: 1.5;
+      max-width: 420px;
+      margin-bottom: 0;
+    }
+
+    .modal-body {
+      display: grid;
+      gap: 16px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-label {
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 11px 14px;
+    }
+
+    .form-textarea {
+      resize: vertical;
+      min-height: 72px;
+      line-height: 1.5;
+    }
+
+    .form-note {
+      color: var(--text-dim);
+      opacity: 0.7;
+      font-weight: 400;
+      font-size: var(--font-size-sm);
+      line-height: 1.4;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      flex-wrap: wrap;
+    }
+
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: var(--font-size-base);
+      line-height: 1;
+    }
+
+    .modal-close svg {
+      width: 18px;
+      height: 18px;
+      display: block;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .modal-close:hover {
+      color: var(--text-primary);
+    }
+
+    /* Modal Step 2 – Secret Reveal */
+    .modal-step {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .modal-step.hidden {
+      display: none;
+    }
+
+    .secret-reveal-box {
+      background: rgba(0, 114, 255, 0.06);
+      border: 1px solid rgba(0, 114, 255, 0.2);
+      border-radius: 14px 14px 4px 14px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .secret-reveal-box .secret-key {
+      font-family: var(--font-mono);
+      font-size: var(--font-size-sm);
+      color: var(--accent-sky-light);
+      word-break: break-all;
+      flex: 1;
+    }
+
+    .secret-reveal-box .icon-btn {
+      flex-shrink: 0;
+    }
+
+    .warning-banner {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: color-mix(in srgb, var(--status-warning) 8%, transparent);
+      border: 1px solid color-mix(in srgb, var(--status-warning) 20%, transparent);
+      border-radius: 12px 12px 3px 12px;
+      padding: 12px 16px;
+      color: var(--status-warning);
+      font-size: var(--font-size-sm);
+      line-height: 1.5;
+    }
+
+    .warning-banner svg {
+      width: 18px;
+      height: 18px;
+      stroke: var(--status-warning);
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+/* Mobile header button — hidden by default, shown only when the
+       sidebar collapses into the mobile header (same breakpoint as shared-sidebar.css) */
+    .mobile-header .btn-generate-key--mobile {
+      display: none;
+    }
+    @media (max-width: 999px) {
+      .main-content {
+        margin-left: 256px;
+      }
+
+      .top-bar {
+      height: auto;
+      min-height: 72px;
+      padding: 16px 18px;
+    }
+
+      .content-body {
+        padding: 18px 18px 24px;
+      }
+
+      .filter-bar {
+        gap: 10px;
+      }
+      .search-wrap {
+        min-width: 0;
+      }
+
+      /* Hide "+ Generate New Key" from the content header on mobile —
+         only the mobile-header clone stays visible, so no duplication */
+      .page-header #btn-generate-key,
+      .top-bar #btn-generate-key {
+        display: none !important;
+      }
+
+      .mobile-header {
+        justify-content: space-between;
+      }
+
+      .mobile-header .btn-generate-key--mobile {
+        display: inline-flex;
+        align-items: center;
+        height: 34px;
+        padding: 0 14px;
+        font-size: var(--font-size-sm);
+        margin-left: auto;
+      }
+
+      .mobile-header .btn-generate-key--mobile .plus-icon {
+        font-size: var(--font-size-base);
+      }
+    }
+
+    @media (max-width: 620px) {
+      .main-content {
+        margin-left: 256px;
+      }
+    }
+
+    /* ===== TOAST ===== */
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 96px;
+      transform: translate(-50%, 20px);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg-toast);
+      border: 1px solid color-mix(in srgb, var(--status-success) 35%, transparent);
+      border-radius: 12px 12px 3px 12px;
+      padding: 12px 18px;
+      font-size: var(--font-size-sm);
+      color: var(--text-primary);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      z-index: 1200;
+    }
+
+    .toast svg {
+      width: 16px;
+      height: 16px;
+      display: block;
+      flex-shrink: 0;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+  </style>
+  <link rel="stylesheet" href="shared-dropdown.css">
+  <link rel="stylesheet" href="shared-sidebar.css">
+</head>
+
+<body>
+  <aside class="sidebar">
+    <a href="saas_dashboard.html" class="sidebar-brand-link">
+      <div class="sidebar-brand">
+        <img src="Logo.svg" alt="GridNode" class="brand-logo" data-logo-theme />
+<img src="brand-logo-icon.svg" alt="GridNode icon" class="brand-logo-icon" />
+      </div>
+    </a>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="saas_dashboard.html">
+        <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-6l-2-2H5a2 2 0 0 0-2 2z"></path>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+          </svg></span>
+        <span>Dashboard</span>
+      </a>
+      <a class="nav-item" href="instances.html">
+        <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>
+          </svg></span>
+        <span>Cloud Instances</span>
+      </a>
+      <a class="nav-item" href="metrics.html">
+        <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true">
+            <line x1="18" y1="20" x2="18" y2="10"></line>
+            <line x1="12" y1="20" x2="12" y2="4"></line>
+            <line x1="6" y1="20" x2="6" y2="14"></line>
+            <line x1="3" y1="20" x2="21" y2="20"></line>
+          </svg></span>
+        <span>Metrics Analytics</span>
+      </a>
+      <a class="nav-item" href="system_logs.html">
+        <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="3.5" y="4.5" width="17" height="15" rx="2.5"></rect>
+            <line x1="7" y1="9" x2="17" y2="9"></line>
+            <line x1="7" y1="12.5" x2="14" y2="12.5"></line>
+            <line x1="7" y1="16" x2="10" y2="16"></line>
+          </svg></span>
+        <span>System Logs</span>
+      </a>
+      <a class="nav-item active" href="api_keys.html">
+        <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            <circle cx="12" cy="10" r="1.8"></circle>
+            <path d="M12 11.8V16"></path>
+          </svg></span>
+        <span>API Keys</span>
+      </a>
+
+    </nav>
+    <div class="sidebar-profile" id="profileDropdown">
+      <div class="profile-avatar">DU</div>
+      <div class="profile-info">
+        <span class="profile-name">DemoTest User</span>
+        <span class="user-plan-badge">Starter Plan</span>
+      </div>
+      <div class="profile-action-btn">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </div>
+      <div class="profile-popover" id="profilePopover">
+        <a href="pricing.html?mode=app" class="popover-link">
+          <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          Billing &amp; Plan
+        </a>
+        <a href="settings.html" class="popover-link">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Settings
+        </a>
+        <div class="dropdown-divider"></div>
+        <a href="login.html" class="popover-link text-danger">
+          <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Log Out
+        </a>
+      </div>
+    </div>
+
+    <a class="nav-item support-link" href="support.html" title="Tech Support">
+      <span class="support-icon">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+      </span>
+      <span>Support</span>
+    </a>
+  </aside>
+  <main class="main-content">
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <h1>API Keys</h1>
+        <p class="page-subtitle">Manage authentication keys for external API access and integrations.</p>
+      </div>
+      <div class="top-bar-right">
+        <button class="btn-primary" id="btn-generate-key"><span class="plus-icon">+</span>Generate New Key</button>
+      </div>
+    </header>
+    <div class="content-body">
+      <div class="filter-bar">
+        <div class="search-wrap">
+          <span class="search-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="11" cy="11" r="7"></circle>
+              <line x1="21" y1="21" x2="16.5" y2="16.5"></line>
+            </svg>
+          </span>
+          <input type="text" class="search-input" id="api-search" placeholder="Search API keys..." />
+        </div>
+        <div class="service-selector" id="status-selector" title="Filter API keys by status">
+          <span class="service-name">All Keys</span>
+          <span class="chevron">▾</span>
+          <div class="service-menu" id="status-menu">
+            <div class="service-option" data-value="all">All Keys</div>
+            <div class="service-option" data-value="active">Active</div>
+            <div class="service-option" data-value="revoked">Revoked</div>
+            <div class="service-option" data-value="expired">Expired</div>
+          </div>
+        </div>
+      </div>
+      <div class="keys-grid" id="keys-grid">
+        <article class="key-card" data-status="active" data-name="Production Server Backup">
+          <div class="card-header">
+            <div class="key-info">
+              <div class="key-name">Production Server Backup</div>
+              <div class="key-purpose">Used for nightly backup and restore tasks.</div>
+            </div>
+            <span class="status-pill"><span class="status-dot active"></span><span class="status-text">Active</span></span>
+          </div>
+          <div class="key-section">
+            <span class="section-label">Key Token</span>
+            <div class="key-token-row">
+              <span class="key-token" data-full="gn_live_9f8a4c2d3e5b768f"
+                data-masked="gn_live_9f8a...76f">gn_live_9f8a...76f</span>
+              <button class="icon-btn copy-btn" type="button" title="Copy key"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><span class="copy-tooltip">Copied!</span></button>
+              <button class="icon-btn toggle-token-btn" type="button" data-state="hidden"
+                title="Show key"><svg class="eye-icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg><svg class="eye-off-icon" viewBox="0 0 24 24" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"></path><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"></path><line x1="1" y1="1" x2="23" y2="23"></line><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"></path></svg></button>
+            </div>
+          </div>
+          <div class="pill-group">
+            <span class="badge full">Full Access</span>
+            <span class="badge logs">Logs Stream</span>
+          </div>
+          <div class="card-bottom">
+            <div class="meta-value">Created 12 days ago · Last used <span class="last-used">5 mins ago</span></div>
+            <div class="action-group">
+              <button class="text-button btn-edit" type="button"><svg viewBox="0 0 24 24"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path><path d="m15 5 4 4"></path></svg><span>Edit</span></button>
+              <button class="text-button btn-roll" type="button"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path><path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"></path></svg><span>Roll Key</span></button>
+              <button class="text-button btn-revoke" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg><span>Revoke</span></button>
+            </div>
+          </div>
+        </article>
+
+        <article class="key-card" data-status="revoked" data-name="Metrics Collector">
+          <div class="card-header">
+            <div class="key-info">
+              <div class="key-name">Metrics Collector</div>
+              <div class="key-purpose">Read-only access for analytics ingestion.</div>
+            </div>
+            <span class="status-pill is-revoked"><span class="status-dot revoked"></span><span class="status-text">Revoked</span></span>
+          </div>
+          <div class="key-section">
+            <span class="section-label">Key Token</span>
+            <div class="key-token-row">
+              <span class="key-token" data-full="gn_ro_3b2ae7d4f1c0912"
+                data-masked="gn_ro_3b2a...912">gn_ro_3b2a...912</span>
+              <button class="icon-btn copy-btn" type="button" title="Copy key"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><span class="copy-tooltip">Copied!</span></button>
+              <button class="icon-btn toggle-token-btn" type="button" data-state="hidden"
+                title="Show key"><svg class="eye-icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg><svg class="eye-off-icon" viewBox="0 0 24 24" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"></path><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"></path><line x1="1" y1="1" x2="23" y2="23"></line><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"></path></svg></button>
+            </div>
+          </div>
+          <div class="pill-group">
+            <span class="badge read">Read-Only</span>
+          </div>
+          <div class="card-bottom">
+            <div class="meta-value">Created 24 days ago · Last used <span class="last-used">3 hours ago</span></div>
+            <div class="action-group">
+              <button class="text-button btn-edit" type="button" disabled><svg viewBox="0 0 24 24"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path><path d="m15 5 4 4"></path></svg><span>Edit</span></button>
+              <button class="text-button btn-roll" type="button"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path><path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"></path></svg><span>Roll Key</span></button>
+              <button class="text-button btn-reactivate" type="button"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"></path><polyline points="3 4 3 10 9 10"></polyline></svg><span>Reactivate</span></button>
+            </div>
+          </div>
+        </article>
+
+        <article class="key-card" data-status="active" data-name="Internal Monitoring">
+          <div class="card-header">
+            <div class="key-info">
+              <div class="key-name">Internal Monitoring</div>
+              <div class="key-purpose">Used by internal agents for live system telemetry.</div>
+            </div>
+            <span class="status-pill"><span class="status-dot active"></span><span class="status-text">Active</span></span>
+          </div>
+          <div class="key-section">
+            <span class="section-label">Key Token</span>
+            <div class="key-token-row">
+              <span class="key-token" data-full="gn_live_7c1d9f23a4e8b01"
+                data-masked="gn_live_7c1d...b01">gn_live_7c1d...b01</span>
+              <button class="icon-btn copy-btn" type="button" title="Copy key"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><span class="copy-tooltip">Copied!</span></button>
+              <button class="icon-btn toggle-token-btn" type="button" data-state="hidden"
+                title="Show key"><svg class="eye-icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg><svg class="eye-off-icon" viewBox="0 0 24 24" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"></path><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"></path><line x1="1" y1="1" x2="23" y2="23"></line><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"></path></svg></button>
+            </div>
+          </div>
+          <div class="pill-group">
+            <span class="badge logs">Logs Stream</span>
+          </div>
+          <div class="card-bottom">
+            <div class="meta-value">Created 6 days ago · Last used <span class="last-used">12 mins ago</span></div>
+            <div class="action-group">
+              <button class="text-button btn-edit" type="button"><svg viewBox="0 0 24 24"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path><path d="m15 5 4 4"></path></svg><span>Edit</span></button>
+              <button class="text-button btn-roll" type="button"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path><path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"></path></svg><span>Roll Key</span></button>
+              <button class="text-button btn-revoke" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg><span>Revoke</span></button>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </main>
+
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title" id="modal-title-text">Generate New API Key</div>
+          <p class="modal-copy" id="modal-copy-text">Create a secure key for integrations with scoped permissions and optional expiry.</p>
+        </div>
+        <button class="modal-close" id="modal-close" aria-label="Close dialog"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+      </div>
+
+      <!-- Step 1: Form -->
+      <div class="modal-step" id="modal-step-1">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="key-name">Key Name</label>
+            <div class="input-wrap"><input id="key-name" class="form-input" type="text" placeholder="Production Server Backup" /></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="key-description">Description</label>
+            <div class="input-wrap"><textarea id="key-description" class="form-input form-textarea" rows="3" placeholder="What is this key used for?"></textarea></div>
+            <div class="form-note">Optional. Helps identify this key across integrations.</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="key-permissions">Permissions Scope</label>
+            <div class="custom-select">
+              <button type="button" class="custom-select-trigger" aria-haspopup="listbox" aria-expanded="false">
+                <span class="cs-label">Full Access</span>
+                <span class="chevron">&#9662;</span>
+              </button>
+              <div class="custom-select-menu" role="listbox">
+                <div class="custom-select-option" data-value="full" role="option">Full Access</div>
+                <div class="custom-select-option" data-value="read" role="option">Read-Only</div>
+                <div class="custom-select-option" data-value="logs" role="option">Logs Stream</div>
+              </div>
+              <select id="key-permissions" class="custom-select-hidden" tabindex="-1" aria-hidden="true">
+                <option value="full" selected>Full Access</option>
+                <option value="read">Read-Only</option>
+                <option value="logs">Logs Stream</option>
+              </select>
+            </div>
+            <div class="form-note">Choose the minimum level required for external integrations.</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="key-expiry">Expiration Period</label>
+            <div class="custom-select">
+              <button type="button" class="custom-select-trigger" aria-haspopup="listbox" aria-expanded="false">
+                <span class="cs-label">30 days</span>
+                <span class="chevron">&#9662;</span>
+              </button>
+              <div class="custom-select-menu" role="listbox">
+                <div class="custom-select-option" data-value="30" role="option">30 days</div>
+                <div class="custom-select-option" data-value="90" role="option">90 days</div>
+                <div class="custom-select-option" data-value="never" role="option">Never</div>
+              </div>
+              <select id="key-expiry" class="custom-select-hidden" tabindex="-1" aria-hidden="true">
+                <option value="30" selected>30 days</option>
+                <option value="90">90 days</option>
+                <option value="never">Never</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-secondary" id="modal-cancel" type="button">Cancel</button>
+          <button class="btn-primary" id="modal-generate" type="button">Generate Key</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Secret Reveal -->
+      <div class="modal-step hidden" id="modal-step-2">
+        <div class="modal-body">
+          <div class="secret-reveal-box">
+            <span class="secret-key" id="generated-key-display"></span>
+            <button class="icon-btn copy-btn" type="button" id="copy-generated-key" title="Copy key">
+              <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              <span class="copy-tooltip">Copied!</span>
+            </button>
+          </div>
+          <div class="warning-banner">
+            <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            <span>Make sure to copy your API key now. You won't be able to see it again!</span>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-primary" id="modal-done" type="button">Done</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const statusSelector = document.getElementById('status-selector');
+    const statusMenu = document.getElementById('status-menu');
+    const searchInput = document.getElementById('api-search');
+    const keysGrid = document.getElementById('keys-grid');
+    const modalOverlay = document.getElementById('modal-overlay');
+    const btnGenerateKey = document.getElementById('btn-generate-key');
+    const btnModalClose = document.getElementById('modal-close');
+    const modalStep1 = document.getElementById('modal-step-1');
+    const modalStep2 = document.getElementById('modal-step-2');
+    const modalTitleText = document.getElementById('modal-title-text');
+    const modalCopyText = document.getElementById('modal-copy-text');
+    const generatedKeyDisplay = document.getElementById('generated-key-display');
+
+    /* ─── Helpers ─── */
+    function generateFakeKey() {
+      const chars = 'abcdef0123456789';
+      let key = 'gn_live_';
+      for (let i = 0; i < 24; i++) key += chars[Math.floor(Math.random() * chars.length)];
+      return key;
+    }
+
+    function resetModal() {
+      modalStep1.classList.remove('hidden');
+      modalStep2.classList.add('hidden');
+      modalTitleText.textContent = 'Generate New API Key';
+      modalCopyText.textContent = 'Create a secure key for integrations with scoped permissions and optional expiry.';
+      document.getElementById('key-name').value = '';
+      document.getElementById('key-description').value = '';
+    }
+
+    function closeModal() {
+      modalOverlay.classList.remove('show');
+      setTimeout(resetModal, 200);
+    }
+
+    /* ─── Filters ─── */
+    function applyFilters() {
+      const query = searchInput.value.trim().toLowerCase();
+      const selected = statusSelector.dataset.value || 'all';
+      const cards = keysGrid.querySelectorAll('.key-card');
+      cards.forEach(card => {
+        const name = card.dataset.name.toLowerCase();
+        const status = card.dataset.status;
+        const matchesSearch = !query || name.includes(query);
+        const matchesStatus = selected === 'all' || status === selected;
+        card.style.display = matchesSearch && matchesStatus ? 'flex' : 'none';
+      });
+    }
+
+    statusSelector.addEventListener('click', event => {
+      event.stopPropagation();
+      statusMenu.classList.toggle('show');
+    });
+
+    statusMenu.querySelectorAll('.service-option').forEach(option => {
+      option.addEventListener('click', () => {
+        const value = option.dataset.value;
+        statusSelector.dataset.value = value;
+        statusSelector.querySelector('.service-name').textContent = option.textContent;
+        statusMenu.classList.remove('show');
+        applyFilters();
+      });
+    });
+
+    document.addEventListener('click', () => statusMenu.classList.remove('show'));
+    searchInput.addEventListener('input', applyFilters);
+
+    /* ─── Modal open / close ─── */
+    btnGenerateKey.addEventListener('click', () => {
+      resetModal();
+      modalOverlay.classList.add('show');
+    });
+    btnModalClose.addEventListener('click', closeModal);
+    document.getElementById('modal-cancel').addEventListener('click', closeModal);
+    modalOverlay.addEventListener('click', event => {
+      if (event.target === modalOverlay) closeModal();
+    });
+
+    /* ─── Generate Key → Step 2 ─── */
+    document.getElementById('modal-generate').addEventListener('click', () => {
+      const newKey = generateFakeKey();
+      generatedKeyDisplay.textContent = newKey;
+      modalStep1.classList.add('hidden');
+      modalStep2.classList.remove('hidden');
+      modalTitleText.textContent = 'Your New API Key';
+      modalCopyText.textContent = 'This key has been generated successfully. Copy it before closing.';
+
+      const toast = document.getElementById('success-toast');
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    });
+
+    /* ─── Done button ─── */
+    document.getElementById('modal-done').addEventListener('click', closeModal);
+
+    /* ─── Copy generated key (Step 2) ─── */
+    document.getElementById('copy-generated-key').addEventListener('click', function () {
+      const key = generatedKeyDisplay.textContent;
+      navigator.clipboard.writeText(key).catch(() => null);
+      showCopyFeedback(this);
+    });
+
+    /* ─── Eye Toggle with SVG swap ─── */
+    document.querySelectorAll('.toggle-token-btn').forEach(button => {
+      button.addEventListener('click', () => {
+        const token = button.closest('.key-token-row').querySelector('.key-token');
+        const eyeIcon = button.querySelector('.eye-icon');
+        const eyeOffIcon = button.querySelector('.eye-off-icon');
+        const isHidden = button.dataset.state === 'hidden';
+        if (isHidden) {
+          token.textContent = token.dataset.full;
+          button.dataset.state = 'visible';
+          button.title = 'Hide key';
+          eyeIcon.style.display = 'none';
+          eyeOffIcon.style.display = 'block';
+        } else {
+          token.textContent = token.dataset.masked;
+          button.dataset.state = 'hidden';
+          button.title = 'Show key';
+          eyeIcon.style.display = 'block';
+          eyeOffIcon.style.display = 'none';
+        }
+      });
+    });
+
+    /* ─── Copy with checkmark feedback ─── */
+    const copySvgPath = '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>';
+    const checkSvgPath = '<polyline points="20 6 9 17 4 12"></polyline>';
+
+    function showCopyFeedback(btn) {
+      const svg = btn.querySelector('svg');
+      svg.innerHTML = checkSvgPath;
+      btn.classList.add('copy-success');
+      setTimeout(() => {
+        svg.innerHTML = copySvgPath;
+        btn.classList.remove('copy-success');
+      }, 1500);
+    }
+
+    document.querySelectorAll('.key-token-row .copy-btn').forEach(button => {
+      button.addEventListener('click', () => {
+        const fullKey = button.closest('.key-token-row').querySelector('.key-token').dataset.full;
+        navigator.clipboard.writeText(fullKey).catch(() => null);
+        showCopyFeedback(button);
+      });
+    });
+
+    /* ─── Revoke / Reactivate ─── */
+    const revokeIconMarkup = '<circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>';
+    const reactivateIconMarkup = '<path d="M3 12a9 9 0 1 0 3-6.7"></path><polyline points="3 4 3 10 9 10"></polyline>';
+
+    function setKeyRevoked(card) {
+      card.dataset.status = 'revoked';
+      const pill = card.querySelector('.status-pill');
+      const dot = card.querySelector('.status-dot');
+      const statusText = card.querySelector('.status-text');
+      pill.classList.add('is-revoked');
+      dot.classList.remove('active', 'expired');
+      dot.classList.add('revoked');
+      statusText.textContent = 'Revoked';
+
+      const editBtn = card.querySelector('.btn-edit');
+      if (editBtn) editBtn.disabled = true;
+
+      const actionBtn = card.querySelector('.btn-revoke');
+      if (actionBtn) {
+        actionBtn.classList.remove('btn-revoke');
+        actionBtn.classList.add('btn-reactivate');
+        actionBtn.querySelector('svg').innerHTML = reactivateIconMarkup;
+        actionBtn.querySelector('span').textContent = 'Reactivate';
+      }
+
+      applyFilters();
+    }
+
+    function setKeyActive(card) {
+      card.dataset.status = 'active';
+      const pill = card.querySelector('.status-pill');
+      const dot = card.querySelector('.status-dot');
+      const statusText = card.querySelector('.status-text');
+      pill.classList.remove('is-revoked');
+      dot.classList.remove('revoked', 'expired');
+      dot.classList.add('active');
+      statusText.textContent = 'Active';
+
+      const editBtn = card.querySelector('.btn-edit');
+      if (editBtn) editBtn.disabled = false;
+
+      const actionBtn = card.querySelector('.btn-reactivate');
+      if (actionBtn) {
+        actionBtn.classList.remove('btn-reactivate');
+        actionBtn.classList.add('btn-revoke');
+        actionBtn.querySelector('svg').innerHTML = revokeIconMarkup;
+        actionBtn.querySelector('span').textContent = 'Revoke';
+      }
+
+      applyFilters();
+    }
+
+    keysGrid.addEventListener('click', event => {
+      const editBtn = event.target.closest('.btn-edit');
+      if (editBtn) {
+        const card = editBtn.closest('.key-card');
+        if (!card || card.dataset.status !== 'active' || editBtn.disabled) return;
+        const nameEl = card.querySelector('.key-name');
+        const descEl = card.querySelector('.key-purpose');
+        const nextName = prompt('Edit key name', nameEl.textContent.trim());
+        if (nextName === null) return;
+        const nextDesc = prompt('Edit description', descEl.textContent.trim());
+        if (nextDesc === null) return;
+        const trimmedName = nextName.trim();
+        const trimmedDesc = nextDesc.trim();
+        if (!trimmedName) return;
+        nameEl.textContent = trimmedName;
+        descEl.textContent = trimmedDesc;
+        card.dataset.name = trimmedName;
+        card.classList.remove('flash-success');
+        void card.offsetWidth;
+        card.classList.add('flash-success');
+        setTimeout(() => card.classList.remove('flash-success'), 1000);
+        return;
+      }
+
+      const rollBtn = event.target.closest('.btn-roll');
+      if (rollBtn) {
+        const card = rollBtn.closest('.key-card');
+        if (!card) return;
+        if (!confirm('Rolling this API key will immediately invalidate the current secret token. Continue?')) return;
+        const token = card.querySelector('.key-token');
+        const toggleBtn = card.querySelector('.toggle-token-btn');
+        const newKey = generateFakeKey();
+        const masked = newKey.slice(0, 10) + '...' + newKey.slice(-3);
+        token.dataset.full = newKey;
+        token.dataset.masked = masked;
+        const isVisible = toggleBtn && toggleBtn.dataset.state === 'visible';
+        token.textContent = isVisible ? newKey : masked;
+        const lastUsed = card.querySelector('.last-used');
+        if (lastUsed) lastUsed.textContent = 'Just now';
+        token.classList.remove('flash-roll');
+        void token.offsetWidth;
+        token.classList.add('flash-roll');
+        setTimeout(() => token.classList.remove('flash-roll'), 1000);
+        return;
+      }
+
+      const revokeBtn = event.target.closest('.btn-revoke');
+      if (revokeBtn) {
+        const card = revokeBtn.closest('.key-card');
+        if (!card || card.dataset.status !== 'active') return;
+        if (!confirm('Are you sure you want to revoke this key?')) return;
+        setKeyRevoked(card);
+        return;
+      }
+
+      const reactivateBtn = event.target.closest('.btn-reactivate');
+      if (reactivateBtn) {
+        const card = reactivateBtn.closest('.key-card');
+        if (!card) return;
+        setKeyActive(card);
+      }
+    });
+  </script>
+  <script src="shared-dropdown.js" defer></script>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="success-toast">
+    <svg viewBox="0 0 24 24" fill="none" stroke="var(--status-success)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17.17 4 13.17"></polyline></svg>
+    <span>Feature coming soon: Dynamic server provisioning is under maintenance.</span>
+  </div>
+
+  <script src="shared-sidebar.js" defer></script>
+  <script src="auth-links.js" defer></script>
+
+  <script>
+    // Move "+ Generate New Key" into the global mobile header (which replaces
+    // the sidebar on screens <= 780px). shared-sidebar.js is deferred, so it has
+    // already created .mobile-header by the time DOMContentLoaded fires.
+    // The clone re-triggers the original button's click so the existing modal
+    // logic keeps working unchanged.
+    document.addEventListener('DOMContentLoaded', function () {
+      var header = document.querySelector('.mobile-header');
+      var sourceBtn = document.getElementById('btn-generate-key');
+      if (!header || !sourceBtn || header.querySelector('.btn-generate-key--mobile')) return;
+
+      var mobileBtn = sourceBtn.cloneNode(true);
+      mobileBtn.classList.add('btn-generate-key--mobile');
+      mobileBtn.setAttribute('aria-label', 'Generate New Key');
+      mobileBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        sourceBtn.click();
+      });
+      header.appendChild(mobileBtn);
+    });
+  </script>
+</body>
+
+</html>
+

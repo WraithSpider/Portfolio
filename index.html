@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html data-lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DESIGN.LAB | Creative Portfolio</title>
+    <style>
+        :root {
+            --bg-color: #060608;
+            --card-bg: rgba(18, 18, 22, 0.6);
+            --border-color: rgba(255, 255, 255, 0.06);
+            --text-primary: #ffffff;
+            --text-secondary: #9090a0;
+            --accent: #e0e0ff;
+            --accent-muted: #4a4a6a;
+            --transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            --glow-color: rgba(140, 120, 255, 0.07);
+        }
+
+        html[data-lang="en"] .lang-ua { display: none !important; }
+        html[data-lang="ua"] .lang-en { display: none !important; }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.8;
+            font-weight: 500;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            /* Mystical ambient dark background gradients */
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(90, 60, 255, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(200, 50, 150, 0.04) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(40, 180, 255, 0.03) 0%, transparent 60%);
+            background-attachment: fixed;
+        }
+
+        /* Ambient floating mystical glow orbs */
+        .glow-orb {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--glow-color) 0%, transparent 70%);
+            filter: blur(80px);
+            pointer-events: none;
+            z-index: 0;
+            animation: pulse 12s infinite alternate ease-in-out;
+        }
+
+        .orb-1 {
+            top: 15%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .orb-2 {
+            top: 55%;
+            right: -10%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(100, 200, 255, 0.05) 0%, transparent 70%);
+            animation-delay: 4s;
+        }
+
+        @keyframes pulse {
+            0% { transform: translate(0, 0) scale(1); opacity: 0.7; }
+            100% { transform: translate(40px, -30px) scale(1.15); opacity: 1; }
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        /* Container with generous "air" margins */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 40px;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 100;
+            background: rgba(6, 6, 8, 0.6);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), background 0.5s, backdrop-filter 0.5s;
+        }
+
+        header.header-hidden {
+            transform: translateY(-100%);
+        }
+
+        header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 100px; /* More air */
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #ffffff 40%, rgba(255,255,255,0.4) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 48px; /* spacing between links and lang switch */
+        }
+
+        nav a {
+            margin-left: 0;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            letter-spacing: 1px;
+            position: relative;
+        }
+
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--text-primary);
+            transition: var(--transition);
+        }
+
+        nav a:hover::after, nav a.active::after {
+            width: 100%;
+        }
+
+        nav a:hover, nav a.active {
+            color: var(--text-primary);
+        }
+
+        .lang-switch {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-left: 0;
+        }
+
+        .lang-switch-sep {
+            color: rgba(255, 255, 255, 0.15);
+            font-size: 0.85rem;
+            user-select: none;
+        }
+
+        .lang-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: inherit;
+            text-transform: uppercase;
+            font-weight: 300;
+            padding: 0;
+        }
+
+        .lang-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .lang-btn.active {
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        /* Hero Section - Maximum air & elegant layout */
+        section.hero {
+            height: 100vh;
+            height: 100dvh;
+            min-height: 600px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding-top: 100px;
+            padding-bottom: 100px;
+        }
+
+        .hero-sub {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            color: var(--text-secondary);
+            margin-bottom: clamp(20px, 4vh, 28px);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Mystical pulsing star point */
+        .hero-sub::before {
+            content: '';
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #8c78ff;
+            box-shadow: 0 0 10px #8c78ff, 0 0 20px #8c78ff;
+            animation: blink 2s infinite alternate ease-in-out;
+        }
+
+        @keyframes blink {
+            0% { opacity: 0.3; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .hero-title {
+            font-size: clamp(2.2rem, 5.2vw, 3.8rem);
+            font-weight: 700;
+            line-height: 1.2;
+            letter-spacing: -2px;
+            margin-bottom: clamp(20px, 4vh, 36px);
+            max-width: 900px;
+            /* Barely noticeable mystical metallic text gradient */
+            background: linear-gradient(135deg, #ffffff 30%, #b0b0cc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-desc {
+            font-size: clamp(1.05rem, 1.8vw, 1.3rem);
+            color: var(--text-secondary);
+            max-width: 720px;
+            margin-bottom: clamp(36px, 6vh, 52px);
+            font-weight: 300;
+        }
+
+        .cta-group {
+            display: flex;
+            gap: 24px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 14px 32px;
+            border-radius: 26px; /* Softer, mystical rounded shapes */
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ffffff 0%, #e0e0ff 100%);
+            color: #060608;
+            box-shadow: 0 10px 30px rgba(255, 255, 255, 0.05);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(140, 120, 255, 0.15);
+        }
+
+        .btn-secondary {
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.01);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px);
+        }
+
+        /* Sections spacing & Full Width Borders */
+        section.work, section.about, section.contact, footer {
+            padding: 160px 0; /* Lots of space and air */
+            border-top: 1px solid var(--border-color);
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+            margin-right: calc(-50vw + 50%);
+            position: relative;
+        }
+
+        .section-header {
+            margin-bottom: 80px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .section-title {
+            font-size: 2.2rem;
+            font-weight: 600;
+            letter-spacing: -1px;
+            background: linear-gradient(135deg, #ffffff 60%, rgba(255,255,255,0.5) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .section-desc {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            letter-spacing: 1px;
+        }
+
+        /* Work Grid & Mystical cards */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(45%, 1fr));
+            gap: 60px; /* Extra air */
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+                gap: 48px;
+            }
+        }
+
+        .project-card {
+            display: block;
+            cursor: pointer;
+        }
+
+        .image-placeholder {
+            width: 100%;
+            aspect-ratio: 16 / 10;
+            background: linear-gradient(145deg, rgba(14, 14, 18, 0.8) 0%, rgba(8, 8, 10, 0.8) 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+
+        /* SVG Minimalist Mystical Grid Background */
+        .image-placeholder::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle, rgba(140, 120, 255, 0.12) 1px, transparent 1px),
+                linear-gradient(to right, rgba(255,255,255,0.01) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255,255,255,0.01) 1px, transparent 1px);
+            background-size: 24px 24px;
+            opacity: 0.8;
+            transition: var(--transition);
+        }
+
+        /* Subtle glowing inner spot */
+        .image-placeholder::after {
+            content: '';
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle, rgba(140, 120, 255, 0.08) 0%, transparent 70%);
+            filter: blur(20px);
+            opacity: 0;
+            transition: var(--transition);
+            pointer-events: none;
+        }
+
+        .image-placeholder-label {
+            color: var(--accent-muted);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-weight: 500;
+            z-index: 1;
+            transition: var(--transition);
+        }
+
+        .project-logo {
+            position: relative;
+            z-index: 1;
+            display: block;
+            width: min(68%, 360px);
+            height: auto;
+            opacity: 0.94;
+            filter: drop-shadow(0 0 18px rgba(20, 114, 227, 0.18));
+            transition: var(--transition);
+        }
+
+        .project-card:hover .project-logo {
+            opacity: 1;
+            transform: scale(1.04);
+            filter: drop-shadow(0 0 24px rgba(11, 241, 221, 0.3));
+        }
+
+        /* Card Hover Effects */
+        .project-card:hover .image-placeholder {
+            border-color: rgba(140, 120, 255, 0.3);
+            box-shadow: 
+                0 20px 50px rgba(0, 0, 0, 0.3),
+                0 0 40px rgba(140, 120, 255, 0.03);
+            transform: translateY(-4px);
+        }
+
+        .project-card:hover .image-placeholder::before {
+            background-image: 
+                radial-gradient(circle, rgba(140, 120, 255, 0.2) 1.5px, transparent 1.5px),
+                linear-gradient(to right, rgba(140, 120, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(140, 120, 255, 0.03) 1px, transparent 1px);
+        }
+
+        .project-card:hover .image-placeholder::after {
+            opacity: 1;
+            transform: scale(1.5);
+        }
+
+        .project-card:hover .image-placeholder-label {
+            color: #c8c0ff;
+            letter-spacing: 5px;
+            text-shadow: 0 0 10px rgba(140, 120, 255, 0.3);
+        }
+
+        .project-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding: 0 4px;
+        }
+
+        .project-title {
+            font-size: 1.15rem;
+            font-weight: 500;
+            letter-spacing: -0.5px;
+            transition: var(--transition);
+        }
+
+        .project-card:hover .project-title {
+            color: #d8d0ff;
+        }
+
+        .project-tags {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 300;
+        }
+
+        /* About Section Layout */
+        .about-layout {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 80px;
+        }
+
+        @media (max-width: 768px) {
+            .about-layout {
+                grid-template-columns: 1fr;
+                gap: 48px;
+            }
+        }
+
+        .about-text {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            font-weight: 300;
+        }
+
+        .about-text p {
+            margin-bottom: 32px;
+        }
+
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+        }
+
+        .skill-category h4 {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+
+        .skill-list {
+            list-style: none;
+        }
+
+        .skill-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+
+        .skill-list li:hover {
+            color: var(--text-primary);
+            padding-left: 6px;
+            border-color: rgba(140, 120, 255, 0.2);
+        }
+
+        /* Contact Section */
+        section.contact {
+            text-align: center;
+        }
+
+        .contact-title {
+            font-size: clamp(1.5rem, 4.2vw, 3.4rem);
+            font-weight: 600;
+            letter-spacing: -1.5px;
+            margin-bottom: 32px;
+            white-space: nowrap;
+            overflow: visible;
+        }
+
+        .contact-title span {
+            display: inline-block;
+            background: linear-gradient(135deg, #ffffff 40%, rgba(200, 200, 255, 0.6) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            padding-right: 0.25em; /* Решает проблему обрезания последней буквы при background-clip: text */
+            vertical-align: bottom;
+        }
+
+        .contact-email {
+            font-size: clamp(1.3rem, 3.5vw, 2.2rem);
+            color: var(--text-secondary);
+            display: inline-block;
+            margin-bottom: 56px;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.2);
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        .contact-email:hover {
+            color: var(--text-primary);
+            border-color: var(--text-primary);
+            text-shadow: 0 0 20px rgba(140, 120, 255, 0.2);
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+        }
+
+        .social-link {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            position: relative;
+        }
+
+        .social-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--text-primary);
+            transition: var(--transition);
+        }
+
+        .social-link:hover::after {
+            width: 100%;
+        }
+
+        .social-link:hover {
+            color: var(--text-primary);
+        }
+
+        /* Footer */
+        footer {
+            padding: 80px 0;
+        }
+
+        footer .container {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 300;
+            letter-spacing: 0.5px;
+        }
+
+        @media (max-width: 600px) {
+            footer .container {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Ambient glows -->
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <a href="#" class="logo">DESIGN.LAB</a>
+            <nav>
+                <a href="#work" class="active"><span class="lang-en">Work</span><span class="lang-ua">Роботи</span></a>
+                <a href="#about"><span class="lang-en">About</span><span class="lang-ua">Про мене</span></a>
+                <a href="#contact"><span class="lang-en">Contact</span><span class="lang-ua">Контакти</span></a>
+                <div class="lang-switch">
+                    <button id="langEn" class="lang-btn active" onclick="setLanguage('en')">EN</button>
+                    <span class="lang-switch-sep">/</span>
+                    <button id="langUa" class="lang-btn" onclick="setLanguage('ua')">UA</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-sub">
+                <span class="lang-en">Design • Development • Minimalism</span>
+                <span class="lang-ua">Дизайн • Розробка • Мінімалізм</span>
+            </div>
+            <h1 class="hero-title">
+                <span class="lang-en">Designing interfaces<br>and creating digital products</span>
+                <span class="lang-ua">Проектую інтерфейси<br>та створюю цифрові продукти</span>
+            </h1>
+            <p class="hero-desc">
+                <span class="lang-en">Designing clean interfaces, next-generation web development,<br>and branding with an emphasis on depth, space, and functionality.</span>
+                <span class="lang-ua">Проектування чистих інтерфейсів, веб-розробка нового покоління<br>та брендинг з акцентом на глибину, простір та функціональність.</span>
+            </p>
+            <div class="cta-group">
+                <a href="#work" class="btn btn-primary"><span class="lang-en">View Projects</span><span class="lang-ua">Дивитись проекти</span></a>
+                <a href="#contact" class="btn btn-secondary"><span class="lang-en">Get in Touch</span><span class="lang-ua">Зв'язатися</span></a>
+            </div>
+        </section>
+    </div>
+
+    <!-- Work Section -->
+    <section id="work" class="work">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title"><span class="lang-en">Selected Works</span><span class="lang-ua">Вибране</span></h2>
+                <span class="section-desc"><span class="lang-en">Cases with soul • 2024–2026</span><span class="lang-ua">Кейси з душею • 2024–2026</span></span>
+            </div>
+            
+            <div class="grid">
+                <!-- Project 1 -->
+                <a href="src/index.html" class="project-card">
+                    <div class="image-placeholder">
+                        <img class="project-logo" src="src/Logo.svg" alt="GridNode">
+                    </div>
+                    <div class="project-meta">
+                        <h3 class="project-title"><span class="lang-en">Next-generation e-commerce platform</span><span class="lang-ua">E-commerce платформа нового покоління</span></h3>
+                        <span class="project-tags">UI/UX • Web3</span>
+                    </div>
+                </a>
+
+                <!-- Project 2 -->
+                <a href="project-aura.html" class="project-card">
+                    <div class="image-placeholder">
+                        <div class="image-placeholder-label">[ AURA APP ]</div>
+                    </div>
+                    <div class="project-meta">
+                        <h3 class="project-title"><span class="lang-en">Meditative mobile application</span><span class="lang-ua">Медитативний мобільний додаток</span></h3>
+                        <span class="project-tags">iOS • Product</span>
+                    </div>
+                </a>
+
+                <!-- Project 3 -->
+                <a href="project-kinetic.html" class="project-card">
+                    <div class="image-placeholder">
+                        <div class="image-placeholder-label">[ KINETIC STUDIO ]</div>
+                    </div>
+                    <div class="project-meta">
+                        <h3 class="project-title"><span class="lang-en">Creative web space</span><span class="lang-ua">Креативний веб-простір</span></h3>
+                        <span class="project-tags">Next.js • 3D Web</span>
+                    </div>
+                </a>
+
+                <!-- Project 4 -->
+                <a href="project-eclipse.html" class="project-card">
+                    <div class="image-placeholder">
+                        <div class="image-placeholder-label">[ ECLIPSE IDENTITY ]</div>
+                    </div>
+                    <div class="project-meta">
+                        <h3 class="project-title"><span class="lang-en">Premium brand identity</span><span class="lang-ua">Айдентика преміум-бренду</span></h3>
+                        <span class="project-tags">Branding • Identity</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <div class="container">
+            <div class="about-layout">
+                <div>
+                    <h2 class="section-title"><span class="lang-en">Philosophy</span><span class="lang-ua">Філософія</span></h2>
+                    <p class="section-desc" style="margin-top: 10px;"><span class="lang-en">Simplicity is the ultimate sophistication.</span><span class="lang-ua">Простота — це вершина витонченості.</span></p>
+                </div>
+                <div class="about-text">
+                    <p><span class="lang-en">Hi. I'm Alex. I look at web design through the lens of architecture and cinema. In my work, every pixel, margin, and animation serves one purpose — to create an immersive and intuitive journey for the user.</span><span class="lang-ua">Привіт. Я Алекс. Я дивлюся на веб-дизайн крізь призму архітектури та кінематографа. У моїх роботах кожен піксель, відступ і анімація служать одній меті — створити захоплюючу та інтуїтивно зрозумілу подорож для користувача.</span></p>
+                    <p><span class="lang-en">I remove visual noise to give freedom to your ideas. My approach combines deep user psychology, a refined visual language, and cutting-edge web technologies.</span><span class="lang-ua">Я прибираю візуальний шум, щоб дати свободу вашим ідеям. Мій підхід поєднує глибоку психологію користувача, витончену візуальну мову та передові веб-технології.</span></p>
+                    
+                    <div class="skills-grid" style="margin-top: 60px;">
+                        <div class="skill-category">
+                            <h4><span class="lang-en">Aesthetics</span><span class="lang-ua">Естетика</span></h4>
+                            <ul class="skill-list">
+                                <li><span class="lang-en">Interactive UI/UX</span><span class="lang-ua">Інтерактивний UI/UX</span></li>
+                                <li><span class="lang-en">Conceptual Design</span><span class="lang-ua">Концептуальний дизайн</span></li>
+                                <li><span class="lang-en">Stylish Typography</span><span class="lang-ua">Стильна типографіка</span></li>
+                                <li><span class="lang-en">Deep Branding</span><span class="lang-ua">Глибокий брендинг</span></li>
+                            </ul>
+                        </div>
+                        <div class="skill-category">
+                            <h4><span class="lang-en">Engineering</span><span class="lang-ua">Інженерія</span></h4>
+                            <ul class="skill-list">
+                                <li><span class="lang-en">Frontend Development</span><span class="lang-ua">Фронтенд-розробка</span></li>
+                                <li>React / Next.js / CSS</li>
+                                <li><span class="lang-en">Micro-interactions</span><span class="lang-ua">Мікро-інтеракції</span></li>
+                                <li><span class="lang-en">Performance Optimization</span><span class="lang-ua">Оптимізація швидкості</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact">
+        <div class="container">
+            <h2 class="contact-title"><span class="lang-en">Let's create something special together</span><span class="lang-ua">Давайте створимо щось особливе разом</span></h2>
+            <a href="mailto:hello@designlab.com" class="contact-email">hello@designlab.com</a>
+            <div class="social-links">
+                <a href="#" class="social-link">Telegram</a>
+                <a href="#" class="social-link">GitHub</a>
+                <a href="#" class="social-link">Dribbble</a>
+                <a href="#" class="social-link">Behance</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div><span class="lang-en">© 2026 DESIGN.LAB. All rights reserved.</span><span class="lang-ua">© 2026 DESIGN.LAB. Всі права захищені.</span></div>
+            <div><span class="lang-en">Made with soul, mysticism, and endless minimalism.</span><span class="lang-ua">Зроблено з душею, містикою та нескінченним мінімалізмом.</span></div>
+        </div>
+    </footer>
+
+    <script>
+        function setLanguage(lang) {
+            document.documentElement.setAttribute('data-lang', lang);
+            localStorage.setItem('lang', lang);
+            const btnEn = document.getElementById('langEn');
+            const btnUa = document.getElementById('langUa');
+            if (btnEn && btnUa) {
+                btnEn.classList.toggle('active', lang === 'en');
+                btnUa.classList.toggle('active', lang === 'ua');
+            }
+        }
+        
+        // Init
+        const savedLang = localStorage.getItem('lang') || 'en';
+        setLanguage(savedLang);
+
+        // Header Show/Hide on Scroll
+        let lastScrollY = window.scrollY;
+        const header = document.querySelector('header');
+        
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > lastScrollY && window.scrollY > 100) {
+                header.classList.add('header-hidden');
+            } else {
+                header.classList.remove('header-hidden');
+            }
+            lastScrollY = window.scrollY;
+        }, { passive: true });
+    </script>
+</body>
+</html>

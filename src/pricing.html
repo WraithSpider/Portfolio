@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GridNode — Pricing</title>
+  <meta name="description" content="GridNode pricing — transparent GPU cloud pricing. Start free, scale when ready. No hidden fees." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet" />
+  <link rel="icon" href="FAV.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="theme.css" />
+  <link rel="stylesheet" href="shared-sidebar.css" />
+  <style>
+    /* Page tokens come from theme.css — no local :root overrides here so
+       light/dark themes switch correctly. */
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      font-size: var(--font-size-base);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* ===== Layout ===== */
+    .container { max-width: 1440px; margin: 0 auto; padding: 0 2rem; }
+
+    /* ===== Header: logo left, theme toggle + Sign In right (like terms.html) ===== */
+    /* Colours/borders only via theme.css tokens — no hardcoded colours here. */
+    .site-header {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      min-height: 72px;
+      padding: 0;
+      background: rgba(6,8,20,0.82);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    [data-theme="light"] .site-header {
+      background: rgba(255,255,255,0.82);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .header-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
+    .brand { display: flex; align-items: center; text-decoration: none; }
+    .brand-logo { height: 42px; width: auto; display: block; }
+
+    .support-container { width: 100%; max-width: 1440px; margin: 0 auto; padding: 0 2rem; }
+    .site-header .support-container { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+
+    .top-nav-right {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    /* .sign-in-link appearance (bg/border/color/font) unified in theme.css */
+    .sign-in-link {
+      height: 38px;
+      padding: 0 20px;
+    }
+
+    /* CRITICAL: in authenticated mode (?mode=app) the Sign In button must never
+       render next to the DU avatar. Forced hide (docs.html parity). */
+    body.auth-mode .sign-in-link {
+      display: none !important;
+    }
+
+    /* ===== Header guest/auth zones (aligned with legal/privacy.html) ===== */
+    .guest-nav-zone {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .public-nav {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .public-nav .nav-link {
+      font-size: var(--font-size-sm);
+      font-weight: 500;
+      color: var(--text-muted);
+      transition: color 0.15s ease;
+      text-decoration: none;
+    }
+    .public-nav .nav-link:hover {
+      color: var(--text-primary);
+    }
+    .auth-buttons {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .sign-up-link {
+      box-sizing: border-box !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      height: 38px;
+      padding: 0 18px;
+      font-family: var(--font-head);
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      color: #ffffff;
+      background: linear-gradient(var(--grad-angle), var(--brand-stops));
+      border: none;
+      border-radius: 19px 19px 4px 19px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+      text-decoration: none;
+    }
+    .sign-up-link:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(0, 114, 255, 0.35);
+    }
+
+.theme-toggle {
+      width: 38px; height: 38px; border-radius: 50%;
+      /* appearance (bg/border) unified with secondary button in theme.css */
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--text-on-accent);
+      transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+    }
+    .theme-toggle svg { width: 18px; height: 18px; stroke: currentColor; }
+    .theme-toggle .icon-sun { display: block; }
+    .theme-toggle .icon-moon { display: none; }
+    [data-theme="light"] .theme-toggle .icon-sun { display: none; }
+    [data-theme="light"] .theme-toggle .icon-moon { display: block; }
+    .theme-toggle:hover {
+      border-color: rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.035);
+    }
+    [data-theme="light"] .theme-toggle {
+      background: rgba(15, 23, 42, 0.03);
+      border-color: rgba(154, 164, 178, 0.80);
+      color: var(--text-primary);
+    }
+    [data-theme="light"] .theme-toggle:hover {
+      background: rgba(15, 23, 42, 0.05);
+      border-color: rgba(107, 114, 128, 0.80);
+    }
+
+    /* ===== Header auth zones (Sign In vs avatar + popover) ===== */
+    /* Avatar + popover reuse shared-sidebar.css (.user-avatar/.profile-avatar/.profile-popover); only header positioning here. */
+    .auth-user-zone { display: flex; align-items: center; }
+    .header-profile { position: relative; display: flex; align-items: center; }
+    .header-profile .profile-popover {
+      top: 100%; margin-top: 8px; bottom: auto; left: auto; right: 0; width: 15rem;
+    }
+    /* Плавное открытие/закрытие + блок с данными пользователя (единый стиль с сайдбаром). */
+    .header-profile .profile-popover {
+      transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
+    }
+    .profile-user-block {
+      display: flex; flex-direction: column; gap: 0.125rem;
+      padding: 0 0.375rem 12px;
+      margin-bottom: 8px;
+      border-bottom: 1px solid var(--border-color);
+      background: transparent;
+    }
+    .profile-user-block .profile-name { font-size: 14px; font-weight: 600; color: var(--text-main); }
+    .profile-user-email {
+      font-family: var(--font-body); font-size: 12px; font-weight: 400;
+      color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    /* ===== Buttons ===== */
+    /* Sizes stay local; appearance (bg/border/font) is unified in theme.css (.btn-primary/.btn-outline) */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 8px;
+      height: 46px !important; min-height: 46px !important;
+      padding: 0 32px !important;
+      border-radius: 23px 23px 5px 23px !important;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+      cursor: pointer; white-space: nowrap;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+
+    .btn-sm { height: 38px !important; min-height: 38px !important; padding: 0 20px !important; font-size: var(--font-size-sm); border-radius: 19px 19px 4px 19px !important; }
+    .btn-block { width: 100%; }
+
+    /* ===== Page Header ===== */
+    .page-hero {
+      padding: 90px 0 60px;
+      text-align: center;
+    }
+    .page-hero h1 {
+      font-family: var(--font-head); font-size: var(--font-size-display); font-weight: 700;
+      line-height: 1.15; color: var(--text-main); letter-spacing: 0.02em;
+      margin-bottom: 16px;
+    }
+    .page-hero p {
+      font-size: var(--font-size-lg); color: var(--text-muted); max-width: 540px;
+      margin: 0 auto; line-height: 1.6;
+    }
+
+    /* ===== Billing Toggle (segmented control from settings.html / theme.css) ===== */
+    /* Appearance is unified in theme.css (.segmented/.seg-option) — no hardcoded colours here. */
+    .billing-toggle {
+      display: flex; align-items: center; justify-content: center; gap: 14px;
+      margin-bottom: 52px;
+    }
+    .billing-toggle .segmented { min-width: 0; }
+    .billing-toggle .seg-option { position: relative; cursor: pointer; }
+    .billing-toggle .seg-option input {
+      position: absolute; opacity: 0; pointer-events: none;
+    }
+    .billing-toggle .seg-option input:focus-visible + span {
+      outline: 2px solid var(--accent-blue); outline-offset: 2px;
+    }
+
+    .save-badge {
+      font-family: var(--font-head); font-size: var(--font-size-xs); font-weight: 600;
+      color: var(--accent-teal);
+      background: var(--bg-surface); border: 1px solid var(--border-color);
+      border-radius: 999px; padding: 3px 10px;
+    }
+
+    /* ===== Pricing Cards ===== */
+    .pricing-grid {
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px;
+      max-width: 1200px; margin-left: auto; margin-right: auto;
+      margin-bottom: 110px;
+    }
+
+    .pricing-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 34px 34px 5px 34px;
+      padding: 32px 28px 28px;
+      display: flex; flex-direction: column;
+      transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s, background 0.2s;
+      position: relative;
+    }
+    .pricing-card:hover {
+      background: var(--bg-hover-subtle);
+      border-color: var(--border-hover);
+      transform: translateY(-3px);
+    }
+    .pricing-card.featured {
+      border-color: var(--accent-blue);
+      background: var(--bg-surface);
+    }
+    .pricing-card.featured:hover {
+      transform: translateY(-4px);
+    }
+
+    .plan-badge {
+      position: absolute; top: -1px; right: 28px;
+      font-family: var(--font-head); font-size: var(--font-size-xs); font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.04em;
+      padding: 5px 14px;
+      background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-teal) 100%);
+      color: var(--text-on-accent);
+      border-radius: 0 0 10px 10px;
+    }
+
+    .plan-name {
+      font-family: var(--font-head); font-size: var(--font-size-lg); font-weight: 600;
+      color: var(--text-main); margin-bottom: 8px;
+    }
+    .plan-desc {
+      font-size: var(--font-size-sm); color: var(--text-muted); line-height: 1.55;
+      margin-bottom: 24px;
+    }
+
+    .plan-price {
+      display: flex; align-items: baseline; gap: 4px; margin-bottom: 6px;
+    }
+    .plan-price .currency { font-family: var(--font-head); font-size: var(--font-size-xl); font-weight: 600; color: var(--text-secondary); }
+    .plan-price .price-value { font-family: var(--font-head); font-size: var(--font-size-display); font-weight: 700; line-height: 1; color: var(--text-main); }
+    .plan-price .price-period { font-size: var(--font-size-sm); color: var(--text-muted); }
+    .plan-price.annual-note { font-size: var(--font-size-sm); color: var(--text-muted); margin-top: 4px; display: block; }
+    /* Legacy aliases kept for existing JS hooks */
+    .plan-price .amount { font-family: var(--font-head); font-size: var(--font-size-display); font-weight: 700; line-height: 1; color: var(--text-main); }
+    .plan-price .period { font-size: var(--font-size-sm); color: var(--text-muted); }
+    .plan-price .annual-note { font-size: var(--font-size-sm); color: var(--text-muted); margin-top: 4px; display: block; }
+
+    .plan-divider { height: 1px; background: var(--border-color); margin: 24px 0; }
+
+    .plan-features { list-style: none; display: flex; flex-direction: column; gap: 12px; margin-bottom: 28px; flex: 1; }
+    .plan-features li {
+      display: flex; align-items: flex-start; gap: 10px;
+      font-size: var(--font-size-sm); color: var(--text-main); line-height: 1.5;
+    }
+    .plan-features li .check {
+      width: 18px; height: 18px; border-radius: 50%;
+      background: var(--bg-hover); color: var(--accent-teal);
+      display: flex; align-items: center; justify-content: center;
+      font-size: var(--font-size-xs); font-weight: 700; flex-shrink: 0; margin-top: 2px;
+    }
+    .plan-features li.disabled { color: var(--text-muted); }
+    .plan-features li.disabled .check { background: var(--bg-hover-subtle); color: var(--text-muted); }
+
+    /* ===== Feature Comparison — backgrounds/borders/text via theme tokens only ===== */
+    .comparison-section { margin-bottom: 110px; }
+    .comparison-section h2 {
+      font-family: var(--font-head); font-size: var(--font-size-section); font-weight: 700;
+      text-align: center; margin-bottom: 40px; color: var(--text-main);
+    }
+
+    .comparison-table-wrap {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 34px 34px 5px 34px;
+      overflow: hidden;
+    }
+    .comparison-table { width: 100%; border-collapse: collapse; }
+    .comparison-table thead th {
+      padding: 16px 20px;
+      font-family: var(--font-head); font-size: var(--font-size-sm); font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.04em;
+      color: var(--text-muted); text-align: left;
+      border-bottom: 1px solid var(--border-color);
+      background: var(--bg-surface);
+    }
+    .comparison-table thead th:not(:first-child) { text-align: center; }
+    .comparison-table thead th.highlight {
+      color: var(--accent-blue);
+      background: var(--bg-surface);
+    }
+    .comparison-table tbody tr { transition: background 0.15s; }
+    .comparison-table tbody tr:hover { background: var(--bg-hover-subtle); }
+    .comparison-table tbody td {
+      padding: 14px 20px; font-size: var(--font-size-sm); color: var(--text-main);
+      border-bottom: 1px solid var(--border-color);
+    }
+    .comparison-table tbody td:not(:first-child) { text-align: center; }
+    .comparison-table tbody td.category {
+      font-family: var(--font-head); font-weight: 600; color: var(--text-main);
+      background: var(--bg-surface);
+      font-size: var(--font-size-sm); text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .comparison-table .check-yes { color: var(--accent-teal); font-weight: 700; font-size: var(--font-size-base); }
+    .comparison-table .check-no { color: var(--text-muted); font-size: var(--font-size-sm); }
+    .comparison-table .value { font-family: var(--font-head); font-weight: 600; color: var(--text-main); }
+
+    /* ===== FAQ — backgrounds/borders/text via theme tokens only ===== */
+    .faq-section { margin-bottom: 110px; }
+    .faq-section h2 {
+      font-family: var(--font-head); font-size: var(--font-size-section); font-weight: 700;
+      text-align: center; margin-bottom: 40px; color: var(--text-main);
+    }
+
+    .faq-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;
+      max-width: 960px; margin: 0 auto;
+    }
+    .faq-item {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 34px 34px 5px 34px;
+      padding: 24px 24px 20px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .faq-item:hover { background: var(--bg-hover-subtle); border-color: var(--border-hover); }
+    .faq-question {
+      font-family: var(--font-head); font-size: var(--font-size-base); font-weight: 600;
+      color: var(--text-main); margin-bottom: 10px; line-height: 1.4;
+    }
+    .faq-answer { font-size: var(--font-size-sm); color: var(--text-muted); line-height: 1.6; }
+
+    /* ===== CTA — backgrounds/borders/text via theme tokens only ===== */
+    .cta-section {
+      text-align: center; padding: 80px 32px;
+      background: var(--bg-surface);
+      border-radius: 34px 34px 5px 34px;
+      border: 1px solid var(--border-color);
+      margin-bottom: 0;
+    }
+    .cta-section h2 {
+      font-family: var(--font-head); font-size: var(--font-size-section); font-weight: 700;
+      color: var(--text-main); margin-bottom: 14px;
+    }
+    .cta-section p {
+      font-size: var(--font-size-base); color: var(--text-muted); max-width: 480px;
+      margin: 0 auto 36px; line-height: 1.6;
+    }
+    .cta-buttons { display: flex; align-items: center; justify-content: center; gap: 16px; }
+
+    /* ===== Footer — borders/text via theme tokens only ===== */
+    .footer { border-top: 1px solid var(--border-color); padding: 34px 0; margin-top: 110px; }
+    .footer-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 20px; flex-wrap: wrap;
+    }
+    .footer-copy { font-size: var(--font-size-sm); color: var(--text-muted); }
+    .footer-links { display: flex; gap: 26px; }
+    .footer-links a { font-size: var(--font-size-sm); color: var(--text-muted); transition: color 0.15s ease; }
+    .footer-links a:hover { color: var(--text-on-accent); }
+
+    /* ===== Responsive ===== */
+
+    /* Pricing cards keep the 3-column grid on every viewport down to 900px. */
+    @media (min-width: 900px) {
+      .pricing-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .pricing-swipe-hint { display: none !important; }
+    }
+
+    /* Below 900px: pricing cards become a horizontal, swipeable scroll row.
+       All three plans stay side-by-side and can be scrolled/swiped sideways.
+       `overflow-x: auto` forces the block's other axis to `auto` too, so the
+       vertical padding gives the lifted / badged cards room and they are never
+       clipped on the cross axis while swiping. */
+    @media (max-width: 899px) {
+      .public-nav { display: none; }
+      .pricing-grid {
+        display: flex;
+        overflow-x: auto;
+        overflow-y: visible;
+        scroll-snap-type: x mandatory;
+        gap: 16px;
+        padding: 16px 16px 24px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        max-width: none;
+        margin-left: 0;
+        margin-right: 0;
+        margin-bottom: 0;
+      }
+      .pricing-grid::-webkit-scrollbar { display: none; }
+
+      .pricing-grid .pricing-card {
+        flex: 0 0 300px;
+        max-width: 85vw;
+        scroll-snap-align: center;
+      }
+
+      /* The featured ("Most Popular") card keeps its badge and hover lift
+         fully visible — its badge sits inside the card's own top edge, and
+         the row's bottom padding above absorbs the hover translateY. */
+      .pricing-grid .pricing-card.featured {
+        overflow: visible;
+      }
+
+      .pricing-swipe-hint {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 16px;
+        margin-bottom: 60px;
+        font-size: 12px;
+        color: var(--text-muted);
+        opacity: 0.75;
+      }
+    }
+
+    @media (max-width: 1024px) {
+      .faq-grid { grid-template-columns: 1fr; }
+      .page-hero h1 { font-size: var(--font-size-section); }
+    }
+
+    @media (max-width: 620px) {
+      .site-header { padding: 0; }
+      .container { padding: 0 20px; }
+      .page-hero { padding: 60px 0 40px; }
+      .page-hero h1 { font-size: var(--font-size-section); }
+      .comparison-table-wrap { overflow-x: auto; }
+    }
+
+    /* Bottom CTA buttons stay side-by-side (horizontal) from 429px up to 900px,
+       including 620px — declared after the <=620px block so it always wins. */
+    @media (min-width: 429px) and (max-width: 900px) {
+      .cta-buttons { display: flex; flex-direction: row; justify-content: center; gap: 12px; }
+    }
+
+    /* Stacked CTA buttons only on phones 428px and below. */
+    @media (max-width: 428px) {
+      .cta-buttons { display: flex; flex-direction: column; width: 100%; }
+      .cta-buttons .btn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== HEADER (copied from index.html hero-top) ===== -->
+  <header class="site-header">
+    <div class="support-container">
+      <a class="brand" href="index.html" aria-label="GridNode home">
+        <img src="Logo.svg" alt="GridNode" class="brand-logo" data-logo-theme />
+      </a>
+      <div class="top-nav-right">
+        <a class="sign-in-link" href="login.html">Sign In</a>
+        <!-- Authenticated user zone (avatar + popover); shown when mode=app -->
+        <div class="auth-user-zone" id="auth-user-zone" style="display: none;">
+          <div class="header-profile">
+            <button type="button" class="user-avatar" id="header-avatar" aria-label="Open profile menu" aria-haspopup="true" aria-expanded="false">DU</button>
+            <div class="profile-popover" id="header-profile-popover" role="menu" aria-label="Profile menu">
+              <div class="profile-user-block">
+                <span class="profile-name">DemoTest User</span>
+                <span class="profile-user-email">demo@gridnode.io</span>
+              </div>
+              <a href="dashboard.html" class="popover-link" role="menuitem">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-6l-2-2H5a2 2 0 0 0-2 2z"></path><line x1="3" y1="12" x2="21" y2="12"></line></svg>
+                Dashboard
+              </a>
+              <a href="settings.html" class="popover-link" role="menuitem">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2 2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                Settings
+              </a>
+              <div class="dropdown-divider"></div>
+              <a href="login.html" class="popover-link text-danger" role="menuitem">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                Log Out
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <button class="theme-toggle" id="themeToggle" type="button" title="Toggle theme" aria-label="Toggle theme" aria-pressed="false">
+          <svg class="icon-sun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+          <svg class="icon-moon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Page Hero -->
+  <section class="page-hero">
+    <div class="container">
+      <h1>Choose Your Plan</h1>
+      <p id="pricing-subheading">Transparent pricing, no hidden fees. Start free, scale when ready. Every plan includes 24/7 support and a 99.9% uptime SLA.</p>
+    </div>
+  </section>
+
+  <!-- Billing Toggle (segmented control from settings.html / theme.css) -->
+  <div class="container">
+    <div class="billing-toggle">
+      <div class="segmented" role="radiogroup" aria-label="Billing period" id="billing-toggle">
+        <label class="seg-option">
+          <input type="radio" name="billing" value="monthly" checked>
+          <span id="label-monthly">Monthly</span>
+        </label>
+        <label class="seg-option">
+          <input type="radio" name="billing" value="annual">
+          <span id="label-annual">Annual</span>
+        </label>
+      </div>
+      <span class="save-badge">Save 20%</span>
+    </div>
+  </div>
+
+  <!-- Pricing Cards -->
+  <section class="container">
+    <div class="pricing-grid">
+
+      <!-- Starter -->
+      <div class="pricing-card">
+        <div class="plan-name">Starter</div>
+        <div class="plan-desc">For individual developers and small projects getting started with GPU compute.</div>
+        <div class="plan-price">
+          <span class="currency">$</span>
+          <span class="price-value" data-monthly="0" data-annual="0">0</span>
+          <span class="price-period" data-monthly="/mo" data-annual="/mo, billed annually">/mo</span>
+        </div>
+        <span class="plan-price annual-note" style="display:none;">Billed annually at $0</span>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li><span class="check">&#10003;</span> 1 GPU instance (T4)</li>
+          <li><span class="check">&#10003;</span> 100 GB NVMe storage</li>
+          <li><span class="check">&#10003;</span> 5 TB outbound transfer</li>
+          <li><span class="check">&#10003;</span> 1 API key</li>
+          <li><span class="check">&#10003;</span> Community support</li>
+          <li class="disabled"><span class="check">&#10003;</span> Custom domains</li>
+          <li class="disabled"><span class="check">&#10003;</span> Team collaboration</li>
+          <li class="disabled"><span class="check">&#10003;</span> Dedicated support</li>
+        </ul>
+        <a href="login.html" id="starter-btn" class="btn btn-outline btn-block">Get Started Free</a>
+      </div>
+
+      <!-- Pro -->
+      <div class="pricing-card featured">
+        <div class="plan-badge">Most Popular</div>
+        <div class="plan-name">Professional</div>
+        <div class="plan-desc">For teams building production workloads that need performance and reliability.</div>
+        <div class="plan-price">
+          <span class="currency">$</span>
+          <span class="price-value" data-monthly="49" data-annual="39">49</span>
+          <span class="price-period" data-monthly="/mo" data-annual="/mo, billed annually">/mo</span>
+        </div>
+        <span class="plan-price annual-note" style="display:none;">Billed annually at $468</span>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li><span class="check">&#10003;</span> 4 GPU instances (A10G)</li>
+          <li><span class="check">&#10003;</span> 500 GB NVMe storage</li>
+          <li><span class="check">&#10003;</span> 25 TB outbound transfer</li>
+          <li><span class="check">&#10003;</span> Unlimited API keys</li>
+          <li><span class="check">&#10003;</span> Priority email support</li>
+          <li><span class="check">&#10003;</span> Custom domains</li>
+          <li><span class="check">&#10003;</span> Team collaboration (5 seats)</li>
+          <li class="disabled"><span class="check">&#10003;</span> Dedicated support</li>
+        </ul>
+        <a href="login.html" id="pro-btn" class="btn btn-primary btn-block">Start 14-Day Trial</a>
+      </div>
+
+      <!-- Enterprise -->
+      <div class="pricing-card">
+        <div class="plan-name">Enterprise</div>
+        <div class="plan-desc">For organizations requiring dedicated infrastructure, compliance, and SLA guarantees.</div>
+        <div class="plan-price">
+          <span class="currency">$</span>
+          <span class="price-value" data-monthly="199" data-annual="159">199</span>
+          <span class="price-period" data-monthly="/mo" data-annual="/mo, billed annually">/mo</span>
+        </div>
+        <span class="plan-price annual-note" style="display:none;">Billed annually at $1,908</span>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li><span class="check">&#10003;</span> Unlimited GPU instances (H100)</li>
+          <li><span class="check">&#10003;</span> 2 TB NVMe storage</li>
+          <li><span class="check">&#10003;</span> Unmetered outbound transfer</li>
+          <li><span class="check">&#10003;</span> Unlimited API keys</li>
+          <li><span class="check">&#10003;</span> 24/7 phone &amp; chat support</li>
+          <li><span class="check">&#10003;</span> Custom domains + SSL</li>
+          <li><span class="check">&#10003;</span> Unlimited team seats</li>
+          <li><span class="check">&#10003;</span> Dedicated account manager</li>
+        </ul>
+        <a href="support.html" id="enterprise-btn" class="btn btn-outline btn-block">Contact Sales</a>
+      </div>
+
+    </div>
+    <p class="pricing-swipe-hint"><span>←</span> Swipe to compare plans <span>→</span></p>
+  </section>
+
+  <!-- Feature Comparison -->
+  <section class="container comparison-section">
+    <h2>Compare Plans</h2>
+    <div class="comparison-table-wrap">
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th style="width:40%;">Feature</th>
+            <th>Starter</th>
+            <th class="highlight">Professional</th>
+            <th>Enterprise</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="category">Compute</td><td></td><td></td><td></td></tr>
+          <tr><td>GPU Instances</td><td class="value">1 (T4)</td><td class="value">4 (A10G)</td><td class="value">Unlimited (H100)</td></tr>
+          <tr><td>vCPUs</td><td class="value">4</td><td class="value">16</td><td class="value">128</td></tr>
+          <tr><td>RAM</td><td class="value">16 GB</td><td class="value">64 GB</td><td class="value">512 GB</td></tr>
+          <tr><td>Storage (NVMe)</td><td class="value">100 GB</td><td class="value">500 GB</td><td class="value">2 TB</td></tr>
+          <tr><td class="category">Networking</td><td></td><td></td><td></td></tr>
+          <tr><td>Outbound Transfer</td><td class="value">5 TB</td><td class="value">25 TB</td><td class="value">Unmetered</td></tr>
+          <tr><td>Private Networking</td><td><span class="check-no">&#10005;</span></td><td><span class="check-yes">&#10003;</span></td><td><span class="check-yes">&#10003;</span></td></tr>
+          <tr><td>DDoS Protection</td><td><span class="check-yes">&#10003;</span></td><td><span class="check-yes">&#10003;</span></td><td><span class="check-yes">&#10003;</span></td></tr>
+          <tr><td class="category">Platform</td><td></td><td></td><td></td></tr>
+          <tr><td>API Keys</td><td class="value">1</td><td class="value">Unlimited</td><td class="value">Unlimited</td></tr>
+          <tr><td>Team Members</td><td class="value">1</td><td class="value">5</td><td class="value">Unlimited</td></tr>
+          <tr><td>Custom Domains</td><td><span class="check-no">&#10005;</span></td><td><span class="check-yes">&#10003;</span></td><td><span class="check-yes">&#10003;</span></td></tr>
+          <tr><td>Audit Logs</td><td><span class="check-no">&#10005;</span></td><td><span class="check-yes">&#10003;</span></td><td><span class="check-yes">&#10003;</span></td></tr>
+          <tr><td>SSO / SAML</td><td><span class="check-no">&#10005;</span></td><td><span class="check-no">&#10005;</span></td><td><span class="check-yes">&#10003;</span></td></tr>
+          <tr><td class="category">Support</td><td></td><td></td><td></td></tr>
+          <tr><td>Community Forum</td><td><span class="check-yes">&#10003;</span></td><td><span class="check-yes">&#10003;</span></td><td><span class="check-yes">&#10003;</span></td></tr>
+          <tr><td>Email Support</td><td><span class="check-no">&#10005;</span></td><td><span class="check-yes">&#10003;</span></td><td><span class="check-yes">&#10003;</span></td></tr>
+          <tr><td>24/7 Phone &amp; Chat</td><td><span class="check-no">&#10005;</span></td><td><span class="check-no">&#10005;</span></td><td><span class="check-yes">&#10003;</span></td></tr>
+          <tr><td>SLA Guarantee</td><td class="value">99.9%</td><td class="value">99.95%</td><td class="value">99.99%</td></tr>
+          <tr><td>Dedicated Account Manager</td><td><span class="check-no">&#10005;</span></td><td><span class="check-no">&#10005;</span></td><td><span class="check-yes">&#10003;</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="container faq-section">
+    <h2>Frequently Asked Questions</h2>
+    <div class="faq-grid">
+      <div class="faq-item">
+        <div class="faq-question">Can I switch plans at any time?</div>
+        <div class="faq-answer">Yes. You can upgrade or downgrade your plan at any time from the Settings page. Changes take effect immediately, and billing is prorated.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question">What happens when my free trial ends?</div>
+        <div class="faq-answer">After the 14-day trial, you'll be moved to the Starter plan automatically. No charges apply unless you choose to upgrade.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question">Do you offer refunds?</div>
+        <div class="faq-answer">We offer a full refund within the first 30 days of any paid plan. After that, you can cancel anytime and keep access until the end of the billing period.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question">What GPU types are available?</div>
+        <div class="faq-answer">Starter plans include NVIDIA T4 GPUs. Professional plans offer A10G GPUs. Enterprise plans include access to H100 GPUs with on-demand scaling.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question">Is there a limit on API calls?</div>
+        <div class="faq-answer">All plans include unlimited API calls. We only meter compute usage (GPU hours), storage, and outbound network transfer.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question">Can I add more team members?</div>
+        <div class="faq-answer">Professional plans include 5 seats. Additional seats can be purchased for $12/seat/month. Enterprise plans include unlimited seats.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="container">
+    <div class="cta-section">
+      <h2>Ready to get started?</h2>
+      <p>Deploy your first GPU instance in under 2 minutes. No credit card required for the Starter plan.</p>
+      <div class="cta-buttons">
+        <a href="login.html" class="btn btn-primary">Start Free</a>
+        <a href="public-support.html" class="btn btn-outline">Talk to Sales</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-copy">&copy; 2026 GridNode Inc. All rights reserved.</div>
+        <nav class="footer-links" aria-label="Footer">
+          <a href="legal/terms.html">Terms</a>
+          <a href="legal/privacy.html">Privacy</a>
+          <a href="public-support.html">Support</a>
+        </nav>
+      </div>
+    </div>
+  </footer>
+
+  <script src="theme-transition.js" defer></script>
+  <script src="auth-links.js" defer></script>
+  <script>
+    // Theme toggle
+    (function () {
+      var btn = document.getElementById('themeToggle');
+      if (!btn) return;
+      btn.addEventListener('click', function () {
+        var html = document.documentElement;
+        var next = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+        window.themeTransition(btn, function () {
+          html.setAttribute('data-theme', next);
+          try { localStorage.setItem('gridnode_settings', JSON.stringify({ theme: next })); } catch (e) {}
+        });
+      });
+    })();
+
+    // Billing period (segmented control from settings.html / theme.css)
+    // Monthly/Annual toggle swaps .price-value and .price-period from data-* attrs.
+    (function () {
+      var radios = document.querySelectorAll('#billing-toggle input[name="billing"]');
+      var values = document.querySelectorAll('.price-value[data-monthly]');
+      var periods = document.querySelectorAll('.price-period[data-monthly]');
+      var notes = document.querySelectorAll('.annual-note');
+      if (!radios.length) return;
+
+      function update() {
+        var checked = document.querySelector('#billing-toggle input[name="billing"]:checked');
+        var annual = checked ? checked.value === 'annual' : false;
+        values.forEach(function (el) {
+          el.textContent = annual ? el.dataset.annual : el.dataset.monthly;
+        });
+        periods.forEach(function (el) {
+          el.textContent = annual ? el.dataset.annual : el.dataset.monthly;
+        });
+        notes.forEach(function (el) {
+          el.style.display = annual ? 'block' : 'none';
+        });
+      }
+
+      radios.forEach(function (r) { r.addEventListener('change', update); });
+      update();
+    })();
+
+    const isApp = new URLSearchParams(window.location.search).get('mode') === 'app';
+
+    // Header Auth States (default: PUBLIC)
+    // ?mode=app (or auth=true|1) -> authenticated header (DU avatar + popover),
+    // otherwise the exact public-support.html public header (Sign In).
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var isAuthed = params.get('mode') === 'app' || params.get('auth') === 'true' || params.get('auth') === '1';
+
+      var brand = document.querySelector('.site-header .brand');
+      var signIn = document.querySelector('.site-header .sign-in-link');
+      var authZone = document.getElementById('auth-user-zone');
+      var avatar = document.getElementById('header-avatar');
+      var popover = document.getElementById('header-profile-popover');
+
+      // body.auth-mode class + CSS display:none !important guarantee the guest
+      // Sign In button never renders in the authenticated layout.
+      document.body.classList.toggle('auth-mode', isAuthed);
+
+      if (isAuthed) {
+        if (signIn) signIn.style.display = 'none';
+        if (authZone) authZone.style.display = 'flex';
+        if (brand) brand.setAttribute('href', 'dashboard.html');
+
+        // Preserve ?mode=app on internal links to dual-state pages only
+        // (footer Terms/Privacy, "Talk to Sales" / "Contact Sales",
+        // and Documentation). Support resolves to support.html directly:
+        // it is authenticated by nature (public-support.html covers the
+        // guest state), so no ?mode=app is appended.
+        var keepAuthLink = function (url) {
+          if (!url || url.indexOf('.html') === -1) return url;
+          var base = url.replace(/public-support\.html$/, 'support.html');
+          if (/support\.html$/.test(base)) return base;
+          if (!/(?:terms|privacy|docs)\.html$/.test(base)) return base;
+          if (base.indexOf('?') !== -1) return base;
+          return base + '?mode=app';
+        };
+        document.querySelectorAll('a[href]').forEach(function (a) {
+          var u = a.getAttribute('href');
+          if (u) a.setAttribute('href', keepAuthLink(u));
+        });
+      } else {
+        if (signIn) signIn.style.display = '';
+        if (authZone) authZone.style.display = 'none';
+        if (brand) brand.setAttribute('href', 'index.html');
+      }
+
+      if (avatar && popover) {
+        avatar.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var open = popover.classList.toggle('open');
+          avatar.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+        document.addEventListener('click', function (e) {
+          if (!popover.classList.contains('open')) return;
+          if (avatar.contains(e.target) || popover.contains(e.target)) return;
+          popover.classList.remove('open');
+          avatar.setAttribute('aria-expanded', 'false');
+        });
+        document.addEventListener('keydown', function (e) {
+          if (e.key !== 'Escape') return;
+          if (!popover.classList.contains('open')) return;
+          popover.classList.remove('open');
+          avatar.setAttribute('aria-expanded', 'false');
+          avatar.focus();
+        });
+      }
+    })();
+
+    if (isApp) {
+      // Сценарий: переход из Консоли / Сайдбара
+      document.getElementById('pricing-subheading').textContent = 'Manage your subscription and node limits.';
+
+      // Кнопка Starter (текущий план)
+      const starterBtn = document.getElementById('starter-btn');
+      starterBtn.textContent = 'Current Plan';
+      starterBtn.className = 'btn btn-ghost';
+      starterBtn.setAttribute('disabled', 'true');
+
+      // Кнопка Pro (апгрейд)
+      const proBtn = document.getElementById('pro-btn');
+      proBtn.textContent = 'Upgrade to Pro';
+      proBtn.setAttribute('href', 'checkout.html?plan=pro');
+    } else {
+      // Сценарий: переход с Главной / Гость
+      document.getElementById('pricing-subheading').textContent = 'Transparent pricing for tech teams. Scale seamlessly.';
+
+      // Кнопка Starter
+      const starterBtn = document.getElementById('starter-btn');
+      starterBtn.textContent = 'Get Started Free';
+      starterBtn.className = 'btn btn-secondary';
+      starterBtn.setAttribute('href', 'login.html');
+
+      // Кнопка Pro
+      const proBtn = document.getElementById('pro-btn');
+      proBtn.textContent = 'Start 14-Day Trial';
+      proBtn.setAttribute('href', 'signup.html');
+
+      // enterpriseBtn (гость)
+      const enterpriseBtn = document.getElementById('enterprise-btn');
+      enterpriseBtn.className = 'btn btn-primary btn-block';
+      enterpriseBtn.setAttribute('href', 'signup.html');
+    }
+
+    // Auto-center middle/featured pricing card on initial page load when viewport < 900px
+    (function () {
+      function centerFeaturedCard() {
+        if (window.innerWidth >= 900) return;
+        var grid = document.querySelector('.pricing-grid');
+        if (!grid) return;
+        var targetCard = grid.querySelector('.pricing-card.popular') ||
+                         grid.querySelector('.pricing-card.featured') ||
+                         grid.children[1];
+        if (!targetCard) return;
+
+        var prevY = window.scrollY;
+        if (typeof targetCard.scrollIntoView === 'function') {
+          targetCard.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'instant' });
+        }
+        var gridRect = grid.getBoundingClientRect();
+        var cardRect = targetCard.getBoundingClientRect();
+        var relativeLeft = (cardRect.left - gridRect.left) + grid.scrollLeft;
+        grid.scrollLeft = relativeLeft - (grid.clientWidth - targetCard.clientWidth) / 2;
+
+        if (window.scrollY !== prevY) {
+          window.scrollTo(0, prevY);
+        }
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', centerFeaturedCard);
+      } else {
+        centerFeaturedCard();
+      }
+      window.addEventListener('load', centerFeaturedCard);
+    })();
+  </script>
+</body>
+</html>

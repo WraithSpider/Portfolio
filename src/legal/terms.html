@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#04040a">
+  <title>GridNode — Terms of Service</title>
+  <link rel="icon" href="../FAV.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet">
+
+  <!-- Unified global theme (dark is default via data-theme="dark") -->
+  <link rel="stylesheet" href="../theme.css">
+  <link rel="stylesheet" href="../shared-sidebar.css">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-level-0);
+      color: var(--text-primary);
+      font-size: var(--font-size-base);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; }
+
+    /* ===== Header: logo left, auth/nav/toggle right ===== */
+    .site-header {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      width: 100%;
+      min-height: 72px;
+      padding: 0;
+      background: rgba(6,8,20,0.82);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    [data-theme="light"] .site-header {
+      background: rgba(255,255,255,0.82);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .header-left { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+    .brand { display: flex; align-items: center; text-decoration: none; }
+    .brand-logo { height: 42px; width: auto; display: block; }
+
+    .support-container { width: 100%; max-width: 1440px; margin: 0 auto; padding: 0 2rem; }
+    .site-header .support-container { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+
+    .top-nav-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    /* search-wrap not used on legal pages */
+
+    /* .sign-in-link appearance (bg/border/color/font) unified in theme.css */
+    .sign-in-link {
+      height: 38px;
+      padding: 0 20px;
+    }
+
+    /* CRITICAL: in authenticated mode (?mode=app) the Sign In button must never
+       render next to the DU avatar. Forced hide (docs.html parity). */
+    body.auth-mode .sign-in-link {
+      display: none !important;
+    }
+
+    .theme-toggle {
+      width: 38px; height: 38px; border-radius: 50%;
+      /* appearance (bg/border) unified with secondary button in theme.css */
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.12);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--text-on-accent);
+      transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+    }
+    .theme-toggle svg { width: 18px; height: 18px; stroke: currentColor; fill: none; }
+    .theme-toggle .icon-sun { display: block; }
+    .theme-toggle .icon-moon { display: none; }
+    [data-theme="light"] .theme-toggle .icon-sun { display: none; }
+    [data-theme="light"] .theme-toggle .icon-moon { display: block; }
+    .theme-toggle:hover {
+      border-color: rgba(255,255,255,0.28);
+      background: rgba(255,255,255,0.035);
+    }
+    [data-theme="light"] .theme-toggle {
+      background: rgba(15,23,42,0.03);
+      border-color: rgba(154,164,178,0.80);
+      color: var(--text-primary);
+    }
+    [data-theme="light"] .theme-toggle:hover {
+      background: rgba(15,23,42,0.05);
+      border-color: rgba(107,114,128,0.80);
+    }
+
+    /* ===== Main Content ===== */
+    .main-content { padding: 32px 24px; }
+
+    .legal-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      border-radius: 16px;
+      box-shadow: 0 20px 40px var(--overlay-bg-mid);
+      padding: 40px;
+      margin: 40px auto; max-width: 860px;
+    }
+
+    h1 {
+      font-family: var(--font-head);
+      font-size: var(--font-size-section);
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 24px;
+    }
+
+    h2 {
+      font-family: var(--font-head);
+      font-size: var(--font-size-xl);
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-top: 32px;
+      margin-bottom: 12px;
+    }
+
+    p {
+      font-size: var(--font-size-base);
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin-bottom: 16px;
+    }
+
+    ul {
+      list-style: none;
+      padding-left: 0;
+      margin-bottom: 16px;
+    }
+    ul li {
+      position: relative;
+      padding-left: 22px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin-bottom: 8px;
+    }
+    ul li::before {
+      content: '';
+      position: absolute;
+      left: 4px; top: 10px;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: linear-gradient(var(--grad-angle), var(--brand-stops));
+    }
+    ul li strong { color: var(--text-primary); font-weight: 600; }
+
+    /* ===== Nav & Auth in Header ===== */
+    .guest-nav-zone {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .public-nav {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .public-nav .nav-link {
+      font-size: var(--font-size-sm);
+      font-weight: 500;
+      color: var(--text-muted);
+      transition: color 0.15s ease;
+      text-decoration: none;
+    }
+    .public-nav .nav-link:hover {
+      color: var(--text-primary);
+    }
+    .auth-buttons {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .sign-up-link {
+      box-sizing: border-box !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      height: 38px;
+      padding: 0 18px;
+      font-family: var(--font-head);
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      color: #ffffff;
+      background: linear-gradient(var(--grad-angle), var(--brand-stops));
+      border: none;
+      border-radius: 19px 19px 4px 19px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+      text-decoration: none;
+    }
+    .sign-up-link:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(0, 114, 255, 0.35);
+    }
+    .auth-user-zone {
+      display: flex;
+      align-items: center;
+    }
+    .header-profile {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .header-profile .profile-popover {
+      top: calc(100% + 10px);
+      bottom: auto;
+      left: auto;
+      right: 0;
+      width: 15rem;
+      z-index: 1000;
+    }
+    .profile-user-block {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 4px 6px 12px;
+      margin-bottom: 6px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .profile-user-block .profile-name {
+      font-family: var(--font-head);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .profile-user-block .profile-user-email {
+      font-family: var(--font-body);
+      font-size: 12px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ===== Footer ===== */
+    .footer { border-top: 1px solid var(--border-subtle); padding: 32px 0; margin-top: 40px; }
+    .container { max-width: 1440px; margin: 0 auto; padding: 0 2rem; }
+    .footer-inner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+    .footer-copy { font-size: var(--font-size-sm); color: var(--text-muted); }
+    .footer-links { display: flex; gap: 24px; font-size: var(--font-size-sm); color: var(--text-muted); }
+    .footer-links a { transition: color 0.15s; cursor: pointer; }
+    .footer-links a:hover { color: var(--text-primary); }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 900px) {
+      .public-nav { display: none; }
+    }
+    @media (max-width: 620px) {
+      .site-header { padding: 0 16px; }
+      .legal-card { margin: 24px auto; padding: 32px 24px; }
+      .auth-buttons { gap: 6px; }
+      .sign-in-link, .sign-up-link { padding: 0 12px; font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="support-container">
+      <a class="brand" href="../index.html" aria-label="GridNode home">
+        <img src="../Logo.svg" alt="GridNode" class="brand-logo" data-logo-theme />
+      </a>
+      <div class="top-nav-right">
+        <a class="sign-in-link" href="../login.html">Sign In</a>
+        <!-- Authenticated user zone (avatar + popover); shown when mode=app -->
+        <div class="auth-user-zone" id="auth-user-zone" style="display: none;">
+          <div class="header-profile">
+            <button type="button" class="user-avatar" id="header-avatar" aria-label="Open profile menu" aria-haspopup="true" aria-expanded="false">DU</button>
+            <div class="profile-popover" id="header-profile-popover" role="menu" aria-label="Profile menu">
+              <div class="profile-user-block">
+                <span class="profile-name">DemoTest User</span>
+                <span class="profile-user-email">demo@gridnode.io</span>
+              </div>
+              <a href="../dashboard.html" class="popover-link" role="menuitem">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-6l-2-2H5a2 2 0 0 0-2 2z"></path><line x1="3" y1="12" x2="21" y2="12"></line></svg>
+                Dashboard
+              </a>
+              <a href="../settings.html" class="popover-link" role="menuitem">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2 2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                Settings
+              </a>
+              <div class="dropdown-divider"></div>
+              <a href="../login.html" class="popover-link text-danger" role="menuitem">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                Log Out
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <button class="theme-toggle" id="themeToggle" type="button" title="Toggle theme" aria-label="Toggle theme" aria-pressed="false">
+          <svg class="icon-sun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+          <svg class="icon-moon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="legal-card">
+      <h1>Terms of Service</h1>
+
+      <h2>1. Acceptance of Terms</h2>
+      <p>These Terms of Service ("Terms") govern your use of the GridNode platform ("Service"), operated by GridNode Inc. ("we", "us", "our"). By accessing or using the Service, you agree to be bound by these Terms. If you disagree with any part of the Terms, you may not access the Service.</p>
+
+      <h2>2. User Obligations</h2>
+      <p>You agree to use the Service only for lawful purposes and in accordance with these Terms. You are responsible for maintaining the confidentiality of your account and password, and for restricting access to your account, and you agree to accept responsibility for all activities that occur under your account or password. You must not use the Service in any manner that could disable, overburden, damage, or impair the Service or interfere with any other party's use of the Service.</p>
+
+      <h2>3. Service Availability</h2>
+      <p>We strive to offer the Service continuously; however, we do not guarantee uninterrupted access. The Service may be subject to periodic downtime, maintenance, or downtime due to technical issues beyond our reasonable control. We may modify or discontinue features of the Service at any time, with or without notice.</p>
+
+      <h2>4. Data Protection</h2>
+      <p>Your privacy is important to us. Our Data Protection policies govern how we collect, use, disclose, and safeguard your information. By using the Service, you consent to the data practices described in our Privacy Policy. We may update our Data Protection practices from time to time; we will notify you of any material changes.</p>
+
+      <h2>5. Limitation of Liability</h2>
+      <p>To the maximum extent permitted by law, we, our affiliates, officers, directors, employees, agents, successors and assigns, shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including without limitation, loss of profits, data, or other intangible losses, resulting from (i) your access to or use of or inability to access or use the Service; (ii) any conduct or content of third parties on the Service; (iii) content obtained from the Service; or (iv) unauthorized access, use, or alteration of your transmissions or content.</p>
+
+      <p>These Terms constitute the entire agreement between you and GridNode Inc. regarding the Service, and supersede any and all prior agreements or understandings, whether written or oral, relating to the Service.</p>
+    </div>
+  </main>
+
+  <!-- Footer (synchronized with pricing.html) -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-copy">&copy; 2026 GridNode Inc. All rights reserved.</div>
+        <nav class="footer-links" aria-label="Footer">
+          <a href="terms.html">Terms</a>
+          <a href="privacy.html">Privacy</a>
+          <a href="../public-support.html">Support</a>
+        </nav>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../theme-transition.js" defer></script>
+  <script src="../auth-links.js" defer></script>
+  <script>
+    // Standard GridNode theme toggle (unit: data-theme="dark" | "light")
+    (function () {
+      const KEY = 'gridnode-theme';
+      const btn = document.getElementById('themeToggle');
+      const html = document.documentElement;
+
+      function apply(theme) {
+        html.setAttribute('data-theme', theme);
+        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#04040a' : '#fafbfc');
+        btn?.setAttribute('aria-pressed', theme === 'dark' ? 'false' : 'true');
+        try { localStorage.setItem(KEY, theme); } catch (e) {}
+      }
+
+      let saved = null;
+      try { saved = localStorage.getItem(KEY); } catch (e) {}
+      if (saved === 'light' || saved === 'dark') {
+        apply(saved);
+      }
+
+      btn?.addEventListener('click', () => {
+        const cur = html.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+        const next = cur === 'dark' ? 'light' : 'dark';
+        window.themeTransition(btn, () => apply(next));
+      });
+    })();
+
+    // Header Auth States (default: PUBLIC)
+    // ?mode=app (or auth=true|1) -> authenticated header (DU avatar + popover),
+    // otherwise the exact public-support.html public header (Sign In).
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var isAuthed = params.get('mode') === 'app' || params.get('auth') === 'true' || params.get('auth') === '1';
+
+      var brand = document.querySelector('.site-header .brand');
+      var signIn = document.querySelector('.site-header .sign-in-link');
+      var authZone = document.getElementById('auth-user-zone');
+      var avatar = document.getElementById('header-avatar');
+      var popover = document.getElementById('header-profile-popover');
+
+      // body.auth-mode class + CSS display:none !important guarantee the guest
+      // Sign In button never renders in the authenticated layout.
+      document.body.classList.toggle('auth-mode', isAuthed);
+
+      if (isAuthed) {
+        if (signIn) signIn.style.display = 'none';
+        if (authZone) authZone.style.display = 'flex';
+        if (brand) brand.setAttribute('href', '../dashboard.html');
+
+        // Preserve ?mode=app on internal links to dual-state legal pages only
+        // (footer Terms/Privacy). Support resolves to support.html directly:
+        // it is authenticated by nature (public-support.html covers the guest
+        // state), so no ?mode=app is appended.
+        var keepAuthLink = function (url) {
+          if (!url || url.indexOf('.html') === -1) return url;
+          var base = url.replace(/public-support\.html$/, 'support.html');
+          if (/support\.html$/.test(base)) return base;
+          if (!/(?:terms|privacy)\.html$/.test(base)) return base;
+          if (base.indexOf('?') !== -1) return base;
+          return base + '?mode=app';
+        };
+        document.querySelectorAll('a[href]').forEach(function (a) {
+          var u = a.getAttribute('href');
+          if (u) a.setAttribute('href', keepAuthLink(u));
+        });
+      } else {
+        if (signIn) signIn.style.display = '';
+        if (authZone) authZone.style.display = 'none';
+        if (brand) brand.setAttribute('href', '../index.html');
+      }
+
+      if (avatar && popover) {
+        avatar.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var open = popover.classList.toggle('open');
+          avatar.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+        document.addEventListener('click', function (e) {
+          if (!popover.classList.contains('open')) return;
+          if (avatar.contains(e.target) || popover.contains(e.target)) return;
+          popover.classList.remove('open');
+          avatar.setAttribute('aria-expanded', 'false');
+        });
+        document.addEventListener('keydown', function (e) {
+          if (e.key !== 'Escape') return;
+          if (!popover.classList.contains('open')) return;
+          popover.classList.remove('open');
+          avatar.setAttribute('aria-expanded', 'false');
+          avatar.focus();
+        });
+      }
+    })();
+
+  </script>
+</body>
+</html>

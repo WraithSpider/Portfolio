@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#04040a">
+  <title>GridNode — How Nexus AI Streamlined Real-Time GPU Monitoring Across 500+ Nodes</title>
+  <meta name="description" content="A GPU infrastructure case study: how Nexus AI cut idle GPU compute costs by 38% and reduced monitoring latency to under 12ms on GridNode.">
+  <link rel="icon" href="FAV.svg" type="image/svg+xml">
+  <!-- Open Graph / Twitter -->
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="How Nexus AI Streamlined Real-Time GPU Monitoring Across 500+ Nodes" />
+  <meta property="og:description" content="Cut idle GPU compute costs by 38% while reducing monitoring latency to under 12ms." />
+  <meta property="og:image" content="Images/case-01.jfif" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet">
+
+  <!-- Unified global theme + shared components (popover, avatar) -->
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="shared-sidebar.css">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-body);
+      color: var(--text-secondary);
+      font-size: var(--font-size-base);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.075;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+      z-index: -1;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; }
+
+    a:focus-visible,
+    button:focus-visible {
+      outline: 2px solid var(--accent-blue-bright);
+      outline-offset: 2px;
+    }
+
+    .skip-link {
+      position: absolute;
+      top: -100%;
+      left: 16px;
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border-card);
+      z-index: 100;
+    }
+    .skip-link:focus { top: 12px; }
+
+    /* ===== Shared layout helpers (index.html parity) ===== */
+    .container {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+    .container--narrow {
+      max-width: 738px;
+    }
+    .section {
+      padding: 110px 0;
+    }
+    .section-sub-label {
+      font-family: var(--font-head);
+      font-size: var(--font-size-sm);
+      font-weight: 500;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      opacity: 0.55;
+      margin-bottom: 14px;
+    }
+    .section-title {
+      font-family: var(--font-head);
+      font-size: var(--font-size-section);
+      font-weight: 700;
+      line-height: 1.15;
+      color: var(--text-primary);
+      letter-spacing: 0.02em;
+    }
+    .section-desc {
+      font-size: var(--font-size-xl);
+      line-height: 1.5;
+      color: var(--text-muted);
+      max-width: 620px;
+      margin-top: 18px;
+    }
+
+    /* ===== Buttons ===== */
+    .btn {
+      gap: 8px;
+      height: 46px;
+      padding: 0 32px;
+      text-decoration: none;
+    }
+    .btn-lg {
+      min-height: 46px !important;
+      height: auto !important;
+      padding: 16px 40px !important;
+      font-size: var(--font-size-base) !important;
+    }
+
+    /* ===== Header (site-header pattern — terms.html parity) ===== */
+    .site-header {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      width: 100%;
+      min-height: 72px;
+      padding: 0;
+      background: rgba(6,8,20,0.82);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    [data-theme="light"] .site-header {
+      background: rgba(255,255,255,0.82);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .header-inner {
+      width: 100%;
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-head);
+      font-weight: 700;
+      font-size: var(--font-size-base);
+      color: var(--text-primary);
+      letter-spacing: 0.02em;
+    }
+    .brand-logo {
+      height: 42px;
+      width: auto;
+      display: block;
+    }
+
+    .top-nav-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* .sign-in-link appearance (bg/border/color/font) unified in theme.css */
+    .sign-in-link {
+      height: 38px;
+      padding: 0 20px;
+    }
+
+    /* CRITICAL: in authenticated mode (?mode=app) the Sign In button must never
+       render next to the DU avatar. Forced hide (docs.html parity). */
+    body.auth-mode .sign-in-link {
+      display: none !important;
+    }
+
+    .theme-toggle {
+      width: 38px; height: 38px; border-radius: 50%;
+      /* appearance (bg/border) unified with secondary button in theme.css */
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.12);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--text-on-accent);
+      transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+    }
+    .theme-toggle svg { width: 18px; height: 18px; stroke: currentColor; fill: none; }
+    .theme-toggle .icon-sun { display: block; }
+    .theme-toggle .icon-moon { display: none; }
+    [data-theme="light"] .theme-toggle .icon-sun { display: none; }
+    [data-theme="light"] .theme-toggle .icon-moon { display: block; }
+    .theme-toggle:hover {
+      border-color: rgba(255,255,255,0.28);
+      background: rgba(255,255,255,0.035);
+    }
+    [data-theme="light"] .theme-toggle {
+      background: rgba(15,23,42,0.03);
+      border-color: rgba(154,164,178,0.80);
+      color: var(--text-primary);
+    }
+    [data-theme="light"] .theme-toggle:hover {
+      background: rgba(15,23,42,0.05);
+      border-color: rgba(107,114,128,0.80);
+    }
+
+    .auth-user-zone {
+      display: flex;
+      align-items: center;
+    }
+    .header-profile {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .header-profile .profile-popover {
+      top: calc(100% + 10px);
+      bottom: auto;
+      left: auto;
+      right: 0;
+      width: 15rem;
+      z-index: 1000;
+    }
+    .profile-user-block {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 4px 6px 12px;
+      margin-bottom: 6px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .profile-user-block .profile-name {
+      font-family: var(--font-head);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .profile-user-block .profile-user-email {
+      font-family: var(--font-body);
+      font-size: 12px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ===== Article layout ===== */
+    .article-main {
+      padding: 48px 0 20px;
+    }
+
+    .article-column {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    /* Back navigation */
+    .breadcrumb {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-head);
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: color 0.15s ease, gap 0.15s ease;
+      margin-bottom: 36px;
+    }
+    .breadcrumb:hover {
+      color: var(--text-primary);
+      gap: 12px;
+    }
+    .breadcrumb svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* Article header */
+    .article-head { margin-bottom: 40px; }
+
+    .article-category {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-head);
+      font-size: var(--font-size-xs);
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      border: 1px solid var(--border-card);
+      background: var(--bg-level-2);
+      border-radius: 999px;
+      padding: 7px 14px;
+      margin-bottom: 24px;
+    }
+    .article-category .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: linear-gradient(var(--grad-angle), var(--brand-stops));
+      flex-shrink: 0;
+    }
+
+    .article-title {
+      font-family: var(--font-head);
+      font-size: clamp(1.75rem, 4vw, 2.6rem);
+      font-weight: 700;
+      line-height: 1.12;
+      letter-spacing: 0.02em;
+      color: var(--text-primary);
+      text-wrap: balance;
+    }
+
+    .article-subtitle {
+      margin-top: 18px;
+      font-size: var(--font-size-xl);
+      line-height: 1.55;
+      color: var(--text-muted);
+    }
+
+    .author-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 30px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border-faint);
+    }
+    .author-meta-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      min-width: 0;
+    }
+    .author-meta-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-left: auto;
+      white-space: nowrap;
+    }
+
+    .author-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(var(--grad-angle), var(--brand-stops));
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-family: var(--font-head);
+      font-size: var(--font-size-sm);
+      font-weight: 700;
+      color: var(--text-on-accent);
+      position: relative;
+    }
+    .author-avatar::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 0.5px;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.50) 0%, rgba(255,255,255,0.25) 40%, rgba(0,0,0,0.20) 60%, rgba(0,0,0,0.50) 100%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask-composite: exclude;
+      mix-blend-mode: overlay;
+      pointer-events: none;
+    }
+
+    .author-info {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 0;
+    }
+    .author-name {
+      font-family: var(--font-head);
+      font-size: var(--font-size-base);
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .author-role {
+      font-size: var(--font-size-sm);
+      color: var(--text-muted);
+    }
+    .article-date,
+    .article-reading-time {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: var(--font-size-sm);
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .article-date svg,
+    .article-reading-time svg {
+      width: 15px;
+      height: 15px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      color: var(--text-dim);
+    }
+
+    /* Article cover */
+    .article-cover {
+      position: relative;
+      border: 1px solid var(--border-strong);
+      border-radius: 28px 28px 8px 28px;
+      overflow: hidden;
+      background: var(--bg-surface);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.45), 0 12px 30px rgba(0,0,0,0.30);
+      margin-bottom: 48px;
+    }
+    [data-theme="light"] .article-cover {
+      box-shadow: 0 20px 50px rgba(0,0,0,0.14), 0 10px 30px rgba(0,0,0,0.08);
+    }
+    .article-cover img {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      display: block;
+    }
+    .article-cover .cover-caption {
+      padding: 14px 20px;
+      font-size: var(--font-size-sm);
+      color: var(--text-muted);
+      border-top: 1px solid var(--border-faint);
+      background: var(--bg-level-1);
+    }
+
+    /* ===== Article body typography ===== */
+    .article-body {
+      color: var(--text-secondary);
+      font-size: var(--font-size-base);
+      line-height: 1.8;
+    }
+
+    .article-body .lead {
+      font-size: var(--font-size-lg);
+      line-height: 1.7;
+      color: var(--text-primary);
+      margin-bottom: 28px;
+    }
+
+    .article-body p {
+      margin-bottom: 24px;
+      color: var(--text-secondary);
+      line-height: 1.8;
+    }
+
+    .article-body h2 {
+      font-family: var(--font-head);
+      font-size: var(--font-size-xl);
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: 0.02em;
+      line-height: 1.3;
+      margin: 52px 0 20px;
+      padding-top: 28px;
+      border-top: 1px solid var(--border-subtle);
+    }
+    .article-body h2:first-child { border-top: none; padding-top: 0; margin-top: 0; }
+
+    .article-body h3 {
+      font-family: var(--font-head);
+      font-size: var(--font-size-lg);
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.4;
+      margin: 36px 0 14px;
+    }
+
+    .article-body strong { color: var(--text-primary); font-weight: 600; }
+
+    .article-body a {
+      color: var(--accent-blue-bright);
+      transition: color 0.15s ease;
+      font-weight: 500;
+    }
+    [data-theme="light"] .article-body a { color: var(--accent-blue); }
+    .article-body a:hover { color: var(--text-primary); }
+
+    .article-body ul {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 24px;
+    }
+    .article-body ul li {
+      position: relative;
+      padding-left: 24px;
+      color: var(--text-secondary);
+      line-height: 1.8;
+      margin-bottom: 10px;
+    }
+    .article-body ul li::before {
+      content: '';
+      position: absolute;
+      left: 6px; top: 12px;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: linear-gradient(var(--grad-angle), var(--brand-stops));
+    }
+    .article-body ul li strong { color: var(--text-primary); font-weight: 600; }
+    .article-body ul ul { margin: 10px 0 0; }
+    .article-body ul ul li::before {
+      width: 4px;
+      height: 4px;
+      left: 8px;
+      top: 14px;
+      border: 1px solid var(--accent-sky);
+      background: transparent;
+    }
+
+    /* Callout quote */
+    .callout {
+      position: relative;
+      margin: 36px 0;
+      padding: 24px 28px 24px 32px;
+      background: var(--bg-level-1);
+      border: 1px solid var(--border-card);
+      border-radius: 16px 16px 4px 16px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+    }
+    [data-theme="dark"] .callout {
+      box-shadow: 0 20px 50px rgba(0,0,0,0.35), 0 8px 24px rgba(0,0,0,0.25);
+    }
+    .callout::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: linear-gradient(180deg, var(--brand-stops));
+      border-radius: 3px 0 0 3px;
+    }
+    .callout blockquote {
+      font-family: var(--font-head);
+      font-size: var(--font-size-xl);
+      font-weight: 500;
+      line-height: 1.5;
+      letter-spacing: 0.01em;
+      color: var(--text-primary);
+    }
+    .callout .callout-attr {
+      display: block;
+      margin-top: 12px;
+      font-family: var(--font-body);
+      font-size: var(--font-size-sm);
+      font-weight: 400;
+      color: var(--text-muted);
+    }
+
+    /* Code / terminal blocks (docs.html terminal-block parity) */
+    .terminal-block {
+      background: var(--bg-terminal);
+      border: 1px solid var(--border-color);
+      border-radius: 16px 16px 5px 34px;
+      overflow: hidden;
+      margin: 32px 0;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.16);
+    }
+    [data-theme="dark"] .terminal-block {
+      box-shadow: 0 30px 70px rgba(0,0,0,0.45), 0 14px 36px rgba(0,0,0,0.30);
+    }
+
+    .terminal-block-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: var(--bg-terminal-header);
+      border-bottom: 1px solid var(--border-color);
+      border-radius: 16px 16px 0 0;
+    }
+
+    .terminal-dots { display: flex; gap: 6px; }
+    .terminal-dots span { width: 10px; height: 10px; border-radius: 50%; }
+    .terminal-dots .red { background: var(--term-red); }
+    .terminal-dots .yellow { background: var(--term-yellow); }
+    .terminal-dots .green { background: var(--term-green); }
+
+    .terminal-label {
+      font-family: var(--font-mono);
+      font-size: var(--font-size-xs);
+      color: var(--text-terminal-dim);
+    }
+
+    .copy-btn {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      border-radius: 15px 15px 3px 15px;
+      height: 30px;
+      padding: 0 10px;
+      font-family: var(--font-mono);
+      font-size: var(--font-size-xs);
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .copy-btn:hover {
+      background: var(--bg-hover-strong);
+      color: var(--text-main);
+      border-color: var(--border-hover);
+    }
+    .copy-btn svg { width: 13px; height: 13px; stroke: currentColor; }
+
+    .terminal-block-body {
+      padding: 20px;
+      font-family: var(--font-mono);
+      font-size: var(--font-size-sm);
+      line-height: 1.8;
+      color: var(--text-terminal);
+      overflow-x: auto;
+    }
+
+    /* Terminal color semantics (docs.html parity) */
+    .terminal-block-body .prompt { color: var(--log-success); }
+    .terminal-block-body .cmd { color: var(--text-terminal); }
+    .terminal-block-body .flag { color: var(--log-info); }
+    .terminal-block-body .val { color: var(--log-warn); }
+    .terminal-block-body .out { color: var(--text-terminal-dim); }
+    .terminal-block-body .ok { color: var(--log-success); }
+    .terminal-block-body .gpu { color: var(--log-gpu); }
+    .terminal-block-body .err { color: var(--log-error); }
+
+    /* Syntax highlighting tokens (JSON / config) */
+    .tok-key { color: var(--log-info); }
+    .tok-str { color: var(--log-warn); }
+    .tok-num { color: var(--accent-sky); }
+    .tok-com { color: var(--text-terminal-dim); }
+    .tok-fn { color: var(--log-gpu); }
+
+    .article-divider {
+      border: none;
+      height: 1px;
+      background: var(--border-subtle);
+      margin: 48px 0;
+    }
+
+    /* ===== Related case studies (index.html case-card style) ===== */
+    .related {
+      padding: 90px 0 20px;
+    }
+    .related-head {
+      margin-bottom: 40px;
+    }
+    .related-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      max-width: 1440px;
+      margin-left: auto;
+      margin-right: auto;
+      gap: 24px;
+    }
+    .case-card {
+      position: relative;
+      isolation: isolate;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 28px 28px 8px 28px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color 0.3s ease, transform 0.3s ease;
+    }
+    .case-card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-3px);
+    }
+    /* Whole-card click target: a stretched overlay covering the entire card.
+       The inner .case-link stays the focusable anchor for keyboard users; the
+       overlay is excluded from tab order. */
+    .case-card .case-card-link {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      border-radius: inherit;
+      cursor: pointer;
+      background: transparent;
+      display: block;
+      text-decoration: none;
+    }
+    .case-card .case-card-link:focus-visible {
+      outline: 2px solid var(--accent-blue-bright);
+      outline-offset: -6px;
+    }
+    .case-media {
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+      background: var(--bg-elevated);
+      position: relative;
+      border-radius: 27px 27px 0 0;
+    }
+    .case-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.35s ease;
+    }
+    .case-card:hover .case-media img { transform: scale(1.06); }
+    .case-pill {
+      position: absolute;
+      top: 14px;
+      left: 16px;
+      background: rgba(10, 12, 18, 0.75);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text-terminal);
+      font-size: var(--font-size-xs);
+      font-weight: 400;
+      padding: 4px 10px;
+      border-radius: 20px;
+      line-height: 1;
+      letter-spacing: 0.03em;
+    }
+    .case-body {
+      padding: 22px 20px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+    }
+    .case-title {
+      font-family: var(--font-head);
+      font-size: var(--font-size-base);
+      font-weight: 700;
+      line-height: 1.35;
+      color: var(--text-primary);
+    }
+    .case-sub {
+      font-size: var(--font-size-sm);
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-top: 2px;
+    }
+    .case-link {
+      display: block;
+      margin-top: auto;
+      padding-top: 14px;
+    }
+    .case-link .explore-more {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      color: var(--accent-blue-bright);
+      transition: color 0.25s ease, gap 0.25s ease;
+    }
+    [data-theme="light"] .case-link .explore-more { color: var(--accent-blue); }
+    .case-link .explore-more:hover { gap: 12px; }
+    .case-link svg {
+      width: 16px;
+      height: 16px;
+      stroke-width: 4px;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke: currentColor;
+      fill: none;
+      flex-shrink: 0;
+    }
+
+    /* ===== CTA banner (index.html cta-card parity) ===== */
+    .cta-section {
+      padding: 90px 0 100px;
+    }
+    .cta-section .container--narrow {
+      max-width: 920px;
+    }
+    .cta-card {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 0;
+      max-width: 860px;
+      min-height: 420px;
+      margin: 0 auto;
+      background: var(--bg-level-1);
+      border: 1px solid var(--border-card);
+      border-radius: 28px 28px 8px 28px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+    }
+    [data-theme="dark"] .cta-card {
+      box-shadow: 0 24px 60px rgba(0,0,0,0.45), 0 12px 30px rgba(0,0,0,0.30);
+    }
+    .cta-card-media {
+      background: var(--bg-elevated);
+      min-height: 420px;
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-card-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .cta-card-body {
+      padding: 36px 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      text-align: left;
+    }
+    .cta-icon {
+      width: 26px;
+      height: 26px;
+      margin-bottom: 18px;
+      opacity: 0.45;
+      color: var(--text-muted);
+    }
+    .cta-icon svg {
+      width: 100%;
+      height: 100%;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .cta-title {
+      font-family: var(--font-head);
+      font-size: var(--font-size-section);
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: 0.02em;
+      line-height: 1.15;
+      text-wrap: balance;
+    }
+    .cta-sub {
+      margin-top: 14px;
+      color: var(--text-muted);
+      font-size: var(--font-size-xl);
+      max-width: 460px;
+      line-height: 1.5;
+    }
+    .cta-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 28px;
+      flex-wrap: wrap;
+    }
+    .cta-actions .btn {
+      align-self: flex-start;
+    }
+    .cta-actions .btn-primary,
+    .cta-actions .btn-outline {
+      height: 46px !important;
+      min-height: 46px !important;
+      padding: 0 24px !important;
+    }
+
+    /* ===== Footer ===== */
+    .footer {
+      border-top: 1px solid var(--border-faint);
+      padding: 48px 0 56px;
+    }
+    .footer-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 28px;
+      flex-wrap: wrap;
+    }
+    .footer-copy {
+      font-size: var(--font-size-base);
+      color: var(--text-muted);
+    }
+    .footer-links {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      justify-content: center;
+      align-items: center;
+      gap: 1.5rem;
+      width: 100%;
+    }
+    .footer-links a {
+      font-size: var(--font-size-base);
+      color: var(--text-muted);
+      transition: color 0.15s ease;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+    .footer-links a:hover {
+      color: var(--text-primary);
+    }
+
+    /* Footer nav: allow wrapping only on small screens */
+    @media (max-width: 640px) {
+      .footer-links {
+        flex-wrap: wrap;
+        gap: 0.75rem 1.5rem;
+      }
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 1279px) {
+      .related-grid {
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        gap: 20px;
+        padding-bottom: 16px;
+      }
+      .related-grid .case-card {
+        flex: 0 0 320px;
+        min-width: 0;
+        scroll-snap-align: start;
+      }
+    }
+    @media (max-width: 620px) {
+      .container { padding: 0 20px; }
+      .header-inner { padding: 0 16px; }
+      .article-main { padding: 32px 0 16px; }
+      .article-subtitle { font-size: var(--font-size-lg); }
+      .article-title { font-size: clamp(1.5rem, 6vw, 2rem); }
+      .related { padding: 70px 0 12px; }
+      .author-meta { gap: 12px; }
+      .cta-card { grid-template-columns: 1fr; }
+      .cta-card-media { aspect-ratio: 16 / 9; min-height: 0; border-radius: 0 0 8px 28px; }
+      .cta-card-body { text-align: center; align-items: center; }
+      .cta-actions { justify-content: center; }
+      .cta-actions .btn,
+      .cta-actions .btn-outline {
+        width: 170px;
+        padding: 0 16px !important;
+        height: 46px !important;
+        min-height: 46px !important;
+        border-radius: 21px 21px 4px 21px !important;
+        font-size: var(--font-size-sm) !important;
+        flex: 0 0 auto;
+      }
+    }
+    @media (max-width: 428px) {
+      .cta-actions {
+        flex-direction: column !important;
+        width: 100%;
+      }
+      .cta-actions .btn,
+      .cta-actions .btn-primary,
+      .cta-actions .btn-outline {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 46px !important;
+        min-height: 46px !important;
+        padding: 0 16px !important;
+        border-radius: 21px 21px 4px 21px !important;
+        flex: 0 0 auto !important;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .case-card, .btn, .breadcrumb, .cta-card, .article-cover { transition: none !important; }
+      .case-media img { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- ════════ HEADER (public by default; ?mode=app switches to authenticated) ════════ -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="index.html" aria-label="GridNode home">
+        <img src="Logo.svg" alt="GridNode" class="brand-logo" data-logo-theme />
+      </a>
+      <div class="top-nav-right">
+        <a class="sign-in-link" href="login.html">Sign In</a>
+        <!-- Authenticated user zone (avatar + popover); shown when mode=app -->
+        <div class="auth-user-zone" id="auth-user-zone" style="display: none;">
+          <div class="header-profile">
+            <button type="button" class="user-avatar" id="header-avatar" aria-label="Open profile menu" aria-haspopup="true" aria-expanded="false">DU</button>
+            <div class="profile-popover" id="header-profile-popover" role="menu" aria-label="Profile menu">
+              <div class="profile-user-block">
+                <span class="profile-name">DemoTest User</span>
+                <span class="profile-user-email">demo@gridnode.io</span>
+              </div>
+              <a href="dashboard.html" class="popover-link" role="menuitem">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-6l-2-2H5a2 2 0 0 0-2 2z"></path><line x1="3" y1="12" x2="21" y2="12"></line></svg>
+                Dashboard
+              </a>
+              <a href="settings.html" class="popover-link" role="menuitem">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2 2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                Settings
+              </a>
+              <div class="dropdown-divider"></div>
+              <a href="login.html" class="popover-link text-danger" role="menuitem">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                Log Out
+              </a>
+            </div>
+          </div>
+        </div>
+        <button class="theme-toggle" id="themeToggle" type="button" title="Toggle theme" aria-label="Toggle theme" aria-pressed="false">
+          <svg class="icon-sun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+          <svg class="icon-moon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" class="article-main">
+    <div class="container">
+      <div class="article-column">
+
+        <!-- Back navigation -->
+        <a class="breadcrumb" href="index.html">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          Back to Home
+        </a>
+
+        <!-- Article header -->
+        <header class="article-head">
+          <span class="article-category"><span class="dot" aria-hidden="true"></span>Case Study · GPU Infrastructure</span>
+          <h1 class="article-title">How Nexus AI Streamlined Real-Time GPU Monitoring Across 500+ Nodes</h1>
+          <p class="article-subtitle">Cut idle GPU compute costs by 38% while reducing monitoring latency to under 12 milliseconds across a globally distributed training fleet.</p>
+
+          <div class="author-meta">
+            <div class="author-meta-left">
+              <div class="author-avatar" aria-hidden="true">AC</div>
+              <div class="author-info">
+                <span class="author-name">Alex Chen</span>
+                <span class="author-role">Infrastructure Engineer, GridNode</span>
+              </div>
+            </div>
+            <div class="author-meta-right">
+              <span class="article-date">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                March 12, 2026
+              </span>
+              <span class="article-reading-time">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                14 min read
+              </span>
+            </div>
+          </div>
+        </header>
+
+        <!-- Article cover -->
+        <figure class="article-cover">
+          <img src="Images/case-01.jfif" alt="Nexus AI GPU cluster monitoring dashboard" />
+          <figcaption class="cover-caption">Nexus AI fleet telemetry — 514 nodes across 11 regions streaming at sub-second cadence.</figcaption>
+        </figure>
+
+        <!-- Article body -->
+        <div class="article-body">
+
+          <p class="lead">When Nexus AI's training fleet crossed the 500-node mark, their homegrown monitoring stack stopped keeping up. GPU utilization telemetry arrived minutes late, idle compute went unnoticed, and engineers spent their mornings reconciling spreadsheets instead of tuning models. This is how a six-week migration to GridNode real-time telemetry changed all of it.</p>
+
+          <h2>The Challenge</h2>
+          <p>Nexus AI runs fine-tuning and inference pipelines across 514 GPU nodes in 11 regions. Their previous monitoring solution polled each node every 60 seconds over a legacy agent, producing three compounding problems:</p>
+          <ul>
+            <li><strong>Blind spots during spikes</strong> — utilization graphs missed short-lived saturation events that invalidated scheduling decisions.</li>
+            <li><strong>Idle capacity went unbilled-but-unused</strong> — reserved GPU hours with 0% utilization were only discovered in weekly cost reports.</li>
+            <li><strong>No single source of truth</strong> — metrics lived in four separate tools, each with its own retention policy and alert threshold.</li>
+          </ul>
+          <p>The team set two hard goals: end-to-end monitoring latency under 15 milliseconds, and a single, queryable telemetry plane for all 500+ nodes.</p>
+
+          <h2>The Architecture</h2>
+          <p>Migration target was a two-layer design on GridNode GPU instances: a <strong>collector tier</strong> running on each node pushing metrics over authenticated streams, and a <strong>hot-path tier</strong> of dedicated aggregators at the edge. The whole shape is described declaratively in the node config:</p>
+
+          <div class="terminal-block">
+            <div class="terminal-block-header">
+              <div class="terminal-dots"><span class="red"></span><span class="yellow"></span><span class="green"></span></div>
+              <span class="terminal-label">gpu-monitor.yaml</span>
+              <button class="copy-btn" type="button" data-copy="collector: true&#10;region: us-east-1&#10;cadence_ms: 1000&#10;stream: telemetry/gpu&#10;retention_days: 90">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="terminal-block-body">
+<span class="tok-key">collector</span>: <span class="tok-str">true</span>
+<span class="tok-key">region</span>: <span class="tok-str">us-east-1</span>
+<span class="tok-key">cadence_ms</span>: <span class="tok-num">1000</span>
+<span class="tok-key">stream</span>: <span class="tok-str">telemetry/gpu</span>
+<span class="tok-key">retention_days</span>: <span class="tok-num">90</span>
+<span class="tok-key">alerts</span>:
+  <span class="tok-key">idle_gpu_min</span>: <span class="tok-num">5</span>
+  <span class="tok-key">saturation_max</span>: <span class="tok-num">95</span>
+  <span class="tok-key">deadline_ms</span>: <span class="tok-num">15000</span>
+            </div>
+          </div>
+
+          <p>Rolling out took less than a week. The <code>gridnode</code> CLI applied the config to all 514 nodes in parallel, and each node validated its stream before cutting over — no maintenance window required.</p>
+
+          <h3>Swapping the polling agent</h3>
+          <p>The old agent was removed node-by-node. Because both stacks ran side by side during migration, the team could diff telemetry every minute and verify parity before retiring each instance:</p>
+
+          <div class="terminal-block">
+            <div class="terminal-block-header">
+              <div class="terminal-dots"><span class="red"></span><span class="yellow"></span><span class="green"></span></div>
+              <span class="terminal-label">gridnode — telemetry cutover</span>
+              <button class="copy-btn" type="button" data-copy="gridnode gpu status --region us-east-1 --watch&#10;node-a7f2  ..._98%   idle 0  jobs 4   latency 11ms&#10;node-c31b  ..._61%   idle 0  jobs 2   latency  9ms&#10;&#10003; 514/514 nodes streaming (parity verified)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+            <div class="terminal-block-body">
+<span class="prompt">$</span> <span class="cmd">gridnode gpu status</span> <span class="flag">--region</span> <span class="val">us-east-1</span> <span class="flag">--watch</span>
+<span class="out">node-a7f2</span>  <span class="gpu">GPU 98%</span>  idle 0  jobs 4  latency <span class="val">11ms</span>
+<span class="out">node-c31b</span>  <span class="gpu">GPU 61%</span>  idle 0  jobs 2  latency <span class="val">9ms</span>
+<span class="ok">&#10003; 514/514 nodes streaming (parity verified)</span>
+            </div>
+          </div>
+
+          <h2>Reclaiming Idle Compute</h2>
+          <p>With second-resolution metrics in one place, idle GPU hours became visible immediately. The fleet's average utilization sat at 47%, with 8% of nodes below the 5% idle threshold during peak hours. Nexus AI connected the telemetry stream to their existing scheduler and stopped allocating to idle-capable nodes first:</p>
+          <ul>
+            <li><strong>Idle nodes drain first</strong> — the scheduler now prefers nodes with zero pending jobs for preemption.</li>
+            <li><strong>Automatic downscaling</strong> — boxes idle for 30 minutes dequeue themselves from the pool and return reserved capacity.</li>
+            <li><strong>Capacity planning from real data</strong> — every reserved-hour decision now runs against 90 days of sub-second history.</li>
+          </ul>
+
+          <div class="callout">
+            <blockquote>
+              &ldquo;For the first time, finance and engineering are looking at the exact same GPU numbers. The 38% idle-cost reduction was effectively free — we just pointed the scheduler at data that had always existed.&rdquo;
+            </blockquote>
+            <span class="callout-attr">— Priya Raman, VP of Infrastructure, Nexus AI</span>
+          </div>
+
+          <h2>Results</h2>
+          <p>Three months after cutover, the numbers speak for themselves:</p>
+          <ul>
+            <li><strong>38% reduction</strong> in idle GPU compute cost.</li>
+            <li><strong>Under 12ms</strong> end-to-end telemetry latency — p99 of the fleet-wide stream.</li>
+            <li><strong>99.99% uptime</strong> across the monitoring plane during the entire quarter.</li>
+            <li><strong>4 hours saved per engineer per week</strong> previously spent reconciling metric sources.</li>
+          </ul>
+
+          <hr class="article-divider" />
+
+          <h2>Key Takeaways</h2>
+          <p>If you are running a fleet past a few hundred nodes, the fastest win is usually not a new scheduler — it is unified, low-latency telemetry your tooling can actually act on.</p>
+          <ul>
+            <li>Push over poll: sub-second streams beat 60-second pulls for both cost and accuracy.</li>
+            <li>Parity-migrate: run old and new collectors side by side until verification passes.</li>
+            <li>Make idle a first-class metric — what is not measured is not reclaimed.</li>
+          </ul>
+          <p>Ready to see it on your own clusters? Explore the <a href="docs.html">GridNode documentation</a> or deploy your first monitor with the <a href="pricing.html">free tier</a>.</p>
+
+        </div>
+      </div>
+    </div>
+  </main>
+<!-- ════════ RELATED CASE STUDIES ════════ -->
+  <section class="related" aria-labelledby="related-title">
+    <div class="container">
+      <div class="related-head">
+        <div class="section-sub-label">More</div>
+        <h2 class="section-title" id="related-title">Related Case Studies</h2>
+        <p class="section-desc">More real-world infrastructure automation and zero-downtime deployments built on GridNode.</p>
+      </div>
+      <div class="related-grid">
+
+        <article class="case-card">
+          <a class="case-card-link" href="article.html" aria-label="Read case study" tabindex="-1"></a>
+          <div class="case-media"><img src="Images/case-02.jfif" alt="DataPulse" loading="lazy" /><span class="case-pill">Automation</span></div>
+          <div class="case-body">
+            <h3 class="case-title">How DataPulse Achieved 99.99% Uptime with Automated Script Runners</h3>
+            <p class="case-sub">Reduced server overhead by 42% and maintained 99.99% system uptime during peak traffic.</p>
+            <a class="case-link" href="article.html"><span class="explore-more">Explore more<svg viewBox="0 0 34 24"><path d="M5 12h22"/><path d="M23 5l7 7-7 7"/></svg></span></a>
+          </div>
+        </article>
+
+        <article class="case-card">
+          <a class="case-card-link" href="article.html" aria-label="Read case study" tabindex="-1"></a>
+          <div class="case-media"><img src="Images/case-03.jfif" alt="CloudScale" loading="lazy" /><span class="case-pill">Security</span></div>
+          <div class="case-body">
+            <h3 class="case-title">How CloudScale Secured Multi-Region API Vaults</h3>
+            <p class="case-sub">Boosted GPU utilization by 47% and automated failover across all active clusters.</p>
+            <a class="case-link" href="article.html"><span class="explore-more">Explore more<svg viewBox="0 0 34 24"><path d="M5 12h22"/><path d="M23 5l7 7-7 7"/></svg></span></a>
+          </div>
+        </article>
+
+        <article class="case-card">
+          <a class="case-card-link" href="article.html" aria-label="Read case study" tabindex="-1"></a>
+          <div class="case-media"><img src="Images/case-04.jfif" alt="Vector Labs" loading="lazy" /><span class="case-pill">AI Training</span></div>
+          <div class="case-body">
+            <h3 class="case-title">How Vector Labs Cut AI Training Costs by 40% with Auto-Scaling</h3>
+            <p class="case-sub">Slashed AI training spend by 38% and accelerated model iteration cycles by 3x.</p>
+            <a class="case-link" href="article.html"><span class="explore-more">Explore more<svg viewBox="0 0 34 24"><path d="M5 12h22"/><path d="M23 5l7 7-7 7"/></svg></span></a>
+          </div>
+        </article>
+
+        <article class="case-card">
+          <a class="case-card-link" href="article.html" aria-label="Read case study" tabindex="-1"></a>
+          <div class="case-media"><img src="Images/case-05.jfif" alt="EdgeFlow" loading="lazy" /><span class="case-pill">Global API</span></div>
+          <div class="case-body">
+            <h3 class="case-title">How EdgeFlow Delivered Zero-Downtime Deployments for Global APIs</h3>
+            <p class="case-sub">Maintained 99.99% uptime across 40+ regions with fully automated failover.</p>
+            <a class="case-link" href="article.html"><span class="explore-more">Explore more<svg viewBox="0 0 34 24"><path d="M5 12h22"/><path d="M23 5l7 7-7 7"/></svg></span></a>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════ CTA BANNER ════════ -->
+  <section class="cta-section">
+    <div class="container container--narrow">
+      <div class="cta-card">
+        <div class="cta-card-media">
+          <img src="Images/CTA.jpg" alt="GridNode infrastructure preview" loading="lazy" decoding="async" onerror="this.src='https://picsum.photos/seed/gridnode/640/480'" />
+        </div>
+        <div class="cta-card-body">
+          <div class="cta-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </div>
+          <h2 class="cta-title">Ready to deploy your first node?</h2>
+          <div class="cta-actions">
+            <a class="btn btn-primary btn-lg" href="login.html">Get Started</a>
+            <a class="btn btn-outline btn-lg" href="docs.html">Read the Docs</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container container--narrow">
+      <div class="footer-inner">
+        <nav class="footer-links" aria-label="Footer">
+          <a href="docs.html">Docs</a>
+          <a href="legal/terms.html">Terms</a>
+          <a href="legal/privacy.html">Privacy</a>
+          <a href="public-support.html">Support</a>
+          <a href="pricing.html">Pricing</a>
+          <a href="https://discord.com" target="_blank" rel="noopener">Discord</a>
+          <a href="https://twitter.com" target="_blank" rel="noopener">Twitter</a>
+          <a href="index.html#block-04">Case Studies</a>
+          <a href="index.html" id="footerHomeLink">Home</a>
+        </nav>
+      </div>
+    </div>
+  </footer>
+
+  <script src="theme-transition.js" defer></script>
+  <script src="auth-links.js" defer></script>
+  <script>
+    // Standard GridNode theme toggle (unit: data-theme="dark" | "light")
+    (function () {
+      var KEY = 'gridnode-theme';
+      var btn = document.getElementById('themeToggle');
+      var html = document.documentElement;
+
+      function apply(theme) {
+        html.setAttribute('data-theme', theme);
+        document.querySelector('meta[name="theme-color"]') && document.querySelector('meta[name="theme-color"]').setAttribute('content', theme === 'dark' ? '#04040a' : '#fafbfc');
+        btn && btn.setAttribute('aria-pressed', theme === 'dark' ? 'false' : 'true');
+        try { localStorage.setItem(KEY, theme); } catch (e) {}
+      }
+
+      var saved = null;
+      try { saved = localStorage.getItem(KEY); } catch (e) {}
+      if (saved === 'light' || saved === 'dark') {
+        apply(saved);
+      }
+
+      btn && btn.addEventListener('click', function () {
+        var cur = html.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+        var next = cur === 'dark' ? 'light' : 'dark';
+        window.themeTransition(btn, function () { apply(next); });
+      });
+    })();
+
+    // Header Auth States (default: PUBLIC)
+    // ?mode=app (or auth=true|1) -> authenticated header (DU avatar + popover),
+    // otherwise the exact public header (Sign In). Mirrors terms.html.
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var isAuthed = params.get('mode') === 'app' || params.get('auth') === 'true' || params.get('auth') === '1';
+
+      var brand = document.querySelector('.site-header .brand');
+      var signIn = document.querySelector('.site-header .sign-in-link');
+      var authZone = document.getElementById('auth-user-zone');
+      var avatar = document.getElementById('header-avatar');
+      var popover = document.getElementById('header-profile-popover');
+
+      document.body.classList.toggle('auth-mode', isAuthed);
+
+      if (isAuthed) {
+        if (signIn) signIn.style.display = 'none';
+        if (authZone) authZone.style.display = 'flex';
+        if (brand) brand.setAttribute('href', 'dashboard.html');
+
+        // Preserve ?mode=app on internal links to dual-state pages only.
+        // Support resolves to support.html directly (authenticated by
+        // nature — public-support.html covers the guest state).
+        var keepAuthLink = function (url) {
+          if (!url || url.indexOf('.html') === -1) return url;
+          var base = url.replace(/public-support\.html$/, 'support.html');
+          if (/support\.html$/.test(base)) return base;
+          var filename = base.split(/[?#]/)[0].split('/').pop();
+          var dual = /^(?:article|terms|privacy|pricing|docs)\.html$/.test(filename);
+          if (!dual) return base;
+          if (base.indexOf('?') !== -1) return base;
+          return base + '?mode=app';
+        };
+        document.querySelectorAll('a[href]').forEach(function (a) {
+          var u = a.getAttribute('href');
+          if (u) a.setAttribute('href', keepAuthLink(u));
+        });
+      } else {
+        if (signIn) signIn.style.display = '';
+        if (authZone) authZone.style.display = 'none';
+        if (brand) brand.setAttribute('href', 'index.html');
+      }
+
+      if (avatar && popover) {
+        avatar.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var open = popover.classList.toggle('open');
+          avatar.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+        document.addEventListener('click', function (e) {
+          if (!popover.classList.contains('open')) return;
+          if (avatar.contains(e.target) || popover.contains(e.target)) return;
+          popover.classList.remove('open');
+          avatar.setAttribute('aria-expanded', 'false');
+        });
+        document.addEventListener('keydown', function (e) {
+          if (e.key !== 'Escape') return;
+          if (!popover.classList.contains('open')) return;
+          popover.classList.remove('open');
+          avatar.setAttribute('aria-expanded', 'false');
+          avatar.focus();
+        });
+      }
+    })();
+
+    // Preserve ?mode=app on footer Home link
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      if (params.get('mode') === 'app') {
+        var homeLink = document.getElementById('footerHomeLink');
+        if (homeLink) homeLink.setAttribute('href', 'index.html?mode=app');
+      }
+    })();
+
+    // Terminal copy buttons
+    (function () {
+      document.querySelectorAll('.copy-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var text = btn.getAttribute('data-copy') || '';
+          var done = function () {
+            var prev = btn.textContent;
+            btn.innerHTML = prev.replace(/Copy/g, 'Copied');
+            setTimeout(function () { btn.innerHTML = prev; }, 1600);
+          };
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(done, done);
+          } else {
+            done();
+          }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

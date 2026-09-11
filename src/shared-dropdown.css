@@ -1,0 +1,285 @@
+/* Shared dropdown and server-selector styles for all pages
+   This file centralizes the server-selector, dropdown, chevron and micro-alignment rules
+   so they render identically across System Logs, Dashboard, Metrics and Instances pages. */
+
+/* Standardized chevron and icon micro-alignment */
+.chevron { font-size: var(--font-size-base); color: var(--text-muted); line-height: 1; transform: translateY(1px); }
+.icon-shift, .action-btn .icon, .search-icon { display: inline-block; transform: translateY(-2px); }
+.nav-item .nav-icon, .support-link .support-icon { display: inline-flex; align-items: center; justify-content: center; position: relative; top: 0; transform: none; }
+
+/* Search icon: vertically center inside input (restore default centering) */
+.search-wrap { position: relative; }
+.search-wrap .search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-block;
+  color: var(--text-dim);
+  font-size: var(--font-size-sm);
+  pointer-events: none;
+  line-height: 1;
+}
+.search-wrap .search-input,
+.search-wrap .input-search { padding-left: 40px; }
+
+/* Console buttons use slightly tighter icon/text spacing */
+.console-action-btn, .action-btn { display: inline-flex; align-items: center; justify-content: center; text-align: center; gap: 6px; line-height: 1; }
+.console-action-btn { padding: 5px 10px; }
+.console-action-btn .btn-icon { display: block; transform: translateY(-1px); margin: 0; }
+
+/* Server selector (compact single-line; x-height micro-adjust) */
+.server-selector {
+  position: relative; display: inline-flex; align-items: center; gap: 10px;
+  height: 40px; box-sizing: border-box; justify-content: space-between;
+  padding: 0 14px; background: var(--bg-card);
+  border-radius: 19px 19px 4px 19px; cursor: pointer;
+  font-size: var(--font-size-sm); font-weight: 500; color: var(--text-secondary); white-space: nowrap;
+  transform: translateY(-1px); /* small lift for x-height matching */
+  z-index: 50; /* establish stacking context above downstream toolbar elements */
+}
+.server-selector:focus-visible { box-shadow: 0 0 0 3px rgba(0, 114, 255, 0.15); outline: none; }
+/* .server-dot is unified in theme.css (.status-dot base); small contextual nudge inside dropdown rows */
+.server-option .server-dot { transform: translateY(1px); box-shadow: 0 0 4px rgba(0, 180, 167, 0.40); }
+.server-selector .server-name { font-weight: 600; color: var(--text-primary); }
+.server-selector .server-conn { color: var(--text-muted); font-size: var(--font-size-sm); }
+.server-selector .chevron { font-size: var(--font-size-base); color: var(--text-muted); line-height: 1; transform: translateY(1px); margin-left: auto; }
+
+/* Server dropdown (dropdown panel and options) — unified dropdown anatomy:
+   container clips with overflow + 6px inner padding, list scrolls inside */
+.server-dropdown {
+  position: absolute; left: 0; right: 0; width: 100%; min-width: 100%;
+  top: calc(100% + 8px);
+  box-sizing: border-box;
+  background: var(--bg-card);
+  border-radius: 12px; padding: 6px; padding-right: 12px;
+  display: none; flex-direction: column; gap: 2px;
+  overflow-y: auto; max-height: 260px;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+  z-index: 1000; box-shadow: inset 0 0 0 0.5px var(--border-color), 0 6px 18px rgba(0, 0, 0, 0.38);
+}
+.server-dropdown.show { display: flex; }
+.server-option {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  box-sizing: border-box; flex-shrink: 0; min-height: 38px;
+  padding: 8px 12px; border-radius: 6px; margin-bottom: 2px;
+  cursor: pointer; font-size: var(--font-size-sm); color: var(--text-secondary); text-decoration: none; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;
+}
+.server-option[data-nav-link] { justify-content: flex-start; gap: 8px; }
+.server-option .title-row { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.server-option .title-row > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+/* .server-dot base from theme.css; small contextual nudge inside dropdown rows */
+.server-option .server-dot { transform: translateY(1px); box-shadow: 0 0 4px rgba(0, 180, 167, 0.40); }
+.server-option .server-name { font-weight: 600; color: var(--text-primary); display: block; font-size: var(--font-size-sm); }
+.server-option .server-conn { color: var(--text-muted); font-size: var(--font-size-xs); }
+
+/* Custom service selector (shared) */
+.service-selector {
+  position: relative; display: inline-flex; align-items: center; gap: 8px;
+  height: 40px; box-sizing: border-box; justify-content: space-between;
+  padding: 0 12px; background: var(--bg-card);
+  border-radius: 15px 15px 3px 15px; cursor: pointer;
+  font-size: var(--font-size-sm); color: var(--text-secondary); white-space: nowrap;
+}
+.service-selector:focus-visible { box-shadow: 0 0 0 3px rgba(0, 114, 255, 0.15); outline: none; }
+.service-selector .service-name { font-weight: 600; color: var(--text-primary); }
+.service-selector .chevron { color: var(--text-muted); transform: translateY(1px); }
+
+.service-menu {
+  position: absolute; left: 0; right: 0; width: 100%; min-width: 100%;
+  top: calc(100% + 8px);
+  box-sizing: border-box;
+  background: var(--bg-card);
+  border-radius: 12px; padding: 6px; padding-right: 12px;
+  display: none; flex-direction: column; gap: 2px;
+  overflow-y: auto; max-height: 260px;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+  z-index: 999; box-shadow: inset 0 0 0 0.5px var(--border-color), 0 6px 18px rgba(0, 0, 0, 0.38);
+}
+.service-menu.show { display: flex; }
+.service-option {
+  box-sizing: border-box; flex-shrink: 0; min-height: 38px;
+  padding: 8px 12px; border-radius: 6px; margin-bottom: 2px;
+  cursor: pointer; font-size: var(--font-size-sm); color: var(--text-secondary); display: flex; align-items: center; justify-content: space-between; gap: 8px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;
+}
+.service-tag { color: var(--accent-sky-pale); font-weight: 700; font-family: var(--font-mono); background: rgba(155, 227, 255, 0.04); padding: 3px 8px; border-radius: 8px; font-size: var(--font-size-xs); }
+
+/* Service name tag inside each log line */
+.log-service { color: var(--accent-sky-pale); font-weight: 600; font-family: var(--font-mono); flex-shrink: 0; margin-left: 6px; }
+
+/* Custom select component (replaces native <select>) */
+.custom-select {
+  position: relative;
+  width: 100%;
+  min-width: 220px;
+}
+.custom-select-trigger {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  height: 40px;
+  box-sizing: border-box;
+  padding: 0 12px;
+  background: var(--bg-dropdown-inset);
+  border: 0;
+  border-radius: 19px 19px 4px 19px;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-align: left;
+  white-space: nowrap;
+}
+.custom-select-trigger:focus-visible {
+  box-shadow: 0 0 0 3px rgba(0, 114, 255, 0.15);
+  outline: none;
+}
+.custom-select-trigger .cs-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.custom-select-trigger .chevron {
+  flex-shrink: 0;
+  margin-left: 8px;
+  transition: transform 0.2s;
+}
+.custom-select.open .chevron {
+  transform: rotate(180deg) translateY(-1px);
+}
+.custom-select-menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  width: 100%;
+  min-width: 100%;
+  top: calc(100% + 8px);
+  box-sizing: border-box;
+  background: var(--bg-dropdown-inset);
+  border-radius: 12px;
+  padding: 6px;
+  padding-right: 12px;
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 9999 !important;
+  box-shadow: inset 0 0 0 0.5px var(--border-color), 0 6px 18px rgba(0, 0, 0, 0.38);
+  /* Scroll lives INSIDE the rounded container, kept off the walls by the 6px padding */
+  overflow-y: auto;
+  max-height: 260px;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+}
+.custom-select.open .custom-select-menu {
+  display: flex;
+}
+.custom-select-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  min-height: 38px;
+  padding: 8px 12px;
+  margin-bottom: 2px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  line-height: 1.4;
+}
+.custom-select-option.selected {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+.custom-select-option.selected::after {
+  content: "\2713";
+  color: var(--accent-teal);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+/* Group header inside custom-select menus (labels between option groups) */
+.custom-select-group {
+  display: block;
+  padding: 4px 12px;
+  margin-top: 8px;
+  flex-shrink: 0;
+  font-family: var(--font-body);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  pointer-events: none;
+  user-select: none;
+}
+.custom-select-group:first-child { margin-top: 0; }
+
+.custom-select-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+  border: 0;
+  padding: 0;
+}
+
+/* ===== THIN GRADIENT RING for dropdown TRIGGERS only (dark mode) =====
+   Mirrors the site's input field ring (.input-wrap::after / .search-wrap::after):
+   masked 1px gradient painted only on the border ring, blended with
+   mix-blend-mode: overlay. Gradient flipped 180deg vs the input ring
+   (bottom-to-top instead of top-to-bottom). Scoped like the input ring:
+   light theme keeps a plain thin border. The dropdown PANELS carry their own
+   real border + background on the outer container (see .*-menu).
+   Intensity: server/service selectors keep the stronger 0.9; the
+   custom-select trigger sits on the lighter --bg-dropdown-inset, so 0.6
+   keeps its white top edge to a true 1px (no double-width bloom). */
+:root:not([data-theme="light"]) .server-selector::before,
+:root:not([data-theme="light"]) .service-selector::before,
+:root:not([data-theme="light"]) .custom-select-trigger::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.6) 0%, rgba(255, 255, 255, 0.6) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: 1;
+}
+:root:not([data-theme="light"]) .server-selector::before,
+:root:not([data-theme="light"]) .service-selector::before {
+  opacity: 0.9;
+}
+:root:not([data-theme="light"]) .custom-select-trigger::before {
+  opacity: 0.6;
+}
+
+/* Light theme: no gradient ring here, so give the trigger controls a plain
+   thin border instead of an edgeless control (dropdown panels already carry
+   their own border). */
+[data-theme="light"] .server-selector,
+[data-theme="light"] .service-selector,
+[data-theme="light"] .custom-select-trigger {
+  border: 1px solid var(--border-color);
+}

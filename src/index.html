@@ -1,0 +1,1820 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GridNode — Reliable Cloud Infrastructure</title>
+  <meta name="description" content="GridNode — reliable cloud infrastructure for modern developers. NVMe storage, global CDN, DDoS protection and more." />
+  <meta name="theme-color" content="#060814" />
+  <meta name="color-scheme" content="light dark" />
+  <link rel="canonical" href="https://gridnode.example.com/" />
+  <link rel="icon" href="FAV.svg" type="image/svg+xml" />
+  <!-- Open Graph / Twitter -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="GridNode — Reliable Cloud Infrastructure" />
+  <meta property="og:description" content="Deploy and scale production workloads on globally distributed nodes." />
+  <meta property="og:image" content="Images/datacentre-bg2.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://cdn.simpleicons.org" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:opsz@14..32&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="theme.css" />
+<style>
+    :root {
+    }
+
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+html {
+      scroll-behavior: smooth;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+    }
+
+    body {
+      background: var(--bg-body);
+      color: var(--text-secondary);
+      font-family: var(--font-body);
+      font-size: var(--font-size-base);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.075;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+      z-index: -1;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; }
+
+    a:focus-visible,
+    button:focus-visible {
+      outline: 2px solid var(--accent-blue-bright);
+      outline-offset: 2px;
+    }
+
+    .skip-link {
+      position: absolute;
+      top: -100%;
+      left: 16px;
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border-card);
+      z-index: 100;
+    }
+    .skip-link:focus { top: 12px; }
+
+    /* ===== Shared layout helpers ===== */
+    .container {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    .section {
+      padding: 110px 0;
+    }
+
+.section-sub-label {
+      font-family: var(--font-head);
+      font-size: var(--font-size-sm);
+      font-weight: 500;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      opacity: 0.55;
+      margin-bottom: 14px;
+    }
+
+    .section-title {
+      font-family: var(--font-head);
+      font-size: var(--font-size-section);
+      font-weight: 700;
+      line-height: 1.15;
+      color: var(--text-primary);
+      letter-spacing: 0.02em;
+    }
+
+    .section-desc {
+      font-size: var(--font-size-xl);
+      line-height: 1.5;
+      color: var(--text-muted);
+      max-width: 620px;
+      margin-top: 18px;
+    }
+
+    /* ===== Buttons ===== */
+    /* .btn supplies local size; appearance (bg/border/font) comes from theme.css */
+    .btn {
+      gap: 8px;
+      height: 46px;
+      padding: 0 32px;
+      text-decoration: none;
+    }
+
+    /* .btn-primary appearance (gradient/color/border/font) unified in theme.css */
+
+    /* .btn-outline appearance (bg/border/font) is unified in theme.css.
+       Local size overrides live in .cta-actions .btn-outline etc. */
+
+.btn-lg {
+      min-height: 46px !important;
+      height: auto !important;
+      padding: 16px 40px !important;
+      font-size: var(--font-size-base) !important;
+    }
+
+    /* Hero buttons must stay 46px — override global 38px primary from theme.css */
+    .hero .btn {
+      height: 46px !important;
+      min-height: 46px !important;
+      max-height: 46px !important;
+      padding: 0 32px !important;
+      font-size: var(--font-size-base) !important;
+      min-width: 172px !important;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .hero .btn.btn-lg {
+      padding: 0 32px !important;
+    }
+
+    /* ===== Hero top row (integrated header) ===== */
+    .hero-top {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 28px 80px 28px 120px;
+    }
+
+.brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-head);
+      font-weight: 700;
+      font-size: var(--font-size-base);
+      color: var(--text-primary);
+      letter-spacing: 0.02em;
+    }
+
+    .brand-logo {
+      height: 42px;
+      width: auto;
+      display: block;
+    }
+
+    .brand-wordmark {
+      fill: var(--text-inverse);
+    }
+    /* Hero brand stays white on photo */
+    .hero .brand-wordmark { fill: var(--text-on-accent); }
+    .hero .brand { color: var(--text-on-accent); }
+
+    .top-nav-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* .sign-in-link appearance (bg/border/color/font) unified in theme.css as secondary */
+    .sign-in-link {
+      height: 38px;
+      padding: 0 20px;
+    }
+
+    .theme-toggle {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      /* appearance (bg/border) unified with secondary button in theme.css */
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-on-accent);
+      transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+    }
+
+    .theme-toggle svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+    }
+    .theme-toggle .icon-sun { display: block; }
+    .theme-toggle .icon-moon { display: none; }
+    [data-theme="light"] .theme-toggle .icon-sun { display: none; }
+    [data-theme="light"] .theme-toggle .icon-moon { display: block; }
+
+    .theme-toggle:hover {
+      border-color: rgba(255,255,255,0.28);
+      background: rgba(255,255,255,0.035);
+    }
+
+    /* ===== Section 0: Hero ===== */
+    .hero {
+      position: relative;
+      min-height: 660px;
+      display: flex;
+      align-items: center;
+      margin: 0;
+      padding: 110px 0 80px;
+      overflow: visible;
+      z-index: 2;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.32), 0 10px 30px rgba(0,0,0,0.18);
+    }
+
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(10, 12, 18, 0.82) 0%, rgba(10, 12, 18, 0.92) 100%), url('Images/datacentre-bg2.png');
+      background-size: cover;
+      background-position: center;
+    }
+
+    [data-theme="light"] .hero-bg {
+      background: linear-gradient(180deg, rgba(250,251,252,0.14) 0%, rgba(250,251,252,0.18) 100%), url('Images/datacentre-bg2-light.png');
+      background-size: cover;
+      background-position: center;
+    }
+    [data-theme="light"] .hero {
+      box-shadow: 0 20px 50px rgba(0,0,0,0.12), 0 10px 30px rgba(0,0,0,0.08);
+    }
+
+    .hero .container {
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 980px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .hero-title {
+      font-family: var(--font-head);
+      font-size: var(--font-size-display);
+      font-weight: 700;
+      line-height: 1.1;
+      color: var(--text-on-accent);
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      text-shadow: 0 2px 24px rgba(0, 0, 0, 0.45);
+    }
+
+    .hero-sub {
+      margin: 22px auto 0;
+      font-size: var(--font-size-xl);
+      line-height: 1.5;
+      color: var(--text-secondary);
+      max-width: 680px;
+    }
+
+    [data-theme="light"] .hero-title {
+      color: var(--text-primary);
+      text-shadow: 0 1px 12px rgba(255,255,255,0.6);
+    }
+    [data-theme="light"] .hero-sub {
+      color: var(--text-secondary);
+    }
+    [data-theme="light"] .hero .brand {
+      color: var(--text-primary);
+    }
+    [data-theme="light"] .hero .brand-wordmark {
+      fill: var(--text-primary);
+    }
+    [data-theme="light"] .theme-toggle {
+      background: rgba(15,23,42,0.03);
+      border-color: rgba(154,164,178,0.80);
+      color: var(--text-primary);
+    }
+    [data-theme="light"] .theme-toggle:hover {
+      background: rgba(15,23,42,0.05);
+      border-color: rgba(107,114,128,0.80);
+    }
+
+    .hero-cta {
+      margin-top: 40px;
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    /* ===== Section 1: Showcase — узкий, картинка под текстом, без ховера ===== */
+    .showcase {
+      display: grid;
+      grid-template-columns: 1fr 1.35fr;
+      gap: 64px;
+      align-items: center;
+    }
+    .container--narrow {
+      max-width: 738px;
+    }
+    .section--narrow {
+      padding: 90px 0;
+    }
+    #documentation.section--narrow {
+      padding-top: 130px;
+    }
+    .showcase--stacked {
+      display: flex;
+      flex-direction: column;
+      gap: 36px;
+      max-width: 674px;
+      margin: 0 auto;
+      text-align: left;
+    }
+    .showcase--stacked .showcase-copy {
+      width: 100%;
+    }
+    .showcase--stacked .showcase-frame {
+      width: 100%;
+    }
+
+    .showcase-copy .link-arrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 26px;
+      font-family: var(--font-head);
+      font-weight: 600;
+      font-size: var(--font-size-base);
+      color: var(--accent-blue-bright);
+      transition: color 0.15s ease, gap 0.15s ease;
+    }
+
+    .showcase-copy .link-arrow:hover {
+      color: var(--text-primary);
+      gap: 12px;
+    }
+
+    .block-01 .arrow-icon,
+    .block-01 a svg,
+    .showcase-copy .link-arrow svg {
+      stroke-width: 4px !important;
+      stroke-linecap: round !important;
+      stroke-linejoin: round !important;
+      width: 16px !important;
+      height: 16px !important;
+    }
+
+    /* Светлая тема — более читаемый синий */
+    [data-theme="light"] .showcase-copy .link-arrow {
+      color: var(--accent-blue);
+    }
+    [data-theme="light"] .showcase-copy .link-arrow:hover {
+      color: var(--accent-blue);
+    }
+
+    .showcase-frame {
+      position: relative;
+      border-radius: 28px 28px 8px 28px;
+      border: 1px solid var(--border-strong);
+      overflow: hidden;
+      display: block;
+      background: var(--bg-surface);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+      height: 380px;
+    }
+    [data-theme="dark"] .showcase-frame {
+      box-shadow: 0 24px 60px rgba(0,0,0,0.45), 0 12px 30px rgba(0,0,0,0.30);
+    }
+
+    .showcase-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+      display: block;
+      border-radius: 0;
+    }
+    /* Light/dark image toggle */
+    .showcase-frame .img-light { display: none; }
+    [data-theme="light"] .showcase-frame .img-dark { display: none; }
+    [data-theme="light"] .showcase-frame .img-light { display: block; }
+
+    .logo-marquee {
+      background: transparent;
+      width: 100%;
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+      padding: 18px 0;
+      /* провокация скролла: нижняя половина уходит под следующий блок */
+      margin-top: 0;
+      transform: translateY(42px);
+      margin-bottom: 0;
+      border: none;
+      /* fade edges — на контейнере, не на треке */
+      mask-image: linear-gradient(90deg, transparent 0%, #000 5%, #000 95%, transparent 100%);
+      -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 5%, #000 95%, transparent 100%);
+    }
+
+    .logo-marquee .marquee-track {
+      display: flex;
+      width: max-content;
+      gap: 72px;
+      align-items: center;
+      animation: marquee 39s linear infinite;
+      will-change: transform;
+    }
+
+    .logo-marquee img {
+      height: 38px;
+      width: auto;
+      /* один цвет для всех логотипов — заливаем одинаково */
+      filter: brightness(0) invert(0.52);
+      opacity: 0.6;
+      transition: filter 0.3s ease, opacity 0.3s ease;
+    }
+
+    .logo-marquee img:hover {
+      filter: brightness(0) invert(0.72);
+      opacity: 0.85;
+    }
+
+    /* Светлая тема — тот же приём, только темнее */
+    [data-theme="light"] .logo-marquee img {
+      filter: brightness(0) invert(0.45);
+      opacity: 0.6;
+    }
+    [data-theme="light"] .logo-marquee img:hover {
+      filter: brightness(0) invert(0.28);
+      opacity: 0.85;
+    }
+
+    @keyframes marquee {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(calc(-50% - 36px)); }
+    }
+
+    /* ===== Section 2: Bento features ===== */
+    .features-head {
+      text-align: center;
+      margin-bottom: 56px;
+    }
+
+    .features-head .section-desc {
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* Левое выравнивание для узкого варианта как на примере */
+    .section--narrow .features-head {
+      text-align: left;
+      margin-bottom: 36px;
+    }
+    .section--narrow .features-head .section-desc {
+      margin-left: 0;
+      margin-right: 0;
+      text-align: left;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .feature-card {
+      background: var(--bg-level-1);
+      border: 1px solid var(--border-card);
+      border-radius: 16px 16px 4px 16px;
+      padding: 20px 18px;
+      transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+      min-height: 118px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+
+    .feature-card:hover {
+      background: var(--bg-surface-hover);
+      border-color: var(--border-strong);
+      transform: translateY(-2px);
+    }
+
+    .feature-icon {
+      width: auto;
+      height: auto;
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      margin-bottom: 12px;
+      opacity: 0.9;
+    }
+
+    .feature-icon svg {
+      width: 20px;
+      height: 20px;
+      stroke: var(--text-muted);
+      stroke-width: 1.6;
+    }
+
+    .feature-title {
+      font-family: var(--font-head);
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+      line-height: 1.2;
+      text-align: left;
+    }
+
+    .feature-desc {
+      font-size: var(--font-size-xs);
+      color: var(--text-muted);
+      line-height: 1.32;
+      text-align: left;
+    }
+
+    /* Узкий вариант для Bento — минималистично, как на скриншоте, ширина > высоты */
+    .section--narrow .features-grid {
+      gap: 14px;
+    }
+    .section--narrow .feature-card {
+      padding: 16px 14px;
+      border-radius: 12px 12px 3px 12px;
+      min-height: 108px;
+      gap: 0;
+      text-align: left;
+      align-items: flex-start;
+    }
+    .section--narrow .feature-icon {
+      width: auto;
+      height: auto;
+      margin-bottom: 12px;
+      background: transparent;
+      border: none;
+    }
+    .section--narrow .feature-icon svg {
+      width: 18px;
+      height: 18px;
+      stroke: var(--text-muted);
+    }
+    .section--narrow .feature-title {
+      margin-bottom: 8px;
+    }
+
+    /* ===== Section 3: CLI ===== */
+    .cli-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
+    }
+
+    .cli-copy .section-desc {
+      max-width: 460px;
+    }
+
+    .cli-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 28px;
+    }
+
+    .cli-badge {
+      font-family: var(--font-head);
+      font-size: var(--font-size-sm);
+      font-weight: 500;
+color: var(--text-secondary);
+      border: 1px solid var(--border-card);
+      background: var(--bg-level-2);
+      border-radius: 999px;
+      padding: 7px 14px;
+    }
+
+    .terminal {
+      background: var(--bg-terminal);
+      border: 1px solid var(--border-strong);
+      border-radius: 12px 12px 3px 12px;
+      overflow: hidden;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.15);
+    }
+    [data-theme="dark"] .terminal {
+      box-shadow: 0 30px 80px rgba(0,0,0,0.45), 0 14px 40px rgba(0,0,0,0.35);
+    }
+
+    .terminal-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: var(--bg-terminal-header);
+      border-bottom: 1px solid var(--border-faint);
+    }
+    [data-theme="light"] .terminal-header {
+      background: var(--bg-terminal-header);
+    }
+
+    .term-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+    }
+
+    .term-dot.red { background: var(--term-red); }
+    .term-dot.yellow { background: var(--term-yellow); }
+    .term-dot.green { background: var(--term-green); }
+
+    .terminal-title {
+      margin-left: 10px;
+      font-size: var(--font-size-sm);
+      color: var(--text-terminal-dim);
+      font-family: var(--font-mono);
+    }
+
+    .terminal-body {
+      padding: 22px 20px;
+      font-family: var(--font-mono);
+      font-size: var(--font-size-sm);
+      line-height: 1.85;
+      color: var(--text-terminal);
+    }
+
+    .terminal-body .prompt { color: var(--log-success); }
+    .terminal-body .cmd { color: var(--text-terminal); }
+    .terminal-body .flag { color: var(--log-info); }
+    .terminal-body .value { color: var(--log-warn); }
+    .terminal-body .out { color: var(--text-muted); }
+    .terminal-body .ok { color: var(--log-success); }
+    .terminal-body .cursor {
+      display: inline-block;
+      width: 8px;
+      height: 15px;
+      background: var(--log-success);
+      vertical-align: text-bottom;
+      animation: blink 1.1s steps(2, start) infinite;
+    }
+
+    /* Log semantics: light-theme overrides live in --log-* tokens */
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    /* ===== Section 4: CTA — как на примере, иконка над заголовком, 2 кнопки ===== */
+    .cta-section {
+      padding: 90px 0 100px;
+    }
+    .cta-section .container--narrow {
+      max-width: 920px;
+    }
+    .cta-card {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 0;
+      max-width: 860px;
+      min-height: 420px;
+      margin: 0 auto;
+      background: var(--bg-level-1);
+      border: 1px solid var(--border-card);
+      border-radius: 28px 28px 8px 28px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+    }
+    .cta-card-media {
+      background: var(--bg-elevated);
+      min-height: 420px;
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-card-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .cta-card-body {
+      padding: 36px 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      text-align: left;
+    }
+    .cta-icon {
+      width: 26px;
+      height: 26px;
+      margin-bottom: 18px;
+      opacity: 0.45;
+      color: var(--text-muted);
+    }
+    .cta-icon svg {
+      width: 100%;
+      height: 100%;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .cta-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 28px;
+      flex-wrap: wrap;
+    }
+    .cta-title {
+      font-family: var(--font-head);
+      font-size: var(--font-size-section);
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: 0.02em;
+      line-height: 1.15;
+      text-wrap: balance;
+    }
+
+    .cta-sub {
+      margin-top: 14px;
+      color: var(--text-muted);
+      font-size: var(--font-size-xl);
+      max-width: 460px;
+      line-height: 1.5;
+    }
+
+    .cta-card-body .btn {
+      align-self: flex-start;
+    }
+    .cta-actions {
+      margin-top: 28px;
+    }
+
+    /* ===== Block 04: Case Studies — как на скриншоте ===== */
+    .block-04 .block-04-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+    .block-04 .block-04-titles { flex: 1; min-width: 0; }
+    .block-04 .carousel-controls {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-shrink: 0;
+      padding-top: 8px;
+    }
+    .block-04 .carousel-btn {
+      /* appearance unified in theme.css as secondary button (.btn-secondary) */
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      font-family: var(--font-head);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--text-primary);
+      background: rgba(15, 23, 42, 0.03);
+      border: 1px solid rgba(154, 164, 178, 0.80);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    }
+    .block-04 .carousel-btn:hover {
+      color: var(--text-primary);
+      background: rgba(15, 23, 42, 0.05);
+      border-color: rgba(107, 114, 128, 0.80);
+      transform: translateY(-1px);
+    }
+    [data-theme="dark"] .block-04 .carousel-btn {
+      color: var(--text-on-accent);
+      background: rgba(255, 255, 255, 0.02);
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+    [data-theme="dark"] .block-04 .carousel-btn:hover {
+      color: var(--text-on-accent);
+      background: rgba(255, 255, 255, 0.035);
+      border-color: rgba(255, 255, 255, 0.28);
+    }
+    /* Light theme: единый нормальный цвет подложек для всех блоков */
+    [data-theme="light"] .feature-card,
+    [data-theme="light"] .cta-card,
+    [data-theme="light"] .block-04 .case-card,
+    [data-theme="light"] .block-04 .case-card::after,
+    [data-theme="light"] .cli-badge { background: #ffffff !important; }
+    .block-04 .carousel-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .block-04 .carousel-dots { display: flex; gap: 8px; }
+    .block-04 .carousel-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--border-strong); border: none; cursor: pointer;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+    .block-04 .carousel-dot.active { background: #00B4A7; transform: scale(1.2); }
+    .block-04 .case-viewport { overflow: hidden; padding: 30px; margin: -30px; }
+    .case-studies-carousel,
+    .block-04 .carousel-track,
+    .block-04 .case-track {
+      scroll-snap-type: x mandatory !important;
+      scroll-padding-left: 0px !important;
+      padding-left: 0 !important;
+      margin-left: 0 !important;
+    }
+    .block-04 .case-track {
+      display: flex;
+      gap: 32px;
+      transition: transform 0.5s ease;
+      will-change: transform;
+    }
+
+    /* Force each card to snap cleanly to the left edge of the grid column */
+    .case-card {
+      scroll-snap-align: start !important;
+      scroll-margin-left: 0px !important;
+    }
+    .block-04 .case-card {
+      position: relative !important;
+      isolation: isolate !important;
+      flex: 0 0 calc((100% - 64px) / 3);
+      min-width: 0;
+      background-color: var(--bg-level-1) !important;
+      background-image: none !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      opacity: 1 !important;
+      border-radius: 28px 28px 8px 28px !important;
+      border: 1px solid var(--border-card);
+      overflow: visible;
+      transition: border-color 0.35s ease !important;
+      display: flex;
+      flex-direction: column;
+      scroll-snap-align: start !important;
+      scroll-margin-left: 0px !important;
+    }
+    .block-04 .case-card::before {
+      content: "" !important;
+      position: absolute !important;
+      inset: -4px !important;
+      border-radius: inherit !important;
+      background: linear-gradient(120deg, #0066ff 15%, #00ccb1 85%) !important;
+      opacity: 0 !important;
+      filter: blur(12px) !important;
+      z-index: -1 !important;
+      pointer-events: none !important;
+      transform: scale(0.4);
+      transform-origin: center;
+      transition: opacity 1.08s ease, transform 1.08s ease !important;
+    }
+    .block-04 .case-card:not(:hover)::before {
+      transition: opacity 1.08s ease, transform 1.08s ease !important;
+    }
+    .block-04 .case-card:hover::before {
+      opacity: 0.64 !important;
+      transform: scale(1);
+      transition: opacity 0.36s ease, transform 0.36s ease !important;
+    }
+    /* Сплошной слой #121620 того же размера и формы поверх свечения —
+       при ховере фон карточки не меняется, свечение видно из-под неё */
+    .block-04 .case-card::after {
+      content: "" !important;
+      position: absolute !important;
+      inset: 0 !important;
+      border-radius: inherit !important;
+      background: var(--bg-level-1) !important;
+      z-index: 0 !important;
+      pointer-events: none !important;
+    }
+    /* Whole-card click target: a stretched overlay covering the entire card.
+       .case-card::before (glow) and ::after (solid layer) are both in use, so
+       the clickable surface is a dedicated anchor instead. z-index sits above
+       the media/body (z-index 1) and below nothing else, so any click anywhere
+       on the card navigates. The inner .case-link remains the focusable anchor
+       for keyboard users; the overlay is excluded from tab order. */
+    .block-04 .case-card {
+      cursor: pointer;
+    }
+    .block-04 .case-card .case-card-link {
+      position: absolute !important;
+      inset: 0 !important;
+      z-index: 4 !important;
+      border-radius: inherit !important;
+      cursor: pointer;
+      background: transparent;
+      display: block;
+      text-decoration: none;
+    }
+    .block-04 .case-card .case-card-link:focus-visible {
+      outline: 2px solid var(--accent-blue-bright);
+      outline-offset: -6px;
+    }
+    [data-theme="light"] .block-04 .case-card:hover::before {
+      opacity: 0.8 !important;
+    }
+    .block-04 .case-media {
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+      background: var(--bg-elevated);
+      position: relative;
+      z-index: 1;
+      border-radius: 28px 28px 28px 28px;
+    }
+    .block-04 .case-media img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform 0.35s ease;
+    }
+    .block-04 .case-card:hover .case-media img { transform: scale(1.06); }
+    .case-card .case-pill,
+    [data-theme="dark"] .case-card .case-pill,
+    [data-theme="light"] .case-card .case-pill {
+      position: absolute;
+      top: 14px;
+      left: 16px;
+      right: auto;
+      background: rgba(10, 12, 18, 0.75) !important;
+      backdrop-filter: blur(8px) !important;
+      -webkit-backdrop-filter: blur(8px) !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      color: var(--text-terminal) !important;
+      font-size: var(--font-size-xs) !important;
+      font-weight: 400 !important;
+      padding: 4px 10px !important;
+      border-radius: 20px !important;
+      line-height: 1;
+      letter-spacing: 0.03em;
+    }
+    .block-04 .case-body {
+      padding: 40px 20px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+      position: relative;
+      z-index: 1;
+    }
+    .block-04 .case-title {
+      font-family: var(--font-head);
+      font-size: var(--font-size-base);
+      font-weight: 700;
+      line-height: 1.35;
+      color: var(--text-primary);
+    }
+    .block-04 .case-sub {
+      font-size: var(--font-size-sm);
+      color: var(--text-muted);
+      line-height: 1.45;
+      margin-top: 2px;
+    }
+    .block-04 .case-link {
+      display: block;
+      margin-top: auto;      /* pin the link flush to the card bottom */
+      padding-top: 14px;     /* keep minimum spacing from the text */
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    /* Media keeps its aspect ratio and never shrinks when cards stretch */
+    .block-04 .case-media { flex-shrink: 0; }
+    .block-04 .case-link .explore-more {
+      display: inline-flex;
+      align-items: center;
+      white-space: nowrap;
+      color: var(--accent-blue-bright, #589bff);
+    }
+    .block-04 .case-link .explore-more-text {
+      max-width: 0 !important;
+      opacity: 0 !important;
+      overflow: hidden !important;
+      margin-right: 0 !important;
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      transition: max-width 2.7s cubic-bezier(0.16, 1, 0.3, 1) 0.2s, opacity 2.7s ease 0.2s, margin-right 2.7s cubic-bezier(0.16, 1, 0.3, 1) 0.2s !important;
+    }
+    .block-04 .case-link svg,
+    .case-card .arrow-icon,
+    .case-card svg {
+      width: 16px !important;
+      height: 16px !important;
+      stroke-width: 4px !important;
+      stroke-linecap: round !important;
+      stroke-linejoin: round !important;
+      stroke: currentColor;
+      fill: none;
+      opacity: 1 !important;
+      flex-shrink: 0 !important;
+    }
+    .block-04 .case-card:hover .case-link .explore-more {
+      color: var(--text-on-accent);
+    }
+    .block-04 .case-card:hover .case-link .explore-more-text {
+      max-width: 140px !important;
+      opacity: 1 !important;
+      margin-right: 8px !important;
+      transition: max-width 2.7s cubic-bezier(0.16, 1, 0.3, 1) 0.2s, opacity 0.4s ease 0.15s, margin-right 2.7s cubic-bezier(0.16, 1, 0.3, 1) 0.2s !important;
+    }
+    [data-theme="light"] .block-04 .case-link .explore-more { color: var(--accent-blue); }
+    [data-theme="light"] .block-04 .case-card:hover .case-link .explore-more { color: var(--accent-blue); }
+    .cta-actions .btn-outline {
+      height: 46px !important;
+      min-height: 46px !important;
+      padding: 0 24px !important;
+    }
+    .cta-actions .btn-primary {
+      height: 46px !important;
+      min-height: 46px !important;
+      max-height: 46px !important;
+      padding: 0 24px !important;
+    }
+    /* .cta-card .btn-outline appearance is unified in theme.css */
+
+    /* ===== Footer ===== */
+    .footer {
+      border-top: 1px solid var(--border-faint);
+      padding: 48px 0 56px;
+    }
+    .footer-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 28px;
+      flex-wrap: wrap;
+    }
+    .footer-copy {
+      font-size: var(--font-size-base);
+      color: var(--text-muted);
+    }
+    .footer-links {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      justify-content: center;
+      align-items: center;
+      gap: 1.5rem;
+      width: 100%;
+    }
+    .footer-links a {
+      font-size: var(--font-size-base);
+      color: var(--text-muted);
+      transition: color 0.15s ease;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+    .footer-links a:hover {
+      color: var(--text-primary);
+    }
+
+    /* Footer nav: allow wrapping only on small screens */
+    @media (max-width: 640px) {
+      .footer-links {
+        flex-wrap: wrap;
+        gap: 0.75rem 1.5rem;
+      }
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 1024px) {
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+      .showcase { grid-template-columns: 1fr; gap: 48px; }
+      .cta-card { max-width: 820px; }
+
+      /* Carousel: 2 cards per view */
+      .block-04 .case-card { flex: 0 0 calc((100% - 32px) / 2); }
+    }
+
+    @media (min-width: 1024px) {
+      .cli-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 64px;
+        align-items: center;
+        text-align: left;
+      }
+      .terminal { width: 100%; }
+    }
+
+    /* Section 03: терминал под текстом, всё по левому краю,
+       контейнер как у секций 01/02 (max-width: 738px) */
+    @media (max-width: 1024px) {
+      .container--s03 { max-width: 738px; }
+      .cli-section {
+        display: flex;
+        flex-direction: column;
+        gap: 48px;
+        align-items: flex-start;
+        text-align: left;
+      }
+      .cli-copy {
+        text-align: left;
+        display: block;
+      }
+      .cli-copy .section-desc { max-width: 100%; }
+      .cli-badges { justify-content: flex-start; }
+      .terminal { width: 100%; }
+    }
+
+    @media (max-width: 900px) {
+      .hero-title { white-space: normal; text-wrap: balance; }
+    }
+
+    @media (max-width: 905px) {
+      .case-card,
+      .block-04 .case-card {
+        display: flex;
+        flex-direction: column;
+      }
+      .block-04 .case-body {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 auto;
+      }
+      .block-04 .case-link {
+        margin-top: auto;
+        padding-top: 14px;
+      }
+      .case-card,
+      .block-04 .case-card {
+        min-height: 0 !important;
+      }
+      .block-04 .case-body {
+        min-height: 0 !important;
+        flex: 1 1 auto !important;
+      }
+    }
+
+
+    @media (max-width: 620px) {
+      .container { padding: 0 20px; }
+      .container--narrow { padding: 0 20px; }
+      .section--narrow { padding: 70px 0; }
+      #documentation.section--narrow { padding-top: 110px; }
+      .hero-top { padding: 14px 20px; }
+      .section { padding: 80px 0; }
+      .features-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .hero { min-height: 600px; padding: 110px 0 80px; }
+      .hero-sub { max-width: 100%; font-size: var(--font-size-lg); }
+      .logo-marquee .marquee-track { gap: 36px; }
+      @keyframes marquee {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(calc(-50% - 18px)); }
+      }
+      .showcase-frame { height: auto; aspect-ratio: 16 / 9; }
+      .showcase-frame img { height: 100%; }
+      .cta-card { grid-template-columns: 1fr; }
+      .cta-card-media { aspect-ratio: 16 / 9; min-height: 0; border-radius: 0 0 8px 28px; }
+      .cta-card-body { text-align: center; align-items: center; }
+      .cta-card-body .btn { align-self: center; }
+      /* CTA buttons match the hero buttons: fixed size, centered inline */
+      .cta-actions { gap: 10px; justify-content: center; }
+      .cta-actions .btn,
+      .cta-actions .btn-outline {
+        width: 170px;
+        padding: 0 16px !important;
+        height: 46px !important;
+        min-height: 46px !important;
+        border-radius: 21px 21px 4px 21px !important;
+        font-size: var(--font-size-sm) !important;
+        flex: 0 0 auto;
+      }
+      /* Block 04 — dots hidden, native touch scroll, card peek */
+      .block-04 .carousel-dots { display: none !important; }
+
+      .block-04 .carousel-btn {
+        display: none !important;
+      }
+
+      .block-04 .case-track {
+        gap: 16px;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        transform: none !important;
+        transition: none !important;
+      }
+
+      .block-04 .case-card {
+        flex: 0 0 85%;
+        max-width: 85%;
+        width: 85%;
+        scroll-snap-align: start;
+        padding-right: 8px;
+      }
+
+      .block-04 .case-body {
+        padding: 24px 18px 20px;
+      }
+
+      .block-04 .case-link .explore-more-text {
+        max-width: 140px !important;
+        opacity: 1 !important;
+        margin-right: 8px !important;
+        transition: none !important;
+      }
+
+      .block-04 .case-link .explore-more {
+        color: var(--accent-blue-bright, #589bff);
+      }
+    }
+
+        /* CTA buttons stack vertically - both stretch full width */
+    @media (max-width: 883px) {
+      .cta-actions .btn-primary,
+      .cta-actions .btn-outline {
+        width: 100%;
+      }
+    }
+
+    /* Very small screens: every hero/CTA button stacks vertically and
+       stretches full width */
+    @media (max-width: 428px) {
+      .hero-cta,
+      .cta-actions {
+        flex-direction: column !important;
+        width: 100%;
+      }
+
+      .hero-cta .btn,
+      .hero-cta .btn-primary,
+      .hero-cta .btn-outline,
+      .cta-actions .btn,
+      .cta-actions .btn-primary,
+      .cta-actions .btn-outline {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 46px !important;
+        min-height: 46px !important;
+        padding: 0 16px !important;
+        border-radius: 21px 21px 4px 21px !important;
+        flex: 0 0 auto !important;
+      }
+    }
+
+@media (prefers-reduced-motion: reduce) {
+      .marquee-track { animation: none !important; }
+      .terminal-body .cursor { animation: none !important; }
+      .feature-card, .showcase-frame, .btn { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- Section 0: Hero -->
+  <section class="hero" aria-label="Hero">
+    <div class="hero-bg" aria-hidden="true"></div>
+    <div class="hero-top">
+      <a class="brand" href="index.html" aria-label="GridNode home">
+        <img src="Logo.svg" alt="GridNode" class="brand-logo" data-logo-theme />
+      </a>
+      <div class="top-nav-right">
+        <a class="sign-in-link" href="login.html">Sign In</a>
+        <button class="theme-toggle" id="themeToggle" type="button" title="Toggle theme" aria-label="Toggle theme" aria-pressed="false">
+          <svg class="icon-sun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+          <svg class="icon-moon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="container">
+      <div class="hero-content">
+        <h1 class="hero-title">Reliable Cloud Infrastructure</h1>
+        <p class="hero-sub">Deploy and scale production workloads on globally distributed nodes with predictable pricing, root access and enterprise-grade networking.</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="login.html">Get Started</a>
+          <a class="btn btn-outline" href="docs.html">Documentation</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Logo Marquee — single instance, duplicated track for seamless loop -->
+  <section class="logo-marquee" aria-label="Technology partners">
+        <div class="marquee-track">
+      <!-- set 1 -->
+      <a href="https://www.docker.com" target="_blank" rel="noopener noreferrer"><img src="https://cdn.simpleicons.org/docker/ffffff" alt="Docker" width="38" height="38" loading="lazy" decoding="async" /></a>
+      <a href="https://kubernetes.io" target="_blank" rel="noopener noreferrer"><img src="https://cdn.simpleicons.org/kubernetes/ffffff" alt="Kubernetes" width="38" height="38" loading="lazy" decoding="async" /></a>
+      <a href="https://developer.hashicorp.com/terraform" target="_blank" rel="noopener noreferrer"><img src="https://cdn.simpleicons.org/terraform/ffffff" alt="Terraform" width="38" height="38" loading="lazy" decoding="async" /></a>
+      <a href="https://www.hashicorp.com" target="_blank" rel="noopener noreferrer"><img src="https://cdn.simpleicons.org/hashicorp/ffffff" alt="HashiCorp" width="38" height="38" loading="lazy" decoding="async" /></a>
+      <a href="https://www.cloudflare.com" target="_blank" rel="noopener noreferrer"><img src="https://cdn.simpleicons.org/cloudflare/ffffff" alt="Cloudflare" width="38" height="38" loading="lazy" decoding="async" /></a>
+      <a href="https://aws.amazon.com" target="_blank" rel="noopener noreferrer"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/amazonwebservices/amazonwebservices-plain-wordmark.svg" alt="AWS" width="38" height="38" loading="lazy" decoding="async" /></a>
+      <a href="https://www.postgresql.org" target="_blank" rel="noopener noreferrer"><img src="https://cdn.simpleicons.org/postgresql/ffffff" alt="PostgreSQL" width="38" height="38" loading="lazy" decoding="async" /></a>
+      <!-- set 2 -->
+      <a href="https://www.docker.com" target="_blank" rel="noopener noreferrer" aria-hidden="true" tabindex="-1"><img src="https://cdn.simpleicons.org/docker/ffffff" alt="" width="38" height="38" loading="lazy" decoding="async" /></a>
+      <a href="https://kubernetes.io" target="_blank" rel="noopener noreferrer" aria-hidden="true" tabindex="-1"><img src="https://cdn.simpleicons.org/kubernetes/ffffff" alt="" width="38" height="38" loading="lazy" decoding="async" /></a>
+      <a href="https://developer.hashicorp.com/terraform" target="_blank" rel="noopener noreferrer" aria-hidden="true" tabindex="-1"><img src="https://cdn.simpleicons.org/terraform/ffffff" alt="" width="38" height="38" loading="lazy" decoding="async" /></a>
+      <a href="https://www.hashicorp.com" target="_blank" rel="noopener noreferrer" aria-hidden="true" tabindex="-1"><img src="https://cdn.simpleicons.org/hashicorp/ffffff" alt="" width="38" height="38" loading="lazy" decoding="async" /></a>
+      <a href="https://www.cloudflare.com" target="_blank" rel="noopener noreferrer" aria-hidden="true" tabindex="-1"><img src="https://cdn.simpleicons.org/cloudflare/ffffff" alt="" width="38" height="38" loading="lazy" decoding="async" /></a>
+      <a href="https://aws.amazon.com" target="_blank" rel="noopener noreferrer" aria-hidden="true" tabindex="-1"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/amazonwebservices/amazonwebservices-plain-wordmark.svg" alt="" width="38" height="38" loading="lazy" decoding="async" /></a>
+      <a href="https://www.postgresql.org" target="_blank" rel="noopener noreferrer" aria-hidden="true" tabindex="-1"><img src="https://cdn.simpleicons.org/postgresql/ffffff" alt="" width="38" height="38" loading="lazy" decoding="async" /></a>
+      <!-- set 3 -->
+      <a href="https://www.docker.com" target="_blank" rel="noopener noreferrer" aria-hidden="true" tabindex="-1"><img src="https://cdn.simpleicons.org/docker/ffffff" alt="" width="38" height="38" loading="lazy" decoding="async" /></a>
+      <a href="https://kubernetes.io" target="_blank" rel="noopener noreferrer" aria-hidden="true" tabindex="-1"><img src="https://cdn.simpleicons.org/kubernetes/ffffff" alt="" width="38" height="38" loading="lazy" decoding="async" /></a>
+      <a href="https://developer.hashicorp.com/terraform" target="_blank" rel="noopener noreferrer" aria-hidden="true" tabindex="-1"><img src="https://cdn.simpleicons.org/terraform/ffffff" alt="" width="38" height="38" loading="lazy" decoding="async" /></a>
+      <a href="https://www.hashicorp.com" target="_blank" rel="noopener noreferrer" aria-hidden="true" tabindex="-1"><img src="https://cdn.simpleicons.org/hashicorp/ffffff" alt="" width="38" height="38" loading="lazy" decoding="async" /></a>
+      <a href="https://www.cloudflare.com" target="_blank" rel="noopener noreferrer" aria-hidden="true" tabindex="-1"><img src="https://cdn.simpleicons.org/cloudflare/ffffff" alt="" width="38" height="38" loading="lazy" decoding="async" /></a>
+      <a href="https://aws.amazon.com" target="_blank" rel="noopener noreferrer" aria-hidden="true" tabindex="-1"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/amazonwebservices/amazonwebservices-plain-wordmark.svg" alt="" width="38" height="38" loading="lazy" decoding="async" /></a>
+      <a href="https://www.postgresql.org" target="_blank" rel="noopener noreferrer" aria-hidden="true" tabindex="-1"><img src="https://cdn.simpleicons.org/postgresql/ffffff" alt="" width="38" height="38" loading="lazy" decoding="async" /></a>
+      <!-- set 4 -->
+      <a href="https://www.docker.com" target="_blank" rel="noopener noreferrer" aria-hidden="true" tabindex="-1"><img src="https://cdn.simpleicons.org/docker/ffffff" alt="" width="38" height="38" loading="lazy" decoding="async" /></a>
+      <a href="https://kubernetes.io" target="_blank" rel="noopener noreferrer" aria-hidden="true" tabindex="-1"><img src="https://cdn.simpleicons.org/kubernetes/ffffff" alt="" width="38" height="38" loading="lazy" decoding="async" /></a>
+      <a href="https://developer.hashicorp.com/terraform" target="_blank" rel="noopener noreferrer" aria-hidden="true" tabindex="-1"><img src="https://cdn.simpleicons.org/terraform/ffffff" alt="" width="38" height="38" loading="lazy" decoding="async" /></a>
+      <a href="https://www.hashicorp.com" target="_blank" rel="noopener noreferrer" aria-hidden="true" tabindex="-1"><img src="https://cdn.simpleicons.org/hashicorp/ffffff" alt="" width="38" height="38" loading="lazy" decoding="async" /></a>
+      <a href="https://www.cloudflare.com" target="_blank" rel="noopener noreferrer" aria-hidden="true" tabindex="-1"><img src="https://cdn.simpleicons.org/cloudflare/ffffff" alt="" width="38" height="38" loading="lazy" decoding="async" /></a>
+      <a href="https://aws.amazon.com" target="_blank" rel="noopener noreferrer" aria-hidden="true" tabindex="-1"><img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/amazonwebservices/amazonwebservices-plain-wordmark.svg" alt="" width="38" height="38" loading="lazy" decoding="async" /></a>
+      <a href="https://www.postgresql.org" target="_blank" rel="noopener noreferrer" aria-hidden="true" tabindex="-1"><img src="https://cdn.simpleicons.org/postgresql/ffffff" alt="" width="38" height="38" loading="lazy" decoding="async" /></a>
+    </div>
+  </section>
+
+  <main id="main">
+  <!-- Section 1: 01 — узкая, картинка под текстом, без ховера -->
+  <section class="section section--narrow" id="documentation">
+    <div class="container container--narrow">
+      <div class="showcase showcase--stacked">
+        <div class="showcase-copy">
+          <div class="section-sub-label">01</div>
+          <h2 class="section-title">Precision in every process.</h2>
+          <p class="section-desc">A clean, real-time control panel for managing nodes, monitoring resources and automating workflows — everything you need to run cloud infrastructure without the noise.</p>
+          <a class="link-arrow" href="docs.html">Explore documentation
+            <svg width="16" height="16" viewBox="0 0 34 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h21"/><path d="m22 5 7 7-7 7"/></svg>
+          </a>
+        </div>
+        <a class="showcase-frame" href="docs.html" title="Open documentation">
+          <img class="img-dark" src="Images/Mokup-screen.png" alt="GridNode control panel preview" width="1160" height="720" loading="lazy" decoding="async" />
+          <img class="img-light" src="Images/Mokup-screen-light.png" alt="GridNode control panel preview — light" width="1160" height="720" loading="lazy" decoding="async" onerror="this.style.display='none'" />
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: Features — узкая минималистичная, как на скриншоте -->
+  <section class="section section--narrow">
+    <div class="container container--narrow">
+      <div class="features-head">
+        <div class="section-sub-label">02</div>
+        <h2 class="section-title">Everything you expect<br>from a cloud provider.</h2>
+        <p class="section-desc">Battle-tested building blocks engineered for performance, uptime and developer velocity.</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></div>
+          <h3 class="feature-title">NVMe Storage</h3>
+          <p class="feature-desc">High-throughput NVMe</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+          <h3 class="feature-title">99.99% Uptime</h3>
+          <p class="feature-desc">Automatic failover</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+          <h3 class="feature-title">Root Access</h3>
+          <p class="feature-desc">Full control, no lock-in</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+          <h3 class="feature-title">Global CDN</h3>
+          <p class="feature-desc">Worldwide edge cache</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></div>
+          <h3 class="feature-title">DDoS Protection</h3>
+          <p class="feature-desc">Edge mitigation always on</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16.326A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 .5 8.973"/><path d="m7 19-2 2"/><path d="m15 19 2 2"/></svg></div>
+          <h3 class="feature-title">Auto-scaling</h3>
+          <p class="feature-desc">Scales with demand</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
+          <h3 class="feature-title">API Native</h3>
+          <p class="feature-desc">REST orchestration</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+          <h3 class="feature-title">24/7 Support</h3>
+          <p class="feature-desc">Engineers on call</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: CLI / Developer Integration -->
+  <section class="section">
+        <div class="container container--s03">   <div class="cli-section">
+        <div class="cli-copy">
+          <div class="section-sub-label">03</div>
+          <h2 class="section-title">Infrastructure as code, from day one.</h2>
+          <p class="section-desc">Provision nodes, manage firewalls and stream logs through the GridNode CLI or a fully documented REST API. Scriptable, composable and CI/CD friendly.</p>
+          <div class="cli-badges">
+            <span class="cli-badge">gridnode CLI</span>
+            <span class="cli-badge">REST API</span>
+            <span class="cli-badge">Terraform</span>
+            <span class="cli-badge">Webhooks</span>
+          </div>
+        </div>
+        <div class="terminal" aria-label="Terminal window">
+          <div class="terminal-header">
+            <span class="term-dot red" aria-hidden="true"></span>
+            <span class="term-dot yellow" aria-hidden="true"></span>
+            <span class="term-dot green" aria-hidden="true"></span>
+            <span class="terminal-title">gridnode — zsh</span>
+          </div>
+          <div class="terminal-body">
+            <div><span class="prompt">$</span> <span class="cmd">gridnode deploy</span> <span class="flag">--region</span> <span class="value">eu-central</span></div>
+            <div class="out">&nbsp;&nbsp;→ Provisioning 1 node (4 vCPU / 16 GB / NVMe 120 GB)…</div>
+            <div class="out">&nbsp;&nbsp;→ Attaching firewall <span class="value">grid-default</span>, enabling backups…</div>
+            <div class="ok">&nbsp;&nbsp;✓ Node online in 12.4s — <span class="value">130.61.12.84</span><span class="cursor" aria-hidden="true"></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Block 04: Case Studies -->
+  <section id="block-04" class="block-04 section">
+    <div class="container">
+      <div class="block-04-header">
+        <div class="block-04-titles">
+          <div class="section-sub-label">04</div>
+          <h2 class="section-title">How engineering teams scale with GridNode</h2>
+          <p class="section-desc">Real-world infrastructure automation, AI pipeline optimizations, and zero-downtime deployments.</p>
+        </div>
+        <div class="carousel-controls" aria-label="Carousel pagination">
+          <button class="carousel-btn prev" type="button" aria-label="Previous slide">
+            <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <div class="carousel-dots" role="tablist">
+            <button class="carousel-dot active" type="button" role="tab" aria-selected="true" data-index="0" aria-label="Go to case 1"></button>
+            <button class="carousel-dot" type="button" role="tab" aria-selected="false" data-index="1" aria-label="Go to case 2"></button>
+            <button class="carousel-dot" type="button" role="tab" aria-selected="false" data-index="2" aria-label="Go to case 3"></button>
+          </div>
+          <button class="carousel-btn next" type="button" aria-label="Next slide">
+            <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="case-viewport">
+        <div class="case-track" id="caseTrackV2">
+          <article class="case-card" data-index="0">
+            <a class="case-card-link" href="article.html" aria-label="Read case study" tabindex="-1"></a>
+            <div class="case-media"><img src="Images/case-01.jfif" alt="Nexus AI" loading="lazy" /><span class="case-pill">AI Infra</span></div>
+            <div class="case-body">
+              <h3 class="case-title">How Nexus AI Streamlined Real-Time GPU Monitoring Across 500+ Nodes</h3>
+              <p class="case-sub">Cut idle GPU compute costs by 38% while reducing monitoring latency to under 12ms.</p>
+              <a class="case-link" href="article.html"><span class="explore-more"><span class="explore-more-text">Explore more</span><svg viewBox="0 0 34 24"><path d="M5 12h22"/><path d="M23 5l7 7-7 7"/></svg></span></a>
+            </div>
+          </article>
+          <article class="case-card" data-index="1">
+            <a class="case-card-link" href="article.html" aria-label="Read case study" tabindex="-1"></a>
+            <div class="case-media"><img src="Images/case-02.jfif" alt="DataPulse" loading="lazy" /><span class="case-pill">Automation</span></div>
+            <div class="case-body">
+              <h3 class="case-title">How DataPulse Achieved 99.99% Uptime with Automated Script Runners</h3>
+              <p class="case-sub">Reduced server overhead by 42% and maintained 99.99% system uptime during peak traffic.</p>
+              <a class="case-link" href="article.html"><span class="explore-more"><span class="explore-more-text">Explore more</span><svg viewBox="0 0 34 24"><path d="M5 12h22"/><path d="M23 5l7 7-7 7"/></svg></span></a>
+            </div>
+          </article>
+          <article class="case-card" data-index="2">
+            <a class="case-card-link" href="article.html" aria-label="Read case study" tabindex="-1"></a>
+            <div class="case-media"><img src="Images/case-03.jfif" alt="CloudScale" loading="lazy" /><span class="case-pill">Security</span></div>
+            <div class="case-body">
+              <h3 class="case-title">How CloudScale Secured Multi-Region API Vaults</h3>
+              <p class="case-sub">Boosted GPU utilization by 47% and automated failover across all active clusters.</p>
+              <a class="case-link" href="article.html"><span class="explore-more"><span class="explore-more-text">Explore more</span><svg viewBox="0 0 34 24"><path d="M5 12h22"/><path d="M23 5l7 7-7 7"/></svg></span></a>
+            </div>
+          </article>
+          <article class="case-card" data-index="3">
+            <a class="case-card-link" href="article.html" aria-label="Read case study" tabindex="-1"></a>
+            <div class="case-media"><img src="Images/case-04.jfif" alt="Vector Labs" loading="lazy" /><span class="case-pill">AI Training</span></div>
+            <div class="case-body">
+              <h3 class="case-title">How Vector Labs Cut AI Training Costs by 40% with Auto-Scaling</h3>
+              <p class="case-sub">Slashed AI training spend by 38% and accelerated model iteration cycles by 3x.</p>
+              <a class="case-link" href="article.html"><span class="explore-more"><span class="explore-more-text">Explore more</span><svg viewBox="0 0 34 24"><path d="M5 12h22"/><path d="M23 5l7 7-7 7"/></svg></span></a>
+            </div>
+          </article>
+          <article class="case-card" data-index="4">
+            <a class="case-card-link" href="article.html" aria-label="Read case study" tabindex="-1"></a>
+            <div class="case-media"><img src="Images/case-05.jfif" alt="EdgeFlow" loading="lazy" /><span class="case-pill">Global API</span></div>
+            <div class="case-body">
+              <h3 class="case-title">How EdgeFlow Delivered Zero-Downtime Deployments for Global APIs</h3>
+              <p class="case-sub">Maintained 99.99% uptime with zero downtime across 40+ global regions.</p>
+              <a class="case-link" href="article.html"><span class="explore-more"><span class="explore-more-text">Explore more</span><svg viewBox="0 0 34 24"><path d="M5 12h22"/><path d="M23 5l7 7-7 7"/></svg></span></a>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 4: CTA — узкая с картинкой сбоку, как на скриншоте 2 -->
+  <section class="cta-section section--narrow">
+    <div class="container container--narrow">
+      <div class="cta-card">
+        <div class="cta-card-media">
+          <img src="Images/CTA.jpg" alt="GridNode infrastructure preview" loading="lazy" decoding="async" onerror="this.src='https://picsum.photos/seed/gridnode/640/480'" />
+        </div>
+        <div class="cta-card-body">
+          <div class="cta-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </div>
+          <h2 class="cta-title">Ready to deploy your first node?</h2>
+          <div class="cta-actions">
+            <a class="btn btn-primary btn-lg" href="login.html">Get Started</a>
+            <a class="btn btn-outline btn-lg" href="docs.html">Read the Docs</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container container--narrow">
+      <div class="footer-inner">
+        <nav class="footer-links" aria-label="Footer">
+          <a href="docs.html">Docs</a>
+          <a href="legal/terms.html">Terms</a>
+          <a href="legal/privacy.html">Privacy</a>
+          <a href="public-support.html">Support</a>
+          <a href="pricing.html">Pricing</a>
+          <a href="https://discord.com" target="_blank" rel="noopener">Discord</a>
+          <a href="https://twitter.com" target="_blank" rel="noopener">Twitter</a>
+          <a href="#block-04">Case Studies</a>
+          <a href="#">Home</a>
+        </nav>
+      </div>
+    </div>
+  </footer>
+
+  <script src="theme-transition.js" defer></script>
+  <script>
+    (function() {
+      const KEY = 'gridnode-theme';
+      const btn = document.getElementById('themeToggle');
+      const html = document.documentElement;
+      function apply(theme) {
+        html.setAttribute('data-theme', theme);
+        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#060814' : '#fafbfc');
+        btn?.setAttribute('aria-pressed', theme === 'dark' ? 'false' : 'true');
+        try { localStorage.setItem(KEY, theme); } catch(e) {}
+      }
+      let saved = null;
+      try { saved = localStorage.getItem(KEY); } catch(e) {}
+if (saved === 'light' || saved === 'dark') {
+        apply(saved);
+      }
+      btn?.addEventListener('click', () => {
+        const cur = html.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+        const next = cur === 'dark' ? 'light' : 'dark';
+        window.themeTransition(btn, () => apply(next));
+      });
+    })();
+  </script>
+  <script>
+    (function(){
+      const track=document.getElementById('caseTrackV2');
+      const dots=Array.from(document.querySelectorAll('#block-04 .carousel-dot'));
+      const prev=document.querySelector('#block-04 .carousel-btn.prev');
+      const next=document.querySelector('#block-04 .carousel-btn.next');
+      if(!track||!dots.length) return;
+      let cur=0;
+      function visible(){ if(innerWidth<=620) return 1; if(innerWidth<=1024) return 2; return 3; }
+      function maxIdx(){ return Math.max(0, track.children.length - visible()); }
+      function update(){
+        const v=visible(), max=maxIdx(), cl=Math.min(cur,max);
+        const gap=parseFloat(getComputedStyle(track).columnGap)||32;
+        const card=track.querySelector('.case-card');
+        const cw= card ? card.offsetWidth : (track.parentElement.clientWidth - gap*(v-1))/v;
+        track.style.transform='translateX(-'+(cl*(cw+gap))+'px)';
+        dots.forEach((d,i)=>{ const a=i===cl; d.classList.toggle('active', a); d.setAttribute('aria-selected', a); });
+        if(prev) prev.disabled=cur===0;
+        if(next) next.disabled=cur>=max;
+      }
+      dots.forEach(d=>d.addEventListener('click',()=>{ cur=parseInt(d.dataset.index); if(cur>maxIdx()) cur=maxIdx(); update(); }));
+      if(prev) prev.addEventListener('click',()=>{ cur=Math.max(0,cur-1); update(); });
+      if(next) next.addEventListener('click',()=>{ cur=Math.min(maxIdx(),cur+1); update(); });
+      addEventListener('resize', update); update();
+    })();
+  </script>
+  <!-- GridNode Support Chat Popup -->
+  <style>
+    .gn-chat-widget { position: fixed; bottom: 24px; right: 24px; z-index: 1000; display: flex; flex-direction: column; align-items: flex-end; gap: 12px; font-family: var(--font-body); }
+    .gn-chat-popup {
+      width: 360px; max-width: calc(100vw - 48px); height: 480px; max-height: calc(100vh - 120px);
+      background: var(--bg-level-2);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px 16px 7px 16px;
+      box-shadow: 0 16px 36px color-mix(in srgb, var(--bg-terminal-dark, #050508) 50%, transparent);
+      display: none; flex-direction: column; overflow: hidden;
+    }
+    .gn-chat-widget.open .gn-chat-popup { display: flex; }
+    .gn-chat-header { display: flex; align-items: flex-start; gap: 10px; padding: 14px 14px 12px; border-bottom: 1px solid var(--border-subtle); background: var(--bg-level-2); }
+    .gn-chat-avatar {
+      width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+      background: var(--bg-terminal-dark, #050508);
+      border: 1px solid var(--border-subtle);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .gn-chat-avatar img { width: 20px; height: 20px; display: block; }
+    .gn-chat-meta { flex: 1; min-width: 0; line-height: 1.3; }
+    .gn-chat-name { font-family: var(--font-head); font-size: var(--font-size-sm); font-weight: 600; color: var(--text-primary); }
+    .gn-chat-status { display: flex; align-items: center; gap: 6px; font-size: var(--font-size-sm); color: var(--text-muted); }
+    /* .gn-chat-dot uses the unified .status-dot base from theme.css */
+    .gn-chat-close {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: var(--font-size-base);
+      line-height: 1;
+      transition: color 0.15s ease;
+    }
+    .gn-chat-close svg {
+      width: 18px;
+      height: 18px;
+      display: block;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .gn-chat-close:hover { color: var(--text-primary); }
+    .gn-chat-body { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+    .gn-chat-msg {
+      max-width: 82%; padding: 9px 12px; border-radius: 12px 12px 12px 3px;
+      font-size: var(--font-size-sm); line-height: 1.5;
+      background: var(--bg-hover-strong); border: 1px solid var(--border-subtle); color: var(--text-secondary);
+    }
+    .gn-chat-msg.user { align-self: flex-end; border-radius: 12px 12px 3px 12px; background: color-mix(in srgb, var(--accent-primary, #0080ff) 20%, transparent); border: 1px solid color-mix(in srgb, var(--accent-primary, #0080ff) 35%, transparent); color: var(--text-primary); }
+    .gn-chat-footer { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-top: 1px solid var(--border-subtle); background: var(--bg-level-2); }
+    .gn-chat-input {
+      flex: 1; height: 38px; padding: 0 12px; font-size: var(--font-size-sm); font-family: inherit;
+      color: var(--text-primary); background: var(--bg-input);
+      border: 1px solid var(--border-input); border-radius: 12px 12px 3px 12px; outline: none;
+      transition: border-color 0.15s ease;
+    }
+    /* gn-chat-input ring: handled by the .input-wrap overlay ring below */
+    .gn-chat-input::placeholder { color: var(--text-faint); }
+    .gn-chat-input:focus { border-color: var(--accent-blue); }
+    .gn-chat-input-wrap {
+      flex: 1;
+      min-width: 0;
+      --field-ring-radius: 12px 12px 3px 12px;
+    }
+    .gn-chat-input-wrap .gn-chat-input {
+      width: 100%;
+    }
+    .gn-chat-send {
+      width: 38px; height: 38px; border-radius: 12px 12px 3px 12px; border: none; flex-shrink: 0;
+      background: linear-gradient(var(--grad-angle), var(--brand-stops));
+      color: var(--text-on-accent); cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: transform 0.15s ease, filter 0.15s ease;
+    }
+    .gn-chat-send:hover { transform: translateY(-1px); filter: brightness(1.12); }
+    .gn-chat-fab {
+      width: 44px; height: 44px; border-radius: 12px 12px 2px 12px; cursor: pointer;
+      /* appearance unified in theme.css as secondary button (.btn-secondary) */
+      font-family: var(--font-head);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--text-primary);
+      background: rgba(15, 23, 42, 0.03);
+      border: 1px solid rgba(154, 164, 178, 0.80);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 8px 30px color-mix(in srgb, var(--bg-terminal-dark, #050508) 12%, transparent);
+      transition: color 0.18s ease, background 0.18s ease, border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+    }
+    .gn-chat-fab:hover {
+      color: var(--text-primary);
+      background: rgba(15, 23, 42, 0.05);
+      border-color: rgba(107, 114, 128, 0.80);
+      transform: translateY(-1px);
+    }
+    [data-theme="dark"] .gn-chat-fab {
+      color: var(--text-on-accent);
+      background: rgba(255, 255, 255, 0.02);
+      border-color: rgba(255, 255, 255, 0.12);
+      box-shadow: 0 24px 60px color-mix(in srgb, var(--bg-terminal-dark, #050508) 45%, transparent), 0 12px 30px color-mix(in srgb, var(--bg-terminal-dark, #050508) 30%, transparent);
+    }
+    [data-theme="dark"] .gn-chat-fab:hover {
+      color: var(--text-on-accent);
+      background: rgba(255, 255, 255, 0.035);
+      border-color: rgba(255, 255, 255, 0.28);
+    }
+    .gn-chat-fab .icon-close { display: none; }
+    .gn-chat-widget.open .gn-chat-fab .icon-chat { display: none; }
+    .gn-chat-widget.open .gn-chat-fab .icon-close { display: block; }
+  </style>
+  <div class="gn-chat-widget" id="gnChatWidget">
+    <div class="gn-chat-popup" role="dialog" aria-label="GridNode Support chat" aria-hidden="true" id="gnChatPopup">
+      <div class="gn-chat-header">
+        <div class="gn-chat-avatar" aria-hidden="true"><img src="brand-logo-icon.svg" alt="" /></div>
+        <div class="gn-chat-meta">
+          <div class="gn-chat-name">GridNode Support</div>
+          <div class="gn-chat-status"><span class="gn-chat-dot status-dot success"></span>Online</div>
+        </div>
+        <button class="gn-chat-close" id="gnChatClose" aria-label="Close chat"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+      </div>
+      <div class="gn-chat-body" id="gnChatBody">
+        <div class="gn-chat-msg">Hi there! &#128075; This is GridNode Support.</div>
+        <div class="gn-chat-msg">How can we help you with your infrastructure today?</div>
+      </div>
+      <form class="gn-chat-footer" id="gnChatForm">
+        <div class="input-wrap gn-chat-input-wrap"><input class="gn-chat-input" id="gnChatInput" type="text" placeholder="Type your message..." autocomplete="off" aria-label="Type your message" /></div>
+        <button class="gn-chat-send" type="submit" aria-label="Send message">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </form>
+    </div>
+    <button class="gn-chat-fab" id="gnChatFab" aria-label="Open support chat" aria-expanded="false">
+      <svg class="icon-chat" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <svg class="icon-close" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <script>
+    (function () {
+      var widget = document.getElementById('gnChatWidget');
+      var popup = document.getElementById('gnChatPopup');
+      var fab = document.getElementById('gnChatFab');
+      var closeBtn = document.getElementById('gnChatClose');
+      var form = document.getElementById('gnChatForm');
+      var input = document.getElementById('gnChatInput');
+      var body = document.getElementById('gnChatBody');
+      if (!widget || !fab) return;
+      function setOpen(open) {
+        widget.classList.toggle('open', open);
+        fab.setAttribute('aria-expanded', open ? 'true' : 'false');
+        fab.setAttribute('aria-label', open ? 'Close support chat' : 'Open support chat');
+        if (popup) popup.setAttribute('aria-hidden', open ? 'false' : 'true');
+        if (open && input) input.focus();
+      }
+      fab.addEventListener('click', function () { setOpen(!widget.classList.contains('open')); });
+      if (closeBtn) closeBtn.addEventListener('click', function () { setOpen(false); });
+      if (form) form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var text = (input.value || '').trim();
+        if (!text) return;
+        var msg = document.createElement('div');
+        msg.className = 'gn-chat-msg user';
+        msg.textContent = text;
+        body.appendChild(msg);
+        input.value = '';
+        body.scrollTop = body.scrollHeight;
+        setTimeout(function () {
+          var reply = document.createElement('div');
+          reply.className = 'gn-chat-msg';
+          reply.textContent = 'Thanks for reaching out! An engineer will reply shortly.';
+          body.appendChild(reply);
+          body.scrollTop = body.scrollHeight;
+        }, 800);
+      });
+    })();
+  </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

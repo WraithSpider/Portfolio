@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GridNode — Cloud Instances</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet">
+  
+  <link rel="icon" href="FAV.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="theme.css">
+  <script>
+    (function () {
+      try {
+        var s = JSON.parse(localStorage.getItem('gridnode_settings') || '{}');
+        document.documentElement.setAttribute('data-theme', s.theme === 'light' ? 'light' : 'dark');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
+<style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { font-size: var(--font-size-base); scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-body);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      overflow-x: hidden;
+    }
+    .grounded-capsule { border-radius: 34px 34px 5px 34px; }
+    .grounded-capsule-sm { border-radius: 12px 12px 3px 12px; }
+
+    /* ===== SIDEBAR (styles centralized in shared-sidebar.css) ===== */
+
+    /* ===== MAIN CONTENT ===== */
+    .main-content { margin-left: 256px; flex: 1; padding: 0; min-height: 100vh; display: flex; flex-direction: column; }
+
+    .top-bar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      min-height: 72px;
+      padding: 24px 32px;
+      border-bottom: 1px solid var(--border-soft);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .top-bar-left { display: flex; flex-direction: column; }
+    .top-bar-right { display: flex; align-items: center; gap: 14px; }
+    .nodes-counter {
+      display: flex; align-items: center; gap: 8px;
+      height: 38px;
+      font-size: var(--font-size-sm); color: var(--text-muted);
+      background: var(--bg-surface); padding: 0 16px;
+      border-radius: 19px 19px 4px 19px;
+      border: 1px solid var(--border-muted);
+    }
+    /* .counter-dot is unified in theme.css (.status-dot base) */
+    .nodes-counter strong { color: var(--text-primary); font-weight: 600; }
+
+    /* .btn-new-instance appearance (gradient/color/border/font) unified in theme.css */
+    .btn-new-instance {
+      height: 38px;
+      padding: 0 20px;
+      gap: 8px;
+    }
+    .btn-new-instance .plus-icon {
+      font-size: var(--font-size-lg);
+      transform: translateY(0.7px);
+    }
+
+    /* ===== CONTENT BODY ===== */
+    .content-body { padding: 28px 32px 32px; flex: 1; }
+
+    /* ===== SERVER CARDS GRID ===== */
+    .instances-grid {
+      display: grid; grid-template-columns: repeat(3, minmax(320px, 1fr)); gap: 24px;
+      width: 100%; max-width: 1600px; margin-left: auto; margin-right: auto;
+    }
+
+    .instance-card {
+      background: var(--bg-surface); border: 1px solid var(--border-subtle);
+      border-radius: 34px 34px 5px 34px; padding: 28px 28px 26px;
+      transition: border-color 0.25s, box-shadow 0.25s;
+    }
+    .instance-card:hover { border-color: rgba(0, 114, 255, 0.25); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.30); }
+
+    .instance-card-header {
+      display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px; margin-bottom: 22px;
+    }
+    .instance-card-header h3 { font-size: var(--font-size-base); font-weight: 600; color: var(--text-primary); }
+
+    .instance-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: var(--font-size-xs); font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.04em; padding: 4px 10px 4px 8px;
+      border-radius: 12px 12px 2px 12px; min-width: 70px; justify-content: center;
+    }
+    /* Badge dots use the unified .status-dot base from theme.css; smaller size + no pulse inside the badge */
+    .instance-badge .dot {
+      width: 6px; height: 6px;
+      animation: none;
+      transform: translateY(-0.5px);
+    }
+    .instance-badge.running { background: color-mix(in srgb, var(--status-success) 10%, transparent); color: var(--status-success); }
+    .instance-badge.running .dot { background: var(--status-success); box-shadow: 0 0 5px color-mix(in srgb, var(--status-success) 40%, transparent); }
+    .instance-badge.offline { background: color-mix(in srgb, var(--status-danger) 10%, transparent); color: var(--status-danger); }
+    .instance-badge.offline .dot { background: var(--status-danger); box-shadow: 0 0 5px color-mix(in srgb, var(--status-danger) 30%, transparent); }
+    .instance-badge.rebooting { background: color-mix(in srgb, var(--status-warning) 10%, transparent); color: var(--status-warning); }
+    .instance-badge.rebooting .dot { background: var(--status-warning); box-shadow: 0 0 5px color-mix(in srgb, var(--status-warning) 40%, transparent); }
+
+    /* Standardized chevron and icon micro-alignment (matches server-selector) */
+    .chevron { font-size: var(--font-size-base); color: var(--text-muted); line-height: 1; transform: translateY(1px); }
+    .icon-shift, .nav-item .nav-icon, .support-link .support-icon, .action-btn .icon, .search-icon { display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; transform: none; }
+
+    /* Increase spacing between search icon and input text */
+    .search-wrap .search-icon { left: 16px; }
+    .search-wrap .search-input { padding-left: 40px; }
+
+    .instance-detail {
+      display: flex; flex-direction: column; gap: 10px; margin-bottom: 22px;
+    }
+    .instance-detail-row {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 12px; min-width: 0;
+      font-size: var(--font-size-sm); color: var(--text-muted);
+    }
+    .instance-detail-row .label { color: var(--text-dim); flex-shrink: 0; }
+    /* Values take the remaining space, wrap at inner word/slash boundaries and
+       right-align, so long spec strings never overlap the "Specs" label */
+    .instance-detail-row .value {
+      flex: 1 1 auto; min-width: 0; text-align: right;
+      color: var(--text-secondary); font-weight: 500;
+      white-space: normal; overflow-wrap: break-word; word-break: break-word;
+    }
+
+    .instance-metrics {
+      display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px;
+    }
+    .instance-metric {
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .instance-metric-header {
+      display: flex; justify-content: space-between; font-size: var(--font-size-xs); color: var(--text-faint);
+    }
+    .instance-metric-header .val { color: var(--text-secondary); font-weight: 600; }
+    .instance-bar-track { width: 100%; height: 4px; background: var(--bg-track); border-radius: 2px; overflow: hidden; }
+    .instance-bar-fill { height: 100%; border-radius: 2px; /* gradient unified in theme.css */ transition: width 0.6s ease; }
+
+    .instance-actions {
+      display: flex; gap: 10px; flex-wrap: wrap;
+    }
+
+    /* ===== CREATE INSTANCE PLACEHOLDER CARD (removed) ===== */
+    .instance-btn {
+      /* appearance (bg/border/color/radius/typography) unified in theme.css */
+      height: 30px;
+      padding: 0 14px;
+      flex: 1; text-align: center; min-width: 70px;
+    }
+    .instance-btn:disabled { opacity: 0.6; cursor: not-allowed; pointer-events: none; }
+
+    /* ===== SSH CONSOLE MODAL ===== */
+    .ssh-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--overlay-bg-strong); z-index: 1000;
+      display: none; align-items: center; justify-content: center;
+    }
+    .ssh-overlay.open { display: flex; }
+    .ssh-modal {
+      width: 640px; max-width: 90vw;
+      background: var(--bg-terminal-dark); border: 1px solid var(--border-toggle);
+      border-radius: 34px 34px 5px 34px; overflow: hidden;
+      box-shadow: 0 8px 40px var(--overlay-bg-mid);
+    }
+    .ssh-modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 18px; background: var(--bg-terminal-header-dark);
+      border-bottom: 1px solid var(--bg-hover);
+    }
+    .ssh-modal-header-left { display: flex; align-items: center; gap: 8px; }
+    .ssh-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .ssh-dot.red { background: var(--term-red); }
+    .ssh-dot.yellow { background: var(--term-yellow); }
+    .ssh-dot.green { background: var(--term-green); }
+    .ssh-modal-title { font-size: var(--font-size-xs); color: var(--log-success); margin-left: 6px; font-family: var(--font-mono); }
+    .ssh-close-btn {
+      background: transparent; border: 1px solid var(--border-color);
+      color: var(--text-muted); width: 30px; height: 30px; border-radius: 15px 15px 3px 15px;
+      cursor: pointer; font-size: var(--font-size-base); display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s, color 0.2s;
+    }
+    .ssh-close-btn:hover { background: rgba(255, 45, 45, 0.10); color: var(--accent-red-strong); border-color: rgba(255, 45, 45, 0.25); }
+    .ssh-modal-body {
+      padding: 16px 18px 18px;
+      font-family: var(--font-mono);
+      font-size: var(--font-size-sm); line-height: 1.75;
+      color: var(--text-terminal-dark); min-height: 260px; max-height: 340px;
+      overflow-y: auto;
+    }
+
+    @media (max-width: 1520px) { .instances-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 799px) { .instances-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 999px) {
+      .main-content {
+        margin-left: 256px;
+      }
+      .top-bar {
+      height: auto;
+      min-height: 72px;
+      padding: 16px 18px;
+    }
+      .content-body { padding: 18px 18px 24px; }
+
+      /* Hide "+ New Instance" from the page content on mobile — only the
+         mobile-header clone stays visible, so no duplication */
+      .top-bar-right .btn-new-instance {
+        display: none !important;
+      }
+
+      .mobile-header {
+        justify-content: space-between;
+      }
+    }
+    @media (max-width: 620px) {
+      .main-content { margin-left: 256px; }
+      .top-bar-right { flex-wrap: wrap; }
+    }
+  </style>
+  <link rel="stylesheet" href="shared-dropdown.css">
+  <link rel="stylesheet" href="shared-sidebar.css">
+</head>
+<body>
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+    <a href="saas_dashboard.html" class="sidebar-brand-link">
+      <div class="sidebar-brand">
+        <img src="Logo.svg" alt="GridNode" class="brand-logo" data-logo-theme />
+<img src="brand-logo-icon.svg" alt="GridNode icon" class="brand-logo-icon" />
+      </div>
+    </a>
+
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="saas_dashboard.html">
+        <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-6l-2-2H5a2 2 0 0 0-2 2z"></path><line x1="3" y1="12" x2="21" y2="12"></line></svg></span>
+        <span>Dashboard</span>
+      </a>
+      <a class="nav-item active" href="instances.html">
+        <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg></span>
+        <span>Cloud Instances</span>
+      </a>
+      <a class="nav-item" href="metrics.html">
+        <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line><line x1="3" y1="20" x2="21" y2="20"></line></svg></span>
+        <span>Metrics Analytics</span>
+      </a>
+      <a class="nav-item" href="system_logs.html">
+        <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"></rect><line x1="7" y1="9" x2="17" y2="9"></line><line x1="7" y1="12.5" x2="14" y2="12.5"></line><line x1="7" y1="16" x2="10" y2="16"></line></svg></span>
+        <span>System Logs</span>
+      </a>
+      <a class="nav-item" href="api_keys.html">
+        <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><circle cx="12" cy="10" r="1.8"></circle><path d="M12 11.8V16"></path></svg></span>
+        <span>API Keys</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-profile" id="profileDropdown">
+      <div class="profile-avatar">DU</div>
+      <div class="profile-info">
+        <span class="profile-name">DemoTest User</span>
+        <span class="user-plan-badge">Starter Plan</span>
+      </div>
+      <div class="profile-action-btn">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </div>
+      <div class="profile-popover" id="profilePopover">
+        <a href="pricing.html?mode=app" class="popover-link">
+          <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          Billing &amp; Plan
+        </a>
+        <a href="settings.html" class="popover-link">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Settings
+        </a>
+        <div class="dropdown-divider"></div>
+        <a href="login.html" class="popover-link text-danger">
+          <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Log Out
+        </a>
+      </div>
+    </div>
+
+    <a class="nav-item support-link" href="support.html" title="Tech Support">
+      <span class="nav-icon support-icon">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+      </span>
+      <span>Support</span>
+    </a>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <main class="main-content">
+
+    <!-- Top Bar -->
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <h1>Cloud Instances</h1>
+        <p class="page-subtitle">4 servers · 3 running · 1 offline</p>
+      </div>
+      <div class="top-bar-right">
+        <button type="button" class="btn-primary btn-new-instance"><span class="plus-icon">+</span> New Instance</button>
+      </div>
+    </header>
+
+    <!-- Content Body -->
+    <div class="content-body">
+
+      <section class="instances-grid" id="instances-grid">
+        <!-- Cards injected by JS -->
+      </section>
+
+    </div>
+  </main>
+
+    <script>
+      // Generic tab navigation fallback
+      (function() {
+        document.addEventListener('click', function(e) {
+          var node = e.target;
+          var attrEl = node.closest('[data-tab-target],[data-nav-tab],[data-tab-target-id]');
+          if (attrEl) {
+            var val = attrEl.getAttribute('data-tab-target') || attrEl.getAttribute('data-nav-tab') || attrEl.getAttribute('data-tab-target-id') || '';
+            if ((/^tab-?2$|^2$|tab2$|^tab-?3$|^3$|tab3$/i).test(val)) {
+              var tab4 = document.querySelector('[data-tab="4"], #tab4, [data-tab-id="tab4"], .tab-4, .tab4');
+              if (tab4) { tab4.click(); }
+              return;
+            }
+          }
+
+          var panel = node.closest('[data-tab-panel="2"], [data-tab-index="2"], .tab-2, .tab2, #tab2, [data-tab-panel="3"], [data-tab-index="3"], .tab-3, .tab3, #tab3');
+          if (panel) {
+            var fallbackTab4 = document.querySelector('[data-tab="4"], #tab4, [data-tab-id="tab4"], .tab-4, .tab4');
+            if (fallbackTab4) { fallbackTab4.click(); }
+          }
+        });
+      })();
+    </script>
+
+    <!-- ===== SSH Terminal Modal ===== -->
+  <div class="ssh-overlay" id="ssh-overlay">
+    <div class="ssh-modal">
+      <div class="ssh-modal-header">
+        <div class="ssh-modal-header-left">
+          <div class="ssh-dot red"></div>
+          <div class="ssh-dot yellow"></div>
+          <div class="ssh-dot green"></div>
+          <span class="ssh-modal-title" id="ssh-title">gridnode@ssh — ubuntu-24-04-lts-oracle</span>
+        </div>
+        <button class="ssh-close-btn" id="ssh-close">✕</button>
+      </div>
+      <div class="ssh-modal-body" id="ssh-body">
+        <div class="terminal-line"><span class="terminal-ts" style="color:var(--text-dim);">[13:45:01]</span><span style="color:var(--accent-green);">$</span><span style="color:var(--text-terminal);"> ssh gridnode@130.61.12.84</span></div>
+        <div class="terminal-line"><span class="terminal-ts" style="color:var(--text-dim);">[13:45:02]</span><span style="color:var(--accent-sky);">[INFO]</span><span style="color:var(--text-terminal);"> Authenticated via OpenSSH Key (ed25519)</span></div>
+        <div class="terminal-line"><span class="terminal-ts" style="color:var(--text-dim);">[13:45:03]</span><span style="color:var(--accent-green);">[ OK ]</span><span style="color:var(--text-terminal);"> Connection established</span></div>
+        <div class="terminal-line"><span class="terminal-ts" style="color:var(--text-dim);">[13:45:04]</span><span style="color:var(--text-terminal);">gridnode@ubuntu-24-04:~$ </span><span style="color:var(--accent-teal-bright);">_</span></div>
+      </div>$popover
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      // ===== Server Data =====
+      var serverData = {
+        'ubuntu-24-04-lts-oracle': {
+          name: 'ubuntu-24-04-lts-oracle',
+          status: 'running',
+          specs: '4 vCPUs Ampere / 24 GB RAM / 100 GB SSD',
+          ip: '130.61.12.84',
+          diskUsed: 45,
+          diskTotal: 100,
+          cpu: 42,
+          ramUsed: 12.4,
+          ramTotal: 24
+        },
+        'ubuntu-24-04-vps-02': {
+          name: 'ubuntu-24-04-vps-02',
+          status: 'running',
+          specs: '2 vCPUs / 8 GB RAM / 50 GB SSD',
+          ip: '130.61.95.21',
+          diskUsed: 18,
+          diskTotal: 50,
+          cpu: 15,
+          ramUsed: 6.2,
+          ramTotal: 8
+        },
+        'debian-12-database': {
+          name: 'debian-12-database',
+          status: 'offline',
+          specs: '4 vCPUs / 16 GB RAM / 120 GB SSD',
+          ip: '140.82.12.11',
+          diskUsed: 72,
+          diskTotal: 120,
+          cpu: 0,
+          ramUsed: 0,
+          ramTotal: 16
+        },
+        'centos-8-gateway': {
+          name: 'centos-8-gateway',
+          status: 'running',
+          specs: '2 vCPUs / 4 GB RAM / 40 GB SSD',
+          ip: '140.82.20.55',
+          diskUsed: 12,
+          diskTotal: 40,
+          cpu: 8,
+          ramUsed: 1.8,
+          ramTotal: 4
+        }
+      };
+
+      var grid = document.getElementById('instances-grid');
+
+      // ===== Render Card =====
+      function buildCard(server) {
+        var diskPct = Math.round((server.diskUsed / server.diskTotal) * 100);
+        var ramPct = Math.round((server.ramUsed / server.ramTotal) * 100);
+        var statusClass = server.status === 'running' ? 'running' : 'offline';
+        var statusLabel = server.status === 'running' ? 'Running' : 'Offline';
+        var actionBtnLabel = server.status === 'running' ? 'Shutdown' : 'Start';
+
+        return '<div class="instance-card" data-server="' + server.name + '" data-status="' + server.status + '">' +
+          '<div class="instance-card-header">' +
+            '<h3>' + server.name + '</h3>' +
+            '<span class="instance-badge ' + statusClass + '" data-status="' + server.status + '">' +
+              '<span class="dot status-dot"></span> ' + statusLabel +
+            '</span>' +
+          '</div>' +
+          '<div class="instance-detail">' +
+            '<div class="instance-detail-row"><span class="label">Specs</span><span class="value">' + server.specs + '</span></div>' +
+            '<div class="instance-detail-row"><span class="label">IP Address</span><span class="value">' + server.ip + '</span></div>' +
+          '</div>' +
+          '<div class="instance-metrics">' +
+            '<div class="instance-metric">' +
+              '<div class="instance-metric-header"><span>SSD Storage</span><span class="val">' + server.diskUsed + ' GB / ' + server.diskTotal + ' GB used</span></div>' +
+              '<div class="instance-bar-track"><div class="instance-bar-fill" style="width:' + diskPct + '%;"></div></div>' +
+            '</div>' +
+            '<div class="instance-metric">' +
+              '<div class="instance-metric-header"><span>CPU</span><span class="val">' + server.cpu + '%</span></div>' +
+              '<div class="instance-bar-track"><div class="instance-bar-fill" style="width:' + server.cpu + '%;"></div></div>' +
+            '</div>' +
+            '<div class="instance-metric">' +
+              '<div class="instance-metric-header"><span>RAM</span><span class="val">' + server.ramUsed + ' GB / ' + server.ramTotal + ' GB</span></div>' +
+              '<div class="instance-bar-track"><div class="instance-bar-fill" style="width:' + ramPct + '%;"></div></div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="instance-actions">' +
+            '<button class="instance-btn ssh" data-action="ssh">SSH Console</button>' +
+            '<button class="instance-btn reboot" data-action="reboot">Reboot</button>' +
+            '<button class="instance-btn shutdown" data-action="shutdown">' + actionBtnLabel + '</button>' +
+          '</div>' +
+        '</div>';
+      }
+
+      // ===== Render All Cards =====
+      function renderAll() {
+        grid.innerHTML = '';
+        Object.keys(serverData).forEach(function(key) {
+          grid.insertAdjacentHTML('beforeend', buildCard(serverData[key]));
+        });
+      }
+      renderAll();
+
+      // ===== SSH Modal =====
+      var sshOverlay = document.getElementById('ssh-overlay');
+      var sshClose = document.getElementById('ssh-close');
+      var sshTitle = document.getElementById('ssh-title');
+      var sshBody = document.getElementById('ssh-body');
+
+      function openSSH(name, ip) {
+        sshTitle.textContent = 'gridnode@ssh — ' + name;
+        sshBody.innerHTML =
+          '<div class="terminal-line"><span style="color:var(--text-dim);">[13:45:01]</span><span style="color:var(--accent-green);">$</span><span style="color:var(--text-terminal);"> ssh gridnode@' + ip + '</span></div>' +
+          '<div class="terminal-line"><span style="color:var(--text-dim);">[13:45:02]</span><span style="color:var(--accent-sky);">[INFO]</span><span style="color:var(--text-terminal);"> Authenticated via OpenSSH Key (ed25519)</span></div>' +
+          '<div class="terminal-line"><span style="color:var(--text-dim);">[13:45:03]</span><span style="color:var(--accent-green);">[ OK ]</span><span style="color:var(--text-terminal);"> Connection established</span></div>' +
+          '<div class="terminal-line"><span style="color:var(--text-dim);">[13:45:04]</span><span style="color:var(--text-terminal);">gridnode@' + name + ':~$ </span><span style="color:var(--accent-teal-bright);">_</span></div>';
+        sshOverlay.classList.add('open');
+      }
+
+      sshClose.addEventListener('click', function() { sshOverlay.classList.remove('open'); });
+      sshOverlay.addEventListener('click', function(e) { if (e.target === sshOverlay) sshOverlay.classList.remove('open'); });
+
+      // ===== Card Interactions (Event Delegation) =====
+      grid.addEventListener('click', function(e) {
+        var btn = e.target.closest('.instance-btn');
+        if (!btn) return;
+
+        var card = btn.closest('.instance-card');
+        var serverName = card.getAttribute('data-server');
+        var badge = card.querySelector('.instance-badge');
+        var shutdownBtn = card.querySelector('.instance-btn.shutdown');
+
+        if (btn.getAttribute('data-action') === 'ssh') {
+          var server = serverData[serverName];
+          if (server) openSSH(serverName, server.ip);
+          return;
+        }
+
+        if (btn.getAttribute('data-action') === 'shutdown') {
+          var isOffline = badge.getAttribute('data-status') === 'offline';
+
+          if (!isOffline) {
+            // Shutdown
+            shutdownBtn.textContent = 'Stopping...';
+            shutdownBtn.disabled = true;
+            setTimeout(function() {
+              badge.className = 'instance-badge offline';
+              badge.setAttribute('data-status', 'offline');
+              badge.innerHTML = '<span class="dot status-dot"></span> Offline';
+              shutdownBtn.textContent = 'Start';
+              shutdownBtn.disabled = false;
+              card.setAttribute('data-status', 'offline');
+            }, 1500);
+          } else {
+            // Start
+            shutdownBtn.textContent = 'Starting...';
+            shutdownBtn.disabled = true;
+            setTimeout(function() {
+              badge.className = 'instance-badge running';
+              badge.setAttribute('data-status', 'running');
+              badge.innerHTML = '<span class="dot status-dot"></span> Running';
+              shutdownBtn.textContent = 'Shutdown';
+              shutdownBtn.disabled = false;
+              card.setAttribute('data-status', 'running');
+            }, 1500);
+          }
+          return;
+        }
+
+        if (btn.getAttribute('data-action') === 'reboot') {
+          btn.textContent = 'Rebooting...';
+          btn.disabled = true;
+          // Set to rebooting state
+          var oldClass = badge.className;
+          var oldHTML = badge.innerHTML;
+          badge.className = 'instance-badge rebooting';
+          badge.setAttribute('data-status', 'rebooting');
+          badge.innerHTML = '<span class="dot status-dot"></span> Rebooting';
+
+          setTimeout(function() {
+            badge.className = 'instance-badge running';
+            badge.setAttribute('data-status', 'running');
+            badge.innerHTML = '<span class="dot status-dot"></span> Running';
+            btn.textContent = 'Reboot';
+            btn.disabled = false;
+          }, 2000);
+          return;
+        }
+      });
+
+    })();
+  </script>
+
+
+  <script src="shared-sidebar.js" defer></script>
+  <script src="auth-links.js" defer></script>
+
+  <script>
+    // Move "+ New Instance" into the global mobile header (which replaces
+    // the sidebar on screens <= 780px). shared-sidebar.js is deferred, so it has
+    // already created .mobile-header by the time DOMContentLoaded fires.
+    document.addEventListener('DOMContentLoaded', function () {
+      var header = document.querySelector('.mobile-header');
+      var sourceBtn = document.querySelector('.top-bar-right .btn-new-instance');
+      if (!header || !sourceBtn || header.querySelector('.btn-new-instance--mobile')) return;
+
+      var mobileBtn = sourceBtn.cloneNode(true);
+      mobileBtn.classList.add('btn-new-instance--mobile');
+      mobileBtn.setAttribute('aria-label', 'New Instance');
+      mobileBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        window.location.href = 'instance-wizard.html';
+      });
+      header.appendChild(mobileBtn);
+    });
+  </script>
+</body>
+</html>

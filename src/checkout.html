@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GridNode — Review &amp; Payment</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet" />
+  <link rel="icon" href="FAV.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="theme.css" />
+  <script>
+    (function () {
+      try {
+        var s = JSON.parse(localStorage.getItem('gridnode_settings') || '{}');
+        document.documentElement.setAttribute('data-theme', s.theme === 'light' ? 'light' : 'dark');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg-base); color: var(--text-main);
+      font-family: var(--font-body); font-size: var(--font-size-base);
+      line-height: 1.6; -webkit-font-smoothing: antialiased; overflow-x: hidden;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ===== Header ===== */
+    .site-header {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      height: 72px; padding: 0 28px 0 22px;
+      background: var(--bg-sticky); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+    }
+    .header-brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .brand-logo { height: 36px; width: auto; display: block; transform: translateY(1px); }
+    .back-link { height: 38px; padding: 0 20px; }
+
+    /* ===== Split layout (EGS / Instance Wizard style) ===== */
+    .checkout-shell {
+      max-width: 1400px; margin: 0 auto; padding: 40px 40px 60px;
+      display: grid; grid-template-columns: 1.85fr 1fr; gap: 36px; align-items: start;
+    }
+    .pane-left { min-width: 0; }
+    .pane-right {
+      position: sticky; top: 96px;
+      background: var(--bg-surface); border: 1px solid var(--border-color);
+      border-radius: 34px 34px 5px 34px; padding: 26px;
+    }
+    .pane-title {
+      font-family: var(--font-head); font-size: var(--font-size-section);
+      font-weight: 700; color: var(--text-main); letter-spacing: 0.02em; margin-bottom: 22px;
+    }
+    .pane-title.small { font-size: var(--font-size-lg); font-weight: 600; margin-bottom: 14px; }
+
+    /* ===== Product card (EGS cart item style) ===== */
+    .product-card {
+      display: grid; grid-template-columns: auto 1fr auto; grid-template-rows: auto auto; column-gap: 24px; row-gap: 10px; align-items: start;
+      background: var(--bg-card); border: 1px solid var(--border-card);
+      border-radius: 24px 24px 5px 24px; padding: 22px; margin-bottom: 30px;
+    }
+    .plan-badge-svg { width: 64px; height: 64px; flex-shrink: 0; display: block; transform: rotate(180deg); border-radius: 14px; background: linear-gradient(var(--grad-angle), var(--brand-stops)); }
+    .product-header-group { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; width: 100%; }
+    .product-info { grid-column: 2; grid-row: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .product-name { font-family: var(--font-head); font-size: var(--font-size-lg); font-weight: 600; color: var(--text-main); }
+    .product-desc { font-size: var(--font-size-sm); color: var(--text-muted); line-height: 1.55; }
+    .product-specs { grid-column: 2; grid-row: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    .spec-chip {
+      font-size: var(--font-size-xs); font-weight: 600; color: var(--text-secondary);
+      background: var(--bg-hover-subtle); border: 1px solid var(--border-color);
+      border-radius: 999px; padding: 4px 12px;
+    }
+    .product-price-block { grid-column: 3; grid-row: 1; text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+    .price-old {
+      font-family: var(--font-head); font-size: var(--font-size-base); color: var(--text-muted);
+      text-decoration: line-through; opacity: 0.85;
+    }
+    .price-new { font-family: var(--font-head); font-size: 28px; font-weight: 700; color: var(--accent-teal); line-height: 1.1; }
+    .price-new small { font-size: var(--font-size-sm); color: var(--text-muted); font-weight: 500; }
+    .discount-badge {
+      font-family: var(--font-head); font-size: var(--font-size-xs); font-weight: 700;
+      letter-spacing: 0.05em; text-transform: uppercase;
+      color: var(--text-on-accent); background: var(--accent-teal);
+      border-radius: 999px; padding: 4px 12px; grid-column: 3; grid-row: 2; align-self: start; justify-self: end;
+      width: fit-content; max-width: max-content; white-space: nowrap;
+    }
+
+    /* ===== Payment method ===== */
+    .pm-list { display: flex; flex-direction: column; gap: 12px; }
+    .pm-option {
+      position: relative; display: flex; align-items: center; gap: 14px; width: 100%;
+      background: var(--bg-card); border: 1px solid var(--border-card);
+      border-radius: 18px 18px 4px 18px; padding: 16px 18px; cursor: pointer;
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+    .pm-option:hover { background: var(--bg-hover-subtle); }
+    .pm-option input { position: absolute; opacity: 0; pointer-events: none; }
+    .pm-dot {
+      width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
+      border: 2px solid var(--border-color); display: flex; align-items: center; justify-content: center;
+      transition: border-color 0.2s ease;
+    }
+    .pm-dot::after { content: ''; width: 9px; height: 9px; border-radius: 50%; background: transparent; transition: background 0.2s ease; }
+    .pm-option.selected { border-color: var(--accent-teal); background: color-mix(in srgb, var(--accent-teal) 8%, var(--bg-card)); }
+    .pm-option.selected .pm-dot { border-color: var(--accent-teal); }
+    .pm-option.selected .pm-dot::after { background: var(--accent-teal); }
+    .pm-icon {
+      color: var(--text-primary);
+      width: 40px; height: 40px; border-radius: 12px 12px 3px 12px; flex-shrink: 0;
+      background: var(--bg-base); display: flex; align-items: center; justify-content: center;
+    }
+    .pm-icon svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .pm-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+    .pm-title-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .pm-name { font-family: var(--font-head); font-weight: 600; font-size: var(--font-size-base); color: var(--text-main); white-space: nowrap; }
+    .pm-note { font-size: var(--font-size-sm); color: var(--text-muted); line-height: 1.45; }
+    .pm-tag {
+      display: inline-flex; align-items: center; margin-left: 8px; flex-shrink: 0;
+      font-size: var(--font-size-xs); font-weight: 700;
+      letter-spacing: 0.05em; text-transform: uppercase; color: var(--accent-teal);
+      border: 1px solid color-mix(in srgb, var(--accent-teal) 35%, transparent);
+      border-radius: 999px; padding: 3px 10px;
+    }
+    .pm-other {
+      display: flex; align-items: center; gap: 14px; opacity: 0.65; cursor: not-allowed;
+      background: transparent; border: 1px dashed var(--border-color);
+      border-radius: 18px 18px 4px 18px; padding: 16px 18px; width: 100%;
+    }
+    .pm-other .pm-name { color: var(--text-muted); }
+    .pm-other .pm-note { color: var(--text-dim); }
+    .pm-other .pm-icon { background: var(--bg-base); color: var(--text-primary); }
+    .secure-note { display: flex; align-items: center; gap: 8px; margin: 18px 0 6px; font-size: var(--font-size-sm); color: var(--text-muted); }
+    .secure-note svg { width: 15px; height: 15px; stroke: var(--accent-teal); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+
+    /* ===== Summary ===== */
+    .sum-rows { display: flex; flex-direction: column; gap: 10px; }
+    .sum-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: var(--font-size-sm); color: var(--text-muted); }
+    .sum-row .val { font-family: var(--font-head); font-weight: 600; color: var(--text-main); }
+    .sum-row .val.discount-val { color: var(--accent-teal); }
+    .sum-row.total { border-top: 1px solid var(--border-color); padding-top: 16px; margin-top: 16px; align-items: center; }
+    .grand-label { font-family: var(--font-head); font-size: var(--font-size-base); font-weight: 700; color: var(--text-main); }
+    .grand { font-family: var(--font-head); font-size: 32px; font-weight: 700; color: var(--text-main); line-height: 1.1; }
+
+    .promo-row { display: flex; gap: 8px; align-items: center; margin: 18px 0 6px; }
+    .promo-wrap { flex: 1; min-width: 0; }
+    .promo-input {
+      width: 100%;
+      height: 40px;
+      padding: 0 14px;
+    }
+    .promo-apply { height: 40px; padding: 0 18px; border-radius: 20px 20px 4px 20px; font-size: var(--font-size-sm); flex-shrink: 0; }
+    .promo-hint { font-size: var(--font-size-xs); color: var(--accent-teal); margin: 0 0 4px; min-height: 1.2em; }
+    .checkout-cta { width: 100%; padding: 14px; font-size: var(--font-size-base); margin-top: 16px; }
+    .consent { display: flex; align-items: flex-start; gap: 10px; margin-top: 24px; font-size: var(--font-size-xs); color: var(--text-muted); line-height: 1.5; cursor: pointer; }
+    .consent input { width: 16px; height: 16px; margin-top: 2px; flex-shrink: 0; accent-color: var(--accent-blue); cursor: pointer; }
+    .consent a { color: var(--accent-blue-bright); font-weight: 600; }
+    [data-theme="light"] .consent a { color: var(--accent-blue); }
+    .pay-success {
+      display: none; margin-top: 14px; padding: 12px 16px; gap: 12px; align-items: flex-start;
+      background: color-mix(in srgb, var(--accent-teal) 10%, transparent);
+      border: 1px solid color-mix(in srgb, var(--accent-teal) 35%, transparent);
+      border-radius: 12px 12px 3px 12px;
+      color: var(--accent-teal); font-size: var(--font-size-sm); font-weight: 600;
+    }
+    .pay-success.show { display: flex; }
+    .pay-success .tick { transform: translateY(4px); font-size: 22px; line-height: 1.2; font-weight: 700; color: var(--status-success); flex-shrink: 0; }
+    .pay-success-text { display: flex; flex-direction: column; gap: 2px; color: var(--text-main); }
+    .pay-success-text strong { font-weight: 700; }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 1100px) { .checkout-shell { padding: 32px 24px 50px; gap: 24px; } }
+    @media (max-width: 920px) {
+      .sum-row.sum-row-taxes {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+      }
+      .sum-row.sum-row-taxes .val {
+        text-align: right;
+        flex-shrink: 0;
+      }
+    }
+    @media (max-width: 900px) {
+      .checkout-shell { grid-template-columns: 1fr; padding: 24px 18px 40px; }
+      .pane-right { position: static; order: 2; }
+      .pane-left { order: 1; }
+      .product-card { grid-template-columns: 1fr; gap: 14px; }
+      .plan-badge-svg, .product-info, .product-price-block, .product-specs { grid-column: 1; grid-row: auto; justify-self: stretch; }
+      .product-header-group { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+      .product-info { flex: 1; min-width: 0; }
+      .discount-badge { grid-column: auto; grid-row: auto; align-self: center; justify-self: start; width: fit-content; max-width: max-content; }
+      .product-price-block {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: baseline;
+        gap: 10px;
+        justify-content: flex-start;
+        text-align: left;
+      }
+      .product-price-block .price-old,
+      .product-price-block .price-new {
+        white-space: nowrap;
+      }
+    }
+    .mobile-br { display: none; }
+    @media (max-width: 600px) {
+      .mobile-br { display: block; }
+      .pm-option, .pm-other {
+        display: grid;
+        grid-template-columns: 20px 1fr;
+        gap: 10px 12px;
+        align-items: center;
+      }
+      .pm-dot {
+        grid-column: 1;
+        grid-row: 1;
+        flex-shrink: 0;
+      }
+      .pm-icon {
+        grid-column: 2;
+        grid-row: 1;
+        justify-self: start;
+        flex-shrink: 0;
+      }
+      .pm-text {
+        display: contents;
+      }
+      .pm-title-row {
+        display: contents;
+      }
+      .pm-name {
+        grid-column: 2;
+        grid-row: 1;
+        margin-left: 52px;
+        font-weight: 600;
+        line-height: 1.25;
+        white-space: normal;
+      }
+      .pm-tag {
+        grid-column: 2;
+        grid-row: 2;
+        margin: 2px 0 0 0 !important;
+        align-self: flex-start !important;
+        justify-self: start;
+        flex-shrink: 0;
+      }
+      .pm-note {
+        grid-column: 2;
+        grid-row: 3;
+        margin-top: 2px;
+        padding-left: 0;
+        font-size: 13px;
+        color: var(--text-muted);
+        width: auto;
+      }
+    }
+    @media (min-width: 380px) and (max-width: 600px) {
+      .pm-tag {
+        position: absolute;
+        top: 16px;
+        right: 18px;
+        grid-column: auto !important;
+        grid-row: auto !important;
+        margin: 0 !important;
+        z-index: 2;
+      }
+    }
+    @media (max-width: 620px) {
+      .site-header { padding: 0 14px; }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="site-header">
+    <a href="saas_dashboard.html" class="header-brand">
+      <img src="Logo.svg" alt="GridNode" class="brand-logo" data-logo-theme />
+    </a>
+    <a href="pricing.html?mode=app" class="btn btn-secondary back-link">Back to Pricing</a>
+  </header>
+
+  <main class="checkout-shell">
+    <!-- ===== LEFT: Product & Payment Method (~65%) ===== -->
+    <section class="pane-left">
+      <h1 class="pane-title">Review &amp; Payment</h1>
+
+      <div class="product-card">
+        <svg class="plan-badge-svg" width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <rect width="64" height="64" rx="14" fill="none"/>
+  <path d="M32 18L44 25V39L32 46L20 39V25L32 18Z" stroke="white" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M32 18V32M32 32L44 39M32 32L20 39" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="32" cy="32" r="3.5" fill="white"/>
+</svg>
+        <div class="product-info">
+          <div class="product-header-group">
+            <div class="product-name" id="plan-name">Pro Plan Subscription</div>
+            <span class="discount-badge discount-badge-desktop">100% Demotest Discount</span>
+          </div>
+          <p class="product-desc">Monthly subscription to the GridNode cloud platform. Includes dedicated compute resources, priority scheduling and full API access.</p>
+        </div>
+        <div class="product-price-block">
+          <span class="price-old" id="plan-price-old">$49.00/mo</span>
+          <span class="price-new">$0.00 <small>/mo</small></span>
+        </div>
+        <div class="product-specs">
+          <span class="spec-chip">8 vCPU / 32 GB RAM</span>
+          <span class="spec-chip">1&times; GPU (A10G)</span>
+          <span class="spec-chip">1 TB NVMe</span>
+          <span class="spec-chip">5 TB Outbound transfer</span>
+        </div>
+      </div>
+
+      <h2 class="pane-title small">Payment Method</h2>
+      <div class="pm-list" id="pm-list">
+        <label class="pm-option selected">
+          <input type="radio" name="payment-method" checked />
+          <span class="pm-dot" aria-hidden="true"></span>
+          <span class="pm-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          </span>
+          <span class="pm-text">
+            <span class="pm-title-row">
+              <span class="pm-name">Demotest Pay /<br class="mobile-br" /> Account Credits</span>
+              <span class="pm-tag">Default</span>
+            </span>
+            <span class="pm-note">Charged to active demo account (demo@gridnode.io). No credit card required.</span>
+          </span>
+        </label>
+        <div class="pm-other" aria-disabled="true">
+          <span class="pm-dot" aria-hidden="true"></span>
+          <span class="pm-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg>
+          </span>
+          <span class="pm-text">
+            <span class="pm-title-row">
+              <span class="pm-name">Credit /<br class="mobile-br" /> Debit Card</span>
+            </span>
+            <span class="pm-note">Unavailable during the demo period.</span>
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== RIGHT: Order Summary sidebar (~35%, sticky) ===== -->
+    <aside class="pane-right">
+      <h2 class="pane-title small">Order Summary</h2>
+      <div class="sum-rows">
+        <div class="sum-row"><span>Original Price</span><span class="val" id="total-original">$49.00</span></div>
+        <div class="sum-row"><span>Demotest Discount (100%)</span><span class="val discount-val" id="total-discount">-$49.00</span></div>
+        <div class="sum-row"><span>Subtotal</span><span class="val" id="total-subtotal">$0.00</span></div>
+        <div class="sum-row sum-row-taxes"><span>Taxes</span><span class="val">Calculated at checkout ($0.00)</span></div>
+      </div>
+
+      <div class="promo-row">
+        <div class="input-wrap promo-wrap">
+          <input type="text" class="promo-input form-input" id="promo-input" placeholder="Promo code" aria-label="Promo code" />
+        </div>
+        <button type="button" class="btn btn-secondary promo-apply" id="promo-apply">Apply</button>
+      </div>
+      <div class="promo-hint" id="promo-hint" role="status"></div>
+
+      <div class="sum-row total"><span class="grand-label">Total Due Today</span><span class="grand" id="total-grand">$0.00</span></div>
+
+      <p class="secure-note">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Demo environment — no real charges will be made.
+      </p>
+
+      <button class="btn btn-primary checkout-cta" id="pay-btn">Complete Purchase</button>
+      <div class="pay-success" id="pay-success"><span class="tick">&#10003;</span><div class="pay-success-text"><strong>Purchase complete</strong><span>Pro plan activated on your demo account.</span></div></div>
+
+      <label class="consent">
+        <input type="checkbox" id="consent-check" />
+        <span>I agree to the <a href="legal/terms.html">Terms of Service</a> and confirm the details of this order.</span>
+      </label>
+    </aside>
+  </main>
+
+  <script>
+    var PLANS = {
+      pro: { badge: 'PRO', name: 'Pro Plan Subscription', price: 49 },
+      starter: { badge: 'ST', name: 'Starter Plan Subscription', price: 0 },
+      enterprise: { badge: 'ENT', name: 'Enterprise Plan Subscription', price: 199 }
+    };
+    var planKey = new URLSearchParams(window.location.search).get('plan') || 'pro';
+    var plan = PLANS[planKey] || PLANS.pro;
+
+    function money(v) { return '$' + v.toFixed(2); }
+    document.getElementById('plan-name').textContent = plan.name;
+    document.getElementById('plan-price-old').textContent = money(plan.price) + '/mo';
+    document.getElementById('total-original').textContent = money(plan.price);
+    document.getElementById('total-discount').textContent = '-' + money(plan.price);
+    document.getElementById('total-subtotal').textContent = money(plan.price - plan.price);
+
+    document.getElementById('promo-apply').addEventListener('click', function () {
+      var code = document.getElementById('promo-input').value.trim().toUpperCase();
+      document.getElementById('promo-hint').textContent =
+        code === 'SAVE20' ? 'Promo applied — already included in the 100% demo discount.'
+        : code && code !== 'SAVE20' ? 'Invalid promo code. Try SAVE20.' : '';
+    });
+
+    document.getElementById('pm-list').addEventListener('change', function () {
+      document.querySelectorAll('.pm-option').forEach(function (el) {
+        el.classList.toggle('selected', el.querySelector('input').checked);
+      });
+    });
+
+    document.getElementById('pay-btn').addEventListener('click', function () {
+      if (!document.getElementById('consent-check').checked) {
+        document.getElementById('consent-check').focus();
+        return;
+      }
+      var btn = this;
+      btn.textContent = 'Processing…';
+      btn.setAttribute('disabled', 'true');
+      setTimeout(function () {
+        btn.textContent = 'Complete Purchase';
+        btn.removeAttribute('disabled');
+        document.getElementById('pay-success').classList.add('show');
+      }, 900);
+    });
+</script>
+  <script src="auth-links.js" defer></script>
+</body>
+</html>

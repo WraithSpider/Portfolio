@@ -1,0 +1,658 @@
+.sidebar {
+  width: 256px;
+  min-height: 100vh;
+  background: var(--bg-body);
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 600;
+}
+
+.sidebar-brand-link {
+  text-decoration: none;
+  display: block;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 72px;
+  padding: 0 22px;
+}
+
+.brand-icon {
+  width: 34px;
+  height: 34px;
+  background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-teal) 100%);
+  border-radius: 8px 8px 2px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.brand-icon svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+.brand-text {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text-inverse);
+  line-height: 1;
+  font-family: var(--font-head);
+}
+
+.brand-text span {
+  color: var(--text-inverse);
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 28px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 8px 8px 2px 8px;
+  font-family: var(--font-head);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+  cursor: default;
+  user-select: none;
+  line-height: 1;
+}
+
+.nav-item .nav-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  color: currentColor;
+  opacity: 0.78;
+  flex-shrink: 0;
+  position: relative;
+  top: -1px;
+}
+
+.support-link .support-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  color: currentColor;
+  opacity: 0.78;
+  flex-shrink: 0;
+  position: relative;
+  top: 0;
+}
+
+.nav-item .nav-icon svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  overflow: visible;
+}
+
+.support-link .support-icon svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  overflow: visible;
+}
+
+.nav-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border-radius: 8px 14px 2px 8px;
+}
+
+.nav-item.active {
+  background: linear-gradient(135deg, rgba(0, 180, 167, 0.14) 0%, rgba(0, 114, 255, 0.12) 100%);
+  color: var(--text-inverse);
+  border-radius: 8px 14px 2px 8px;
+  position: relative;
+}
+
+.nav-item.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--accent-teal), var(--accent-blue));
+  pointer-events: none;
+}
+
+/* ===== SIDEBAR PROFILE DROPDOWN (always at the very bottom of the sidebar) ===== */
+.sidebar-profile {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px;
+  margin: 10px 10px 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px 14px 4px 14px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  cursor: pointer;
+  text-decoration: none;
+  order: 3;
+}
+
+.sidebar-profile:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--border-hover);
+  transform: translateY(-1px);
+}
+
+[data-theme="light"] .sidebar-profile:hover {
+  background: var(--bg-surface-hover);
+}
+
+.profile-avatar,
+.user-avatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: linear-gradient(var(--grad-angle), var(--brand-stops));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-family: var(--font-head);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--text-on-accent);
+  text-transform: uppercase;
+  cursor: pointer;
+  border: none;
+  position: relative;
+}
+
+.profile-avatar::after,
+.user-avatar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 0.5px;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.50) 0%, rgba(255,255,255,0.25) 40%, rgba(0,0,0,0.20) 60%, rgba(0,0,0,0.50) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+.profile-avatar {
+  margin-left: 0;
+}
+
+.profile-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-name {
+  display: block;
+  font-family: var(--font-head);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+  margin-top: 2px;
+}
+
+/* Compact current-plan badge under the user name (colours/border via theme tokens; geometry as specified) */
+.user-plan-badge {
+  display: block;
+  margin-top: 2px;
+  padding: 2px 0;
+  border-radius: 4px;
+  font-size: 12px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.profile-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.2s ease;
+  margin-right: -2px;
+}
+
+.profile-action-btn svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ===== Profile Popover ===== */
+.profile-popover {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  width: calc(100% + 10px);
+  z-index: 100;
+  background: var(--bg-card);
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow: inset 0 0 0 0.5px var(--border-color), 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(6px);
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+  pointer-events: none;
+}
+
+.profile-popover.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+[data-theme="light"] .profile-popover {
+  box-shadow: inset 0 0 0 0.5px var(--border-color), 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+.popover-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-family: var(--font-head);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.popover-link svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dropdown-divider {
+  height: 1px;
+  margin: 4px 0;
+  background: var(--border-subtle);
+}
+
+.popover-link.text-danger {
+  color: var(--text-muted);
+}
+
+.popover-link.text-danger:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--status-danger);
+}
+
+[data-theme="light"] .popover-link.text-danger:hover {
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.support-link {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 8px 8px 2px 8px;
+  font-family: var(--font-head);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  line-height: 1;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+}
+
+.support-link:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border-radius: 8px 14px 2px 8px;
+}
+
+.support-link.active {
+  background: linear-gradient(135deg, rgba(0, 180, 167, 0.14) 0%, rgba(0, 114, 255, 0.12) 100%);
+  color: var(--text-inverse);
+  border-radius: 8px 14px 2px 8px;
+  position: relative;
+}
+
+.support-link.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--accent-teal), var(--accent-blue));
+  pointer-events: none;
+}
+
+.brand-logo {
+  height: 36px;
+  width: auto;
+  display: block;
+}
+
+.brand-logo-icon {
+  display: none;
+}
+
+.brand-wordmark {
+  fill: var(--text-inverse);
+}
+
+/* ===== Mobile header (logo + arrow) ===== */
+.mobile-header {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  min-height: 56px;
+  align-items: center;
+  padding: 0 14px;
+  background: var(--bg-body);
+  border-bottom: 1px solid var(--border-subtle);
+  z-index: 180;
+}
+
+.mobile-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 8px;
+  transition: background 0.15s ease;
+}
+
+.mobile-brand:hover {
+  background: var(--bg-hover);
+}
+
+.mobile-brand .brand-logo-icon {
+  display: block;
+  width: 36px;
+  height: 36px;
+}
+
+.mobile-brand .logo-arrow {
+  display: block;
+  width: 14px;
+  height: 14px;
+  stroke: var(--text-primary);
+  fill: none;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.15s ease;
+}
+
+.mobile-brand.open .logo-arrow {
+  transform: rotate(180deg);
+}
+
+/* ===== Sidebar overlay (mobile) ===== */
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay-bg);
+  z-index: 178;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  pointer-events: none;
+}
+
+.sidebar-overlay.show {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* Close button — hidden by default, shown in the mobile drawer */
+.sidebar-close {
+  display: none;
+  position: absolute;
+  top: 20px;
+  right: 12px;
+  width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  z-index: 5;
+}
+
+.sidebar-close svg {
+  width: 22px;
+  height: 22px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (max-width: 999px) {
+  .mobile-header { display: flex; }
+
+  /* Mobile header action buttons (cloned "+ New Instance" / "+ Generate New
+     Key") — sized to match standard page buttons. These override the
+     per-page inline sizes because this file loads after the inline <style>. */
+  .mobile-header .btn-new-instance--mobile,
+  .mobile-header .btn-generate-key--mobile {
+    display: inline-flex;
+    align-items: center;
+    height: 36px;
+    padding: 0 14px;
+    font-size: 13px;
+  }
+
+  /* Full sidebar drawer — appears instantly */
+  .sidebar {
+    width: 290px;
+    transform: translateX(-100%);
+    z-index: 200;
+  }
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  /* Smooth slide-out when closing (open stays instant) */
+  .sidebar.closing {
+    transition: transform 0.2s ease;
+  }
+
+  /* Close button in the top-right, opposite the GridNode logo */
+  .sidebar-close {
+    display: flex;
+    top: 24px;
+  }
+
+  /* Reorder: Support is moved into the nav by JS; profile stays at the bottom */
+  .sidebar .sidebar-brand-link { order: 0; }
+  .sidebar .sidebar-nav { order: 1; padding: 4px 14px 14px; }
+  .sidebar .sidebar-profile { order: 3; }
+
+  /* Content blocks inside the sidebar drop 3px on open */
+  .sidebar .sidebar-brand,
+  .sidebar .sidebar-nav .nav-item,
+  .sidebar .sidebar-profile {
+    opacity: 0;
+    transform: translateY(-3px);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+  }
+  .sidebar.open .sidebar-brand,
+  .sidebar.open .sidebar-nav .nav-item,
+  .sidebar.open .sidebar-profile {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Stagger each item so they cascade down */
+  .sidebar.open .sidebar-nav .nav-item:nth-child(1) { transition-delay: 0.02s; }
+  .sidebar.open .sidebar-nav .nav-item:nth-child(2) { transition-delay: 0.04s; }
+  .sidebar.open .sidebar-nav .nav-item:nth-child(3) { transition-delay: 0.06s; }
+  .sidebar.open .sidebar-nav .nav-item:nth-child(4) { transition-delay: 0.08s; }
+  .sidebar.open .sidebar-nav .nav-item:nth-child(5) { transition-delay: 0.10s; }
+  .sidebar.open .sidebar-nav .nav-item:nth-child(6) { transition-delay: 0.12s; }
+  .sidebar.open .sidebar-nav .nav-item:nth-child(7) { transition-delay: 0.14s; }
+
+  .sidebar.open .sidebar-profile { transition-delay: 0.16s; }
+
+  /* Slightly larger text inside the drawer */
+  .sidebar .nav-item,
+  .sidebar .support-link,
+  .sidebar .profile-name {
+    font-size: 1.15em;
+  }
+
+  /* Bigger icons */
+  .sidebar .nav-item .nav-icon,
+  .sidebar .support-link .support-icon {
+    width: 22px;
+    height: 22px;
+  }
+  .sidebar .nav-item .nav-icon svg,
+  .sidebar .support-link .support-icon svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  /* Support icon stays +2px over the regular nav icons */
+  .sidebar .support-link .support-icon,
+  .sidebar .support-link .support-icon svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  /* Bigger touch targets + breathing room between items */
+  .sidebar-nav {
+    gap: 10px;
+  }
+  .sidebar .nav-item,
+  .sidebar .support-link {
+    gap: 12px;
+    padding: 14px 16px;
+  }
+
+  /* Profile gear icon matches the other icons */
+  .sidebar .profile-action-btn svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  /* Avatar slightly larger in mobile drawer */
+  .sidebar .profile-avatar,
+  .sidebar .user-avatar {
+    width: calc(2rem + 6px);
+    height: calc(2rem + 6px);
+  }
+
+  /* Profile dropdown — items sized like the main menu */
+  .sidebar .profile-popover {
+    width: calc(100% + 10px);
+  }
+  .sidebar .profile-popover .popover-link {
+    padding: 14px 16px;
+    font-size: 1.15em;
+    gap: 12px;
+  }
+  .sidebar .profile-popover .popover-link svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .main-content {
+    margin-left: 0;
+    padding-top: 56px;
+  }
+}
+
+/* Keep the fixed navigation and the application rail together as one
+   centered workspace on ultra-wide screens. This file loads after each
+   page's local styles, so the shared geometry remains consistent. */
+@media (min-width: 1856px) {
+  .sidebar {
+    left: calc((100vw - 1856px) / 2);
+  }
+
+  .main-content {
+    width: 1600px;
+    flex: 0 0 1600px;
+    margin-left: calc((100vw - 1856px) / 2 + 256px) !important;
+  }
+}

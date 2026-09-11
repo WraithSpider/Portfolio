@@ -1,0 +1,1552 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GridNode — Settings</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet">
+  
+  <link rel="icon" href="FAV.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="theme.css">
+  <script>
+    (function () {
+      try {
+        var s = JSON.parse(localStorage.getItem('gridnode_settings') || '{}');
+        document.documentElement.setAttribute('data-theme', s.theme === 'light' ? 'light' : 'dark');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
+<style>
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+html {
+      font-size: var(--font-size-base);
+      scroll-behavior: smooth;
+    }
+
+body {
+      font-family: var(--font-body);
+      background: var(--bg-body);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      overflow-x: hidden;
+    }
+
+.grounded-capsule {
+      border-radius: 34px 34px 5px 34px;
+    }
+
+    /* ===== SIDEBAR (styles centralized in shared-sidebar.css) ===== */
+
+    /* ===== MAIN CONTENT ===== */
+    .main-content {
+      margin-left: 256px;
+      flex: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .top-bar {
+      display: flex;
+      align-items: center;
+      min-height: 72px;
+      padding: 24px 32px;
+      border-bottom: 1px solid var(--border-soft);
+      flex-wrap: wrap;
+      gap: 24px 32px;
+    }
+
+    .top-bar-left {
+      display: flex;
+      flex-direction: column;
+    }
+
+.top-bar-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-left: auto;
+    }
+
+    /* Unscoped: the badge must sit UNDER the name in the top-bar card AND
+       in the mobile-header clone (bare spans would render in one line). */
+    .profile-info-col {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .content-body {
+      padding: 28px 32px 110px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* ===== SETTINGS GROUPS ===== */
+    .settings-group {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-card);
+      border-radius: 24px 24px 5px 24px;
+      padding: 26px 28px 0;
+    }
+
+    .group-heading {
+      font-size: var(--font-size-lg);
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: var(--text-main);
+    }
+
+    .group-head {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: -26px -28px 0;
+      padding: 20px 28px 22px;
+      background: transparent !important;
+      border-bottom: 1px solid var(--border-subtle) !important;
+      border-radius: 24px 24px 0 0;
+    }
+
+    .group-sub {
+      color: var(--text-secondary);
+      font-size: var(--font-size-sm);
+      line-height: 1.5;
+    }
+
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 28px 0;
+      border-top: 1px solid var(--border-soft);
+    }
+
+    .settings-group > .group-head + .setting-row {
+      border-top: none;
+    }
+
+    .setting-info {
+      max-width: 460px;
+      min-width: 0;
+    }
+
+.setting-label {
+      display: block;
+      font-size: var(--font-size-base);
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+.setting-helper {
+      color: var(--text-secondary);
+      font-weight: 400;
+      font-size: var(--font-size-sm);
+      margin-top: 5px;
+      line-height: 1.5;
+    }
+
+.setting-control {
+      flex-shrink: 1;
+      min-width: 0;
+    }
+
+    .segmented {
+      min-width: 320px;
+    }
+
+    /* ===== CUSTOM SELECT (dropdown fixes) ===== */
+    .custom-select {
+      width: 100%;
+      min-width: 320px;
+    }
+
+    .custom-select-trigger {
+      width: 100%;
+      min-width: 320px;
+      white-space: nowrap;
+    }
+
+    .custom-select-trigger .cs-label {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .custom-select-menu {
+      left: 0;
+      right: 0;
+      width: 100%;
+      min-width: 100%;
+    }
+
+/* Tab styling unified in theme.css (.segmented/.seg-option). */
+    .seg-option {
+      position: relative;
+      flex: 1;
+      cursor: pointer;
+      min-width: 0;
+    }
+    .seg-option span {
+      display: block;
+      width: 100%;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: center;
+    }
+
+    .seg-option input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .seg-option input:focus-visible + span {
+      outline: 2px solid rgba(0, 114, 255, 0.60);
+      outline-offset: 2px;
+    }
+
+    /* ===== TOGGLE SWITCH ===== */
+    .toggle {
+      position: relative;
+      display: inline-block;
+      cursor: pointer;
+    }
+
+    .toggle input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .toggle-track {
+      display: block;
+      width: 46px;
+      height: 26px;
+      background: var(--scroll-thumb);
+      border: 1px solid var(--border-toggle);
+      border-radius: 999px;
+      position: relative;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .toggle-thumb {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      transition: transform 0.2s ease, background 0.2s;
+    }
+
+    .toggle input:checked + .toggle-track {
+      background: linear-gradient(135deg, rgba(0, 114, 255, 0.35) 0%, rgba(0, 180, 167, 0.25) 100%);
+      border-color: rgba(0, 180, 167, 0.50);
+    }
+
+    .toggle input:checked + .toggle-track .toggle-thumb {
+      transform: translateX(20px);
+      background: var(--accent-blue);
+    }
+
+    .toggle input:focus-visible + .toggle-track {
+      outline: 2px solid rgba(0, 114, 255, 0.60);
+      outline-offset: 2px;
+    }
+
+/* ===== BUTTONS ===== */
+    .btn-primary {
+      /* appearance unified in theme.css; local size only */
+      height: 38px;
+      padding: 0 20px;
+      gap: 6px;
+    }
+
+.btn-secondary {
+      /* appearance (bg/border/font) unified in theme.css; size stays local */
+      height: 38px;
+      padding: 0 16px;
+    }
+
+.btn-danger {
+      font-family: var(--font-head);
+      height: 38px;
+      padding: 0 16px;
+      background: color-mix(in srgb, var(--status-danger) 12%, transparent);
+      border: 1px solid color-mix(in srgb, var(--status-danger) 35%, transparent);
+      color: var(--status-danger);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-danger:hover {
+      background: color-mix(in srgb, var(--status-danger) 20%, transparent);
+    }
+
+    .btn-icon-edit {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      border: 1px solid var(--border-soft);
+      background: var(--bg-input);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+
+    .btn-icon-edit:hover {
+      background: var(--bg-hover-subtle);
+      color: var(--text-primary);
+      border-color: var(--border-card);
+    }
+
+    /* ===== Profile Widget Card (top-right) ===== */
+    .profile-widget-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 999px 999px 3px 999px;
+      padding: 10px 20px 10px 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .profile-widget-card .btn-icon-edit {
+      margin-left: 30px;
+    }
+
+    /* ===== Email Card (Change Email row) ===== */
+    .email-card {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 18px;
+      background: var(--bg-hover-subtle);
+      border-radius: 8px;
+      font-size: var(--font-size-sm);
+    }
+
+    .email-change-btn {
+      margin-left: 20px;
+    }
+
+    /* ===== STICKY SAVE BAR ===== */
+    .sticky-bar {
+      position: fixed;
+      left: 246px;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding: 14px 32px;
+      background: var(--bg-body);
+      border-top: 1px solid var(--border-color);
+      z-index: 500;
+      transition: border-color 0.2s;
+    }
+
+.sticky-bar.dirty {
+      border-top-color: color-mix(in srgb, var(--status-warning) 40%, transparent);
+    }
+
+.dirty-hint {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: var(--font-size-sm);
+      color: var(--text-muted);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s, visibility 0.2s;
+    }
+
+.dirty-hint .dirty-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--status-warning);
+      box-shadow: 0 0 8px color-mix(in srgb, var(--status-warning) 40%, transparent);
+    }
+
+    .sticky-bar.dirty .dirty-hint {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .sticky-bar-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    /* ===== TOAST ===== */
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 96px;
+      transform: translate(-50%, 20px);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+background: var(--bg-toast);
+      border: 1px solid color-mix(in srgb, var(--status-success) 35%, transparent);
+      border-radius: 12px 12px 3px 12px;
+padding: 12px 18px;
+      font-size: var(--font-size-sm);
+      color: var(--text-primary);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      z-index: 1200;
+    }
+
+    .toast svg {
+      width: 16px;
+      height: 16px;
+      display: block;
+      flex-shrink: 0;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    /* ===== EXIT-INTENT MODAL ===== */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: var(--overlay-bg);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal-card {
+      width: min(480px, 100%);
+      background: var(--bg-modal);
+      border: 1px solid var(--border-strong);
+      border-radius: 24px 24px 5px 24px;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+.modal-title {
+      font-size: var(--font-size-lg);
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .modal-copy {
+      color: var(--text-muted);
+      font-size: var(--font-size-sm);
+      line-height: 1.5;
+      margin-top: 6px;
+    }
+
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: var(--font-size-lg);
+      line-height: 1;
+    }
+
+    .modal-close:hover {
+      color: var(--text-primary);
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 780px) {
+      .main-content {
+        margin-left: 256px;
+      }
+
+      .top-bar {
+      height: auto;
+      min-height: 72px;
+      padding: 16px 18px;
+    }
+
+      .content-body {
+        padding: 18px 18px 110px;
+      }
+
+      .sticky-bar {
+        left: 206px;
+        padding: 12px 18px;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .main-content {
+        margin-left: 256px;
+      }
+
+      .sticky-bar {
+        left: 0;
+        flex-direction: row;
+        align-items: center;
+      }
+
+      .sticky-bar-actions {
+        justify-content: flex-end;
+      }
+
+      .setting-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
+      }
+
+.setting-control,
+      .custom-select {
+        width: 100%;
+        min-width: 0;
+      }
+
+      .segmented {
+        width: 100%;
+      }
+    }
+
+    /* ===== MOBILE BOTTOM ACTION BAR (<999px) =====
+       With the sidebar collapsed the bar docks flush to the viewport
+       bottom, full width, no gaps or detached margins; the background and
+       border-top stretch seamlessly across the entire screen width. */
+    @media (max-width: 999px) {
+      .sticky-bar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        box-sizing: border-box;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+        padding: 12px 18px;
+        background: var(--bg-body);
+        border-top: 1px solid var(--border-color);
+        z-index: 100;
+      }
+    }
+
+    /* ===== BOTTOM ACTION BAR: COMPACT HEIGHT (<740px) =====
+       Slimmer bar on small phones; buttons keep the standard 38px height
+       and align cleanly on a single row without extra vertical space. */
+    @media (max-width: 740px) {
+      .sticky-bar {
+        padding: 10px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+      }
+
+      .sticky-bar-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+      }
+
+      .sticky-bar-actions .btn-primary,
+      .sticky-bar-actions .btn-secondary {
+        height: 38px;
+      }
+
+      /* The unsaved-changes state stays signalled by the warning
+         border-top; hiding the hint keeps the bar to one compact row. */
+      .dirty-hint {
+        display: none;
+      }
+    }
+
+    /* ===== RESPONSIVE: STACKED ROWS + OVERFLOW FIX =====
+       ≤1099px (tablets & below): rows go vertical so dropdowns, theme
+       selectors, email inputs and active sessions can never spill outside
+       their section container; every control becomes fluid. The 1100–1280px
+       range keeps the original side-by-side row layout. */
+    @media (max-width: 1099px) {
+      .setting-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+      }
+
+      .setting-info {
+        max-width: 100%;
+      }
+
+      .setting-control,
+      .custom-select,
+      .custom-select-trigger,
+      .segmented,
+      .email-row,
+      .email-card,
+      .form-input {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+      }
+
+      .email-change-btn {
+        margin-left: 0;
+      }
+
+      .sessions-list,
+      .session-item {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+      }
+    }
+
+    /* ===== USER BADGE → MOBILE HEADER (<999px) =====
+       The in-content "DemoTest User" card is hidden; its clone lives in the
+       global .mobile-header next to the logo/controls. */
+    .mobile-header .profile-widget-card--mobile {
+      display: none;
+    }
+
+    @media (max-width: 999px) {
+      .top-bar-right .profile-widget-card {
+        display: none !important;
+      }
+
+      .mobile-header {
+        justify-content: space-between;
+      }
+
+      .mobile-header .profile-widget-card--mobile {
+        display: inline-flex;
+        margin-left: auto;
+        flex-shrink: 0;
+        max-width: calc(100% - 70px);
+        padding: 6px 12px 6px 6px;
+        gap: 10px;
+        box-sizing: border-box;
+      }
+
+      .mobile-header .profile-widget-card--mobile .profile-avatar-lg {
+        width: 36px;
+        height: 36px;
+        font-size: var(--font-size-xs);
+      }
+
+      .mobile-header .profile-widget-card--mobile .profile-display-name {
+        max-width: 140px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .mobile-header .profile-widget-card--mobile .verified-badge {
+        font-size: 11px;
+      }
+
+      .mobile-header .profile-widget-card--mobile .btn-icon-edit {
+        margin-left: 0;
+        width: 30px;
+        height: 30px;
+      }
+    }
+
+    /* ===== PROFILE SECTION ===== */
+    .profile-edit {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .profile-avatar-lg {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(var(--grad-angle), var(--brand-stops));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-family: var(--font-head);
+      font-size: var(--font-size-sm);
+      font-weight: 700;
+      color: var(--text-on-accent);
+      text-transform: uppercase;
+      border: none;
+      position: relative;
+    }
+
+    .profile-avatar-lg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 0.5px;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.50) 0%, rgba(255,255,255,0.25) 40%, rgba(0,0,0,0.20) 60%, rgba(0,0,0,0.50) 100%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask-composite: exclude;
+      mix-blend-mode: overlay;
+      pointer-events: none;
+    }
+
+    .profile-fields {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 200px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 11px 14px;
+      height: 42px;
+      border-radius: 12px;
+      font-family: var(--font-body);
+      font-size: var(--font-size-sm);
+      background: var(--bg-input);
+      border: 1px solid var(--border-soft);
+      color: var(--text-primary);
+    }
+
+    [data-theme="light"] .form-input {
+      background: #FAFBFC;
+    }
+
+    .form-input:focus {
+      outline: 2px solid color-mix(in srgb, var(--accent-blue) 40%, transparent);
+      outline-offset: 0;
+      border-color: var(--accent-blue);
+    }
+
+    .form-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .email-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .profile-display-name {
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .profile-email {
+      font-size: var(--font-size-xs);
+      color: var(--text-secondary);
+    }
+
+    .email-row .form-input {
+      flex: 1;
+      min-width: 180px;
+    }
+
+    .verified-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      color: var(--status-success);
+    }
+
+    .sessions-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .session-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 14px;
+      background: var(--bg-hover-subtle);
+      border-radius: 8px;
+      font-size: var(--font-size-sm);
+      flex-wrap: nowrap;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+
+    /* Left info cluster (OS/Browser + IP + date); Revoke stays pinned right */
+    .session-info {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+
+    .session-browser {
+      font-weight: 600;
+      color: var(--text-primary);
+      min-width: 140px;
+      line-height: 1.4;
+    }
+
+    .session-ip {
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: var(--font-size-xs);
+    }
+
+    .session-date {
+      color: var(--text-muted);
+      font-size: var(--font-size-xs);
+      line-height: 1.4;
+    }
+
+    .btn-revoke-sm {
+      font-family: var(--font-head);
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      color: var(--status-danger);
+      background: transparent;
+      border: 1px solid color-mix(in srgb, var(--status-danger) 30%, transparent);
+      border-radius: 6px;
+      padding: 6px 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .btn-revoke-sm:hover {
+      background: color-mix(in srgb, var(--status-danger) 12%, transparent);
+    }
+
+    .danger-zone {
+      border-color: var(--border-card);
+    }
+
+    .danger-zone .group-head {
+      border-bottom-color: var(--border-subtle) !important;
+    }
+
+    @media (max-width: 620px) {
+      .profile-edit {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      /* Session cards keep the structured row: info cluster left (wraps
+         internally), Revoke pinned right — no column flip, no button drop */
+      .session-item {
+        gap: 10px;
+      }
+
+      .session-info {
+        gap: 4px 12px;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="shared-dropdown.css">
+  <link rel="stylesheet" href="shared-sidebar.css">
+</head>
+
+<body>
+  <aside class="sidebar">
+    <a href="saas_dashboard.html" class="sidebar-brand-link">
+      <div class="sidebar-brand">
+        <img src="Logo.svg" alt="GridNode" class="brand-logo" data-logo-theme />
+<img src="brand-logo-icon.svg" alt="GridNode icon" class="brand-logo-icon" />
+      </div>
+    </a>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="saas_dashboard.html">
+        <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-6l-2-2H5a2 2 0 0 0-2 2z"></path>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+          </svg></span>
+        <span>Dashboard</span>
+      </a>
+      <a class="nav-item" href="instances.html">
+        <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>
+          </svg></span>
+        <span>Cloud Instances</span>
+      </a>
+      <a class="nav-item" href="metrics.html">
+        <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true">
+            <line x1="18" y1="20" x2="18" y2="10"></line>
+            <line x1="12" y1="20" x2="12" y2="4"></line>
+            <line x1="6" y1="20" x2="6" y2="14"></line>
+            <line x1="3" y1="20" x2="21" y2="20"></line>
+          </svg></span>
+        <span>Metrics Analytics</span>
+      </a>
+      <a class="nav-item" href="system_logs.html">
+        <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="3.5" y="4.5" width="17" height="15" rx="2.5"></rect>
+            <line x1="7" y1="9" x2="17" y2="9"></line>
+            <line x1="7" y1="12.5" x2="14" y2="12.5"></line>
+            <line x1="7" y1="16" x2="10" y2="16"></line>
+          </svg></span>
+        <span>System Logs</span>
+      </a>
+      <a class="nav-item" href="api_keys.html">
+        <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            <circle cx="12" cy="10" r="1.8"></circle>
+            <path d="M12 11.8V16"></path>
+          </svg></span>
+        <span>API Keys</span>
+      </a>
+    </nav>
+    <div class="sidebar-profile" id="profileDropdown">
+      <div class="profile-avatar">DU</div>
+      <div class="profile-info">
+        <span class="profile-name">DemoTest User</span>
+        <span class="user-plan-badge">Starter Plan</span>
+      </div>
+      <div class="profile-action-btn">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </div>
+      <div class="profile-popover" id="profilePopover">
+        <a href="pricing.html?mode=app" class="popover-link">
+          <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          Billing &amp; Plan
+        </a>
+        <a href="settings.html" class="popover-link">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Settings
+        </a>
+        <div class="dropdown-divider"></div>
+        <a href="login.html" class="popover-link text-danger">
+          <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Log Out
+        </a>
+      </div>
+    </div>
+
+<a class="nav-item support-link" href="support.html" title="Tech Support">
+      <span class="support-icon">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+      </span>
+      <span>Support</span>
+    </a>
+  </aside>
+
+  <main class="main-content">
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <h1>Settings</h1>
+        <p class="page-subtitle">Manage how GridNode looks, behaves, and keeps you informed.</p>
+      </div>
+      <div class="top-bar-right">
+        <div class="profile-widget-card">
+          <div class="profile-avatar-lg">DU</div>
+          <div class="profile-info-col">
+            <span class="profile-display-name">DemoTest User</span>
+            <span class="verified-badge"><span class="status-dot active"></span>Verified</span>
+          </div>
+          <button class="btn-icon-edit" type="button" title="Edit profile">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="content-body">
+
+      <section class="settings-group">
+        <div class="group-head">
+          <h2 class="group-heading">General Preferences</h2>
+          <p class="group-sub">Basics that keep the dashboard feeling like yours.</p>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <label class="setting-label" for="set-timezone">Local Timezone</label>
+            <p class="setting-helper">Choose your timezone so all logs and metrics match your local clock.</p>
+          </div>
+          <div class="setting-control">
+                        <div class="custom-select">
+              <button type="button" class="custom-select-trigger" aria-haspopup="listbox" aria-expanded="false">
+                <span class="cs-label">Auto (Browser Default)</span>
+                <span class="chevron">&#9662;</span>
+              </button>
+              <div class="custom-select-menu" role="listbox">
+              <div class="custom-select-option" data-value="auto" role="option">Auto (Browser Default)</div>
+              <div class="custom-select-option" data-value="pt" role="option">(UTC-08:00) Pacific Time — US &amp; Canada</div>
+              <div class="custom-select-option" data-value="mt" role="option">(UTC-07:00) Mountain Time — US &amp; Canada</div>
+              <div class="custom-select-option" data-value="ct" role="option">(UTC-06:00) Central Time — US &amp; Canada</div>
+              <div class="custom-select-option" data-value="et" role="option">(UTC-05:00) Eastern Time — US &amp; Canada</div>
+              <div class="custom-select-option" data-value="utc" role="option">(UTC+00:00) London / UTC</div>
+              <div class="custom-select-option" data-value="cet" role="option">(UTC+01:00) Central European Time</div>
+              <div class="custom-select-option" data-value="eet" role="option">(UTC+02:00) Eastern European Time</div>
+              <div class="custom-select-option" data-value="msk" role="option">(UTC+03:00) Moscow / Istanbul</div>
+              <div class="custom-select-option" data-value="ist" role="option">(UTC+05:30) India Standard Time</div>
+              <div class="custom-select-option" data-value="cst8" role="option">(UTC+08:00) China / Singapore</div>
+              <div class="custom-select-option" data-value="jst" role="option">(UTC+09:00) Japan / Korea</div>
+              <div class="custom-select-option" data-value="aest" role="option">(UTC+10:00) Australia Eastern</div>
+              <div class="custom-select-option" data-value="nzst" role="option">(UTC+12:00) New Zealand</div>
+              </div>
+              <select id="set-timezone" class="custom-select-hidden" data-key="timezone" tabindex="-1" aria-hidden="true">
+                <option value="auto">Auto (Browser Default)</option>
+                <option value="pt">(UTC-08:00) Pacific Time — US &amp; Canada</option>
+                <option value="mt">(UTC-07:00) Mountain Time — US &amp; Canada</option>
+                <option value="ct">(UTC-06:00) Central Time — US &amp; Canada</option>
+                <option value="et">(UTC-05:00) Eastern Time — US &amp; Canada</option>
+                <option value="utc">(UTC+00:00) London / UTC</option>
+                <option value="cet">(UTC+01:00) Central European Time</option>
+                <option value="eet">(UTC+02:00) Eastern European Time</option>
+                <option value="msk">(UTC+03:00) Moscow / Istanbul</option>
+                <option value="ist">(UTC+05:30) India Standard Time</option>
+                <option value="cst8">(UTC+08:00) China / Singapore</option>
+                <option value="jst">(UTC+09:00) Japan / Korea</option>
+                <option value="aest">(UTC+10:00) Australia Eastern</option>
+                <option value="nzst">(UTC+12:00) New Zealand</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <label class="setting-label" for="set-refresh">Dashboard Refresh Rate</label>
+            <p class="setting-helper">How often should the dashboard automatically check for new data?</p>
+          </div>
+          <div class="setting-control">
+                        <div class="custom-select">
+              <button type="button" class="custom-select-trigger" aria-haspopup="listbox" aria-expanded="false">
+                <span class="cs-label">30 seconds</span>
+                <span class="chevron">&#9662;</span>
+              </button>
+              <div class="custom-select-menu" role="listbox">
+              <div class="custom-select-option" data-value="10s" role="option">10 seconds</div>
+              <div class="custom-select-option" data-value="30s" role="option">30 seconds</div>
+              <div class="custom-select-option" data-value="1m" role="option">1 minute</div>
+              <div class="custom-select-option" data-value="manual" role="option">Manual</div>
+              </div>
+              <select id="set-refresh" class="custom-select-hidden" data-key="refresh" tabindex="-1" aria-hidden="true">
+                <option value="10s">10 seconds</option>
+                <option value="30s" selected>30 seconds</option>
+                <option value="1m">1 minute</option>
+                <option value="manual">Manual</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="settings-group">
+        <div class="group-head">
+          <h2 class="group-heading">Appearance</h2>
+          <p class="group-sub">Control how GridNode looks and feels.</p>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="setting-label">Interface Theme</span>
+            <p class="setting-helper">Select your preferred visual style. (Dark mode is recommended).</p>
+          </div>
+          <div class="setting-control">
+            <div class="segmented" role="radiogroup" aria-label="Interface Theme">
+              <label class="seg-option">
+                <input type="radio" name="theme" value="dark" data-key="theme" checked>
+                <span>Dark</span>
+              </label>
+              <label class="seg-option">
+                <input type="radio" name="theme" value="light" data-key="theme">
+                <span>Light</span>
+              </label>
+              <label class="seg-option">
+                <input type="radio" name="theme" value="system" data-key="theme">
+                <span>System</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <label class="setting-label" for="set-motion">Disable Animations</label>
+            <p class="setting-helper">Turn off hover effects and transitions for a snappier experience.</p>
+          </div>
+          <label class="toggle" for="set-motion">
+            <input type="checkbox" id="set-motion" data-key="motion">
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+          </label>
+        </div>
+      </section>
+
+      <section class="settings-group">
+        <div class="group-head">
+          <h2 class="group-heading">Notifications &amp; Alerts</h2>
+          <p class="group-sub">Choose how GridNode keeps you informed.</p>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <label class="setting-label" for="set-critical">System Failure Alerts</label>
+            <p class="setting-helper">Receive a browser popup if a server goes offline or a script crashes.</p>
+          </div>
+          <label class="toggle" for="set-critical">
+            <input type="checkbox" id="set-critical" data-key="critical" checked>
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+          </label>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <label class="setting-label" for="set-weekly">Weekly Email Report</label>
+            <p class="setting-helper">Get a simple summary of your infrastructure's health every Monday.</p>
+          </div>
+          <label class="toggle" for="set-weekly">
+            <input type="checkbox" id="set-weekly" data-key="weekly">
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+          </label>
+        </div>
+      </section>
+
+      <section class="settings-group" id="profile">
+        <div class="group-head">
+          <h2 class="group-heading">Personal Profile</h2>
+          <p class="group-sub">Manage your account details and public information.</p>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="setting-label">Current Plan</span>
+            <p class="setting-helper">Manage your active plan and billing status.</p>
+          </div>
+          <div class="setting-control" style="display: flex; align-items: center; gap: 26px; flex-wrap: wrap;">
+            <span class="user-plan-badge" style="display: inline-block; font-size: 0.95rem; font-weight: 600; color: var(--accent-teal); background: color-mix(in srgb, var(--accent-teal) 12%, transparent); border: 1px solid color-mix(in srgb, var(--accent-teal) 30%, transparent); border-radius: 8px; padding: 5px 14px; margin-top: 0;">Pro Plan</span>
+            <button class="btn-secondary" type="button">Cancel Subscription</button>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="setting-label">Change Email</span>
+            <p class="setting-helper">Update the email address used for account notifications and login.</p>
+          </div>
+          <div class="setting-control email-row">
+            <div class="email-card">
+              <span class="profile-email" style="font-size: 0.95rem; font-weight: 500;">demo@gridnode.io</span>
+            </div>
+            <button class="btn-secondary email-change-btn" type="button">Change</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="settings-group">
+        <div class="group-head">
+          <h2 class="group-heading">Security &amp; Passwords</h2>
+          <p class="group-sub">Protect your account with strong credentials and two-factor authentication.</p>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="setting-label">Change Password</span>
+            <p class="setting-helper">Update your password. You will need to re-authenticate after changing it.</p>
+          </div>
+          <div class="setting-control">
+            <button class="btn-secondary" type="button">Change</button>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="setting-label">Two-Factor Authentication (2FA)</span>
+            <p class="setting-helper">Add an extra layer of security to your account.</p>
+          </div>
+          <div class="setting-control" style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+            <label class="toggle" for="set-2fa">
+              <input type="checkbox" id="set-2fa" checked>
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            </label>
+            <button class="btn-primary" type="button" style="width: auto; height: auto; padding: 10px 20px; font-size: var(--font-size-sm);">Setup 2FA</button>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="setting-label">Active Sessions</span>
+            <p class="setting-helper">Manage your active sessions across devices.</p>
+          </div>
+          <div class="setting-control">
+            <div class="sessions-list">
+              <div class="session-item">
+                <div class="session-info">
+                  <span class="session-browser">Chrome - Windows</span>
+                  <span class="session-ip">192.168.1.1</span>
+                  <span class="session-date">Today</span>
+                </div>
+                <button class="btn-revoke-sm" type="button">Revoke</button>
+              </div>
+              <div class="session-item">
+                <div class="session-info">
+                  <span class="session-browser">Safari - macOS</span>
+                  <span class="session-ip">10.0.0.5</span>
+                  <span class="session-date">2 days ago</span>
+                </div>
+                <button class="btn-revoke-sm" type="button">Revoke</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="settings-group danger-zone">
+        <div class="group-head">
+          <h2 class="group-heading">Danger Zone</h2>
+          <p class="group-sub">Irreversible actions that affect your account.</p>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="setting-label">Delete Account</span>
+            <p class="setting-helper">Permanently delete your account and all associated data. This action cannot be undone.</p>
+          </div>
+          <div class="setting-control">
+            <button class="btn-danger" type="button">Delete Account</button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Sticky Save Bar -->
+  <div class="sticky-bar" id="sticky-bar">
+    <div class="dirty-hint" id="dirty-hint">
+      <span class="dirty-dot"></span>
+      <span>You have unsaved changes</span>
+    </div>
+    <div class="sticky-bar-actions">
+      <button class="btn-secondary" id="btn-reset" type="button">Reset to Defaults</button>
+      <button class="btn-primary" id="btn-save" type="button" disabled>Save Changes</button>
+    </div>
+  </div>
+
+  <!-- Success Toast -->
+  <div class="toast" id="toast" role="status" aria-live="polite">
+<svg viewBox="0 0 24 24" fill="none" stroke="var(--status-success)" stroke-width="2.2" stroke-linecap="round"
+      stroke-linejoin="round" aria-hidden="true">
+      <polyline points="20 6 9 17.17 4 13.17"></polyline>
+    </svg>
+    <span class="toast-text">Settings saved successfully.</span>
+  </div>
+
+  <!-- Exit-Intent Modal -->
+  <div class="modal-overlay" id="exit-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">Unsaved changes</div>
+          <p class="modal-copy">You have unsaved changes. What would you like to do?</p>
+        </div>
+        <button class="modal-close" id="modal-close" aria-label="Close dialog">✕</button>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="modal-cancel" type="button">Cancel</button>
+        <button class="btn-danger" id="modal-discard" type="button">Discard</button>
+        <button class="btn-primary" id="modal-save" type="button">Save Changes</button>
+      </div>$popover
+    </div>
+  </div>
+
+  <script src="theme-transition.js" defer></script>
+  <script>
+    const STORAGE_KEY = 'gridnode_settings';
+    const DEFAULTS = {
+      timezone: 'auto',
+      refresh: '30s',
+      theme: 'dark',
+      motion: false,
+      critical: true,
+      weekly: false
+    };
+
+    let savedState = { ...DEFAULTS };
+    let pendingNav = null;
+    let toastTimer = null;
+    let _themeTransitionEl = null;
+
+    const stickyBar = document.getElementById('sticky-bar');
+    const btnSave = document.getElementById('btn-save');
+    const btnReset = document.getElementById('btn-reset');
+    const toast = document.getElementById('toast');
+    const exitModal = document.getElementById('exit-modal');
+    const btnModalSave = document.getElementById('modal-save');
+    const btnModalDiscard = document.getElementById('modal-discard');
+    const btnModalCancel = document.getElementById('modal-cancel');
+    const btnModalClose = document.getElementById('modal-close');
+
+    function collectState() {
+      return {
+        timezone: document.getElementById('set-timezone').value,
+        refresh: document.getElementById('set-refresh').value,
+        theme: document.querySelector('input[name="theme"]:checked').value,
+        motion: document.getElementById('set-motion').checked,
+        critical: document.getElementById('set-critical').checked,
+        weekly: document.getElementById('set-weekly').checked
+      };
+    }
+
+    function applyState(state) {
+      document.getElementById('set-timezone').value = state.timezone;
+      document.getElementById('set-timezone').dispatchEvent(new Event('change'));
+      document.getElementById('set-refresh').value = state.refresh;
+      document.getElementById('set-refresh').dispatchEvent(new Event('change'));
+      document.querySelector('input[name="theme"][value="' + state.theme + '"]').checked = true;
+      document.getElementById('set-motion').checked = state.motion;
+      document.getElementById('set-critical').checked = state.critical;
+      document.getElementById('set-weekly').checked = state.weekly;
+    }
+
+    function statesEqual(a, b) {
+      return Object.keys(DEFAULTS).every(function (key) {
+        return a[key] === b[key];
+      });
+    }
+
+    function isDirty() {
+      return !statesEqual(collectState(), savedState);
+    }
+
+    function refreshDirty() {
+      const dirty = isDirty();
+      stickyBar.classList.toggle('dirty', dirty);
+      btnSave.disabled = !dirty;
+    }
+
+function applyTheme(theme) {
+      const resolved = theme === 'system'
+        ? 'dark'
+        : theme;
+      const next = resolved === 'light' ? 'light' : 'dark';
+      const el = _themeTransitionEl;
+      _themeTransitionEl = null;
+      if (window.themeTransition && el) {
+        window.themeTransition(el, function () {
+          document.documentElement.setAttribute('data-theme', next);
+        });
+      } else {
+        document.documentElement.setAttribute('data-theme', next);
+      }
+    }
+
+    function persist() {
+      savedState = collectState();
+      applyTheme(savedState.theme);
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(savedState));
+      } catch (e) {
+        // storage unavailable (e.g. private mode) — keep state in memory only
+      }
+    }
+
+    function showToast(message) {
+      toast.querySelector('.toast-text').textContent = message;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+
+    function saveSettings() {
+      persist();
+      refreshDirty();
+      showToast('Settings saved successfully.');
+    }
+
+    function resetToDefaults() {
+      applyState(DEFAULTS);
+      refreshDirty();
+    }
+
+    function openExitModal() {
+      exitModal.classList.add('show');
+      btnModalSave.focus();
+    }
+
+    function closeExitModal() {
+      exitModal.classList.remove('show');
+      pendingNav = null;
+    }
+
+    function navigateTo(url) {
+      window.location.href = url;
+    }
+
+    document.querySelectorAll('[data-key]').forEach(function (control) {
+      control.addEventListener('change', refreshDirty);
+    });
+
+    document.querySelectorAll('input[name="theme"]').forEach(function (radio) {
+      radio.addEventListener('change', function () {
+        _themeTransitionEl = radio.closest('.seg-option');
+      });
+    });
+
+    btnSave.addEventListener('click', saveSettings);
+    btnReset.addEventListener('click', resetToDefaults);
+
+    // Intercept sidebar navigation when the form is dirty
+    document.addEventListener('click', function (event) {
+      const link = event.target.closest('.sidebar a[href]');
+      if (!link) return;
+      const href = link.getAttribute('href');
+      if (!href || href === '#' || href === '') return;
+      if (!isDirty()) return;
+      // Only intercept plain left-clicks (let ctrl/cmd/shift/middle-click open new tabs normally)
+      if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();
+      pendingNav = link.href;
+      openExitModal();
+    });
+
+    btnModalSave.addEventListener('click', function () {
+      persist();
+      refreshDirty();
+      if (pendingNav) {
+        const target = pendingNav;
+        closeExitModal();
+        navigateTo(target);
+      } else {
+        closeExitModal();
+        showToast('Settings saved successfully.');
+      }
+    });
+
+    btnModalDiscard.addEventListener('click', function () {
+      const target = pendingNav;
+      closeExitModal();
+      if (target) navigateTo(target);
+    });
+
+    btnModalCancel.addEventListener('click', closeExitModal);
+    btnModalClose.addEventListener('click', closeExitModal);
+
+    exitModal.addEventListener('click', function (event) {
+      if (event.target === exitModal) closeExitModal();
+    });
+
+document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && exitModal.classList.contains('show')) closeExitModal();
+    });
+
+    // Restore previously saved settings on load
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) savedState = Object.assign({}, DEFAULTS, JSON.parse(raw));
+    } catch (e) {
+      savedState = { ...DEFAULTS };
+    }
+    applyState(savedState);
+    refreshDirty();
+  </script>
+
+  <script>
+    // Move the "DemoTest User" badge into the global mobile header (<999px).
+    // shared-sidebar.js (defer) creates .mobile-header, so DOMContentLoaded
+    // fires only after it exists; a clone keeps the original card intact.
+    (function () {
+      function initMobileProfile() {
+        var source = document.querySelector('.top-bar-right .profile-widget-card');
+        var header = document.querySelector('.mobile-header');
+        if (!source || !header || header.querySelector('.profile-widget-card--mobile')) return;
+
+        var clone = source.cloneNode(true);
+        clone.classList.add('profile-widget-card--mobile');
+        header.appendChild(clone);
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initMobileProfile);
+      } else {
+        initMobileProfile();
+      }
+    })();
+  </script>
+  <script src="shared-dropdown.js" defer></script>
+
+  <script src="shared-sidebar.js" defer></script>
+  <script src="auth-links.js" defer></script>
+</body>
+
+</html>

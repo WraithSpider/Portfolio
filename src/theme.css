@@ -1,0 +1,1003 @@
+/* ============================================================
+   GridNode — Theme Tokens (Light / Dark)
+   :root            = Light theme (default)
+   [data-theme=dark] = Dark theme (exact previous palette)
+   Applied via document.documentElement.setAttribute('data-theme', ...)
+   ============================================================ */
+
+:root {
+  color-scheme: light;
+
+/* ----- Surfaces: 6-level depth scale -----
+     level 0 = deepest page background
+     level 1 = cards / tables / sidebar (--bg-surface base)
+     level 2 = raised header strips / table headers / nested panels
+     level 3 = modals / dropdowns / popovers
+     level 4 = inputs / switch tracks / active areas
+     level 5 = terminal header / logs / sticky strips */
+  --bg-level-0: #fafbfc;
+  --bg-level-1: #ffffff;
+  --bg-level-2: #f6f8fa;
+  --bg-level-3: #ffffff;
+  --bg-level-4: #fafbfc;
+  --bg-level-5: #f1f5f9;
+
+  --bg-body: var(--bg-level-0);
+  --bg-base: var(--bg-level-0);
+  --bg-main: var(--bg-level-0);
+  --bg-body-alt: #fafbfc;
+  --bg-surface: var(--bg-level-1);
+  --space-card: 1.25rem;
+  --icon-size-md: 2.25rem;
+  --bg-card: var(--bg-level-1);
+  --bg-input: var(--bg-level-4);
+  --bg-dropdown-inset: #ffffff;
+  --bg-modal: var(--bg-level-3);
+  --bg-elevated: #f6f8fa;
+  --bg-surface-hover: #f3f4f6;
+  --bg-track: #e5e7eb;
+  --bg-tooltip: #1f2937;
+  --bg-surface-fade-soft: rgba(255, 255, 255, 0.72);
+  --bg-surface-fade: rgba(255, 255, 255, 0.72);
+  --bg-sticky: rgba(255, 255, 255, 0.92);
+
+  /* Terminal / log panels — light in light theme (chart tooltips stay dark) */
+  --bg-terminal: #f8fafc;
+  --bg-terminal-header: var(--bg-level-5);
+  --bg-terminal-alt: var(--bg-level-5);
+  --bg-terminal-dark: #050508;
+  --bg-terminal-header-dark: #0a0d12;
+  --text-terminal-dark: #e2e8f0;
+  --bg-chart-tooltip: rgba(15, 23, 42, 0.85);
+  --text-chart-tooltip: #f1f5f9;
+
+  /* ----- Overlays & hovers ----- */
+  --overlay-bg: rgba(15, 23, 42, 0.45);
+  --overlay-bg-mid: rgba(15, 23, 42, 0.55);
+  --overlay-bg-strong: rgba(15, 23, 42, 0.65);
+  --bg-hover-subtle: rgba(15, 23, 42, 0.03);
+  --bg-hover: rgba(15, 23, 42, 0.04);
+  --bg-hover-strong: rgba(15, 23, 42, 0.06);
+  --bg-hover-bright: rgba(15, 23, 42, 0.08);
+  --bg-overlay: rgba(15, 23, 42, 0.10);
+  --bg-overlay-soft: rgba(15, 23, 42, 0.02);
+  --bg-overlay-mid: rgba(15, 23, 42, 0.15);
+  --bg-overlay-bright: rgba(15, 23, 42, 0.20);
+  --bg-overlay-high: rgba(15, 23, 42, 0.30);
+
+  /* ----- Scrollbars ----- */
+  --scroll-track: #f0f1f3;
+  --scroll-thumb: #c9d1d9;
+  --scroll-thumb-hover: #9aa4b2;
+
+/* ----- Text ----- */
+  --text-main: var(--text-primary);
+  --text-primary: #1f2328;
+  --text-secondary: #374151;
+  --text-secondary-strong: #334155;
+  --text-subtle: #4b5563;
+  --text-muted: #6b7280;
+  --text-dim: #6e7781;
+  --text-faint: #57606a;
+  --text-helper: #6b7280;
+  --text-soft: #4b5563;
+  --text-terminal: #1e293b;
+  --text-terminal-dim: #64748b;
+  --text-inverse: #1f2328;
+  --text-on-accent: #ffffff;
+  --text-on-accent-dark: #051912;
+
+  /* ----- Borders ----- */
+  --border-faint: #eaeef2;
+  --border-hair: #e8ecf1;
+  --border-soft: #eaeef2;
+  --border-subtle: #d8dee4;
+  --border-card: #d8dee4;
+  --border-muted: #d0d7de;
+  --border-color: #d0d7de;
+  --border-hover: #c1c9d1;
+  --border-input: #d0d7de;
+  --border-strong: #c1c9d1;
+  --border-toggle: #c9d1d9;
+
+  /* ----- Accents (identical in both themes) ----- */
+  --accent-blue: #0072ff;
+  --accent-teal: #00B4A7;
+  --accent-green: #4ade80;
+  --accent-sky: #38bdf8;
+  --accent-red: #f87171;
+  --accent-red-strong: #ff5e5e;
+  --accent-amber: #d97706;
+  --accent-violet: #a78bfa;
+  --accent-sky-light: #7dd3fc;
+  --accent-sky-pale: #9be3ff;
+  --accent-blue-bright: #589bff;
+  --accent-blue-mid: #60A5FA;
+  --accent-blue-pale: #93C5FD;
+  --accent-violet-bright: #a855f7;
+  --accent-teal-bright: #2dd4bf;
+  --accent-pink: #e879f9;
+--accent-orange: #ff7b00;
+  --accent-red-deep: #ff2d2d;
+
+  /* ----- Brand gradient system (shared across themes) -----
+     Stops + angle: combine as
+       linear-gradient(var(--grad-angle), var(--brand-stops))
+       linear-gradient(var(--grad-angle), var(--brand-soft-stops))
+     Angles: buttons default 160deg, progress bars 90deg, icons/nav 135deg. */
+  --grad-angle: 160deg;
+  --brand-stops: #083477 0%, #116ed4 38%, #1a7ce8 56%, #35FFEE 100%, #7AFFF9 108%;
+  --brand-soft-stops: rgba(0, 114, 255, 0.15) 0%, rgba(0, 180, 167, 0.10) 100%;
+  --brand-soft-stops-strong: rgba(0, 114, 255, 0.35) 0%, rgba(0, 180, 167, 0.20) 100%;
+
+  /* ----- Status semantics (canonical; derive translucent via color-mix) ----- */
+  --status-success: #22c55e;
+  --status-danger: #ef4444;
+  --status-warning: #f59e0b;
+  --status-info: #38bdf8;
+
+  /* ----- Terminal / log level semantics (light theme: darker for contrast) ----- */
+  --log-success: #16a34a;
+  --log-info: #0369a1;
+  --log-error: #dc2626;
+  --log-warn: #b45309;
+  --log-gpu: #c026d3;
+
+  /* ----- Chart palette (JS metrics read these via getComputedStyle) ----- */
+  --chart-1: #0072ff;
+  --chart-2: #00B4A7;
+  --chart-3: #e879f9;
+  --chart-4: #a855f7;
+  --chart-5: #38bdf8;
+  --chart-6: #4ade80;
+
+  /* Terminal dots */
+  --term-red: #ff5f56;
+  --term-yellow: #ffbd2e;
+  --term-green: #27c93f;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+/* ----- Surfaces: 6-level depth scale (dark) ----- */
+  --bg-level-0: #04040a;
+  --bg-level-1: #0b0f1d;
+  --bg-level-2: #121733;
+  --bg-level-3: #0f1223;
+  --bg-level-4: #0d1021;
+  --bg-level-5: #0a0d12;
+
+  --bg-body: var(--bg-level-0);
+  --bg-base: var(--bg-level-0);
+  --bg-main: var(--bg-level-0);
+  --bg-body-alt: #090a0f;
+  --bg-surface: var(--bg-level-1);
+  --space-card: 1.25rem;
+  --icon-size-md: 2.25rem;
+  --bg-card: var(--bg-level-1);
+  --bg-input: var(--bg-level-4);
+  --bg-dropdown-inset: #131724;
+  --bg-modal: var(--bg-level-3);
+  --bg-elevated: #0a0d1a;
+  --bg-surface-hover: #151a32;
+  --bg-track: #181d30;
+  --bg-tooltip: #1a1f35;
+  --bg-surface-fade-soft: rgba(14, 17, 38, 0.40);
+  --bg-surface-fade: rgba(14, 17, 38, 0.60);
+  --bg-sticky: rgba(14, 17, 38, 0.88);
+
+  /* Terminal / log panels — dark in dark theme */
+  --bg-terminal: #080b12;
+  --bg-terminal-header: #0f1320;
+  --bg-terminal-alt: #0d1117;
+  --bg-terminal-dark: #080b12;
+  --bg-terminal-header-dark: #0f1320;
+  --text-terminal-dark: #e2e8f0;
+  --bg-chart-tooltip: rgba(15, 23, 42, 0.85);
+  --text-chart-tooltip: #f1f5f9;
+
+  /* ----- Overlays & hovers ----- */
+  --overlay-bg: rgba(3, 7, 17, 0.82);
+  --overlay-bg-mid: rgba(0, 0, 0, 0.60);
+  --overlay-bg-strong: rgba(0, 0, 0, 0.70);
+  --bg-hover-subtle: rgba(255, 255, 255, 0.03);
+  --bg-hover: rgba(255, 255, 255, 0.04);
+  --bg-hover-strong: rgba(255, 255, 255, 0.06);
+  --bg-hover-bright: rgba(255, 255, 255, 0.08);
+  --bg-overlay: rgba(255, 255, 255, 0.10);
+  --bg-overlay-soft: rgba(255, 255, 255, 0.02);
+  --bg-overlay-mid: rgba(255, 255, 255, 0.15);
+  --bg-overlay-bright: rgba(255, 255, 255, 0.20);
+  --bg-overlay-high: rgba(255, 255, 255, 0.30);
+
+  /* ----- Scrollbars ----- */
+  --scroll-track: #0a0d1a;
+  --scroll-thumb: #1e2340;
+  --scroll-thumb-hover: #2a2f50;
+
+/* ----- Text ----- */
+  --text-main: var(--text-primary);
+  --text-primary: #e4e6eb;
+  --text-secondary: #c8cbe0;
+  --text-secondary-strong: #b8bcd0;
+  --text-subtle: #cbd5e1;
+  --text-muted: #8a8fa8;
+  --text-dim: #6a6f8a;
+  --text-faint: #94a3b8;
+  --text-helper: #9CA3AF;
+  --text-soft: #D1D5DB;
+  --text-terminal: #e2e8f0;
+  --text-terminal-dim: #8b949e;
+  --text-inverse: #ffffff;
+  --text-on-accent: #ffffff;
+  --text-on-accent-dark: #051912;
+
+  /* ----- Borders ----- */
+  --border-faint: rgba(60, 70, 120, 0.06);
+  --border-hair: rgba(60, 70, 120, 0.10);
+  --border-soft: rgba(60, 70, 120, 0.12);
+  --border-subtle: rgba(60, 70, 120, 0.15);
+  --border-card: rgba(60, 70, 120, 0.16);
+  --border-muted: rgba(60, 70, 120, 0.18);
+  --border-color: rgba(60, 70, 120, 0.20);
+  --border-hover: rgba(60, 70, 120, 0.35);
+  --border-input: rgba(60, 70, 120, 0.22);
+  --border-strong: rgba(60, 70, 120, 0.25);
+  --border-toggle: rgba(60, 70, 120, 0.30);
+
+  /* ----- Accents (identical in both themes) ----- */
+  --accent-blue: #0072ff;
+  --accent-teal: #00B4A7;
+  --accent-green: #4ade80;
+  --accent-sky: #38bdf8;
+  --accent-red: #f87171;
+  --accent-red-strong: #ff5e5e;
+  --accent-amber: #fbbf24;
+  --accent-violet: #a78bfa;
+  --accent-sky-light: #7dd3fc;
+  --accent-sky-pale: #9be3ff;
+  --accent-blue-bright: #589bff;
+  --accent-blue-mid: #60A5FA;
+  --accent-blue-pale: #93C5FD;
+  --accent-violet-bright: #a855f7;
+  --accent-teal-bright: #2dd4bf;
+  --accent-pink: #e879f9;
+--accent-orange: #ff7b00;
+  --accent-red-deep: #ff2d2d;
+
+  /* ----- Terminal / log level semantics (dark theme: brighter accents) ----- */
+  --log-success: #4ade80;
+  --log-info: #38bdf8;
+  --log-error: #f87171;
+  --log-warn: #fbbf24;
+  --log-gpu: #e879f9;
+
+/* Terminal dots */
+  --term-red: #ff5f56;
+  --term-yellow: #ffbd2e;
+  --term-green: #27c93f;
+}
+
+/* ============================================================
+   Typography scale (theme-independent) — derived from Landing (index.html)
+   xs  = labels, statuses, overlines (uppercase)
+   sm  = secondary text, input labels, subtitles
+   base= body text (index body = 1rem)
+   lg  = sub-section headings (index media hero-sub)
+   xl  = page headings / hero-sub (index hero-sub, section-desc)
+   section = section / CTA titles (index section-title, cta-title)
+   display = Landing hero (index hero-title)
+   ============================================================ */
+:root {
+  /* ----- Font families (theme-independent; declared once globally) ----- */
+  --font-head: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --font-size-xs: 11px;
+  --font-size-sm: 13px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-section: clamp(1.9rem, 4vw, 2.5rem);
+  --font-size-display: clamp(2rem, 4.2vw, 3.4rem);
+}
+
+/* ===== UNIFIED PRIMARY BUTTON (shared across all pages) =====
+   Appearance only: gradient, text colour, border, font, font-size, weight.
+   Sizes (height, padding, border-radius, gap) stay page-specific — set those locally. */
+.btn-primary,
+.submit-btn,
+.btn-gradient,
+.btn-new-instance,
+.btn-dash {
+  box-sizing: border-box !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  font-family: var(--font-head);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-on-accent);
+  background: linear-gradient(var(--grad-angle), var(--brand-stops));
+  border: none;
+  border-radius: 19px 19px 4px 19px;
+  position: relative;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.btn-primary::after,
+.submit-btn::after,
+.btn-gradient::after,
+.btn-new-instance::after,
+.btn-dash::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 0.5px;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.50) 0%, rgba(255,255,255,0.25) 40%, rgba(0,0,0,0.20) 60%, rgba(0,0,0,0.50) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+.btn-primary:hover:not(:disabled),
+.submit-btn:hover:not(:disabled),
+.btn-gradient:hover,
+.btn-new-instance:hover,
+.btn-dash:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 114, 255, 0.45);
+}
+
+.btn-primary:active:not(:disabled),
+.submit-btn:active,
+.btn-gradient:active,
+.btn-new-instance:active,
+.btn-dash:active {
+  transform: translateY(0);
+}
+
+.btn-primary:disabled,
+.submit-btn:disabled,
+.btn-gradient:disabled,
+.btn-new-instance:disabled,
+.btn-dash:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-primary .plus-icon {
+  font-size: var(--font-size-lg) !important;
+  font-weight: 600 !important;
+  line-height: 1 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transform: translateY(0.7px) !important;
+}
+
+.btn-primary svg {
+  width: 18px !important;
+  height: 18px !important;
+  stroke-width: 3 !important;
+  flex-shrink: 0 !important;
+}
+
+/* Size utility: larger hero CTA (index.html) — 46px variant */
+.btn-primary.btn-lg {
+  height: 46px !important;
+  min-height: 46px !important;
+  max-height: 46px !important;
+  padding: 0 32px !important;
+}
+
+/* ===== UNIFIED TAB CONTROL (shared across all pages) =====
+   Bars with pills; the active pill uses the brand gradient + the primary
+   button ring (masked white/black ring with overlay blend). Shared by the
+   wizard auth toggle (.toggle-group/.toggle-option) and the settings theme
+   segmented control (.segmented/.seg-option). */
+.toggle-group,
+.segmented {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 4px;
+  gap: 4px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-input);
+  border-radius: 14px 14px 4px 14px;
+}
+
+.toggle-option,
+.seg-option span {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 20px;
+  border: none;
+  background: transparent;
+  border-radius: 10px 10px 2px 10px;
+  font-family: var(--font-head);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  user-select: none;
+  cursor: pointer;
+  transition: color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.toggle-option:hover,
+.seg-option:hover span {
+  color: var(--text-primary);
+}
+
+.toggle-option.active,
+.seg-option:has(input:checked) span {
+  color: var(--text-on-accent);
+  background: linear-gradient(var(--grad-angle), var(--brand-stops));
+  box-shadow: 0 2px 10px rgba(0, 114, 255, 0.30);
+}
+
+.toggle-option.active::after,
+.seg-option:has(input:checked) span::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 0.5px;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.50) 0%, rgba(255,255,255,0.25) 40%, rgba(0,0,0,0.20) 60%, rgba(0,0,0,0.50) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+/* ===== UNIFIED SECONDARY / OUTLINE BUTTON (shared across all pages) =====
+   Appearance only: background, transparency (alpha), border, font, font-size, weight.
+   Sizes (height, padding, border-radius, gap) stay page-specific — set those locally. */
+.btn-outline,
+.btn-secondary,
+.social-btn,
+.instance-btn,
+.console-action-btn,
+.action-btn,
+.sign-in-link {
+  box-sizing: border-box !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-family: var(--font-head);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-primary);
+  background: rgba(15, 23, 42, 0.03);
+  border: 1px solid rgba(154, 164, 178, 0.80);
+  border-radius: 19px 19px 4px 19px;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn-outline:hover,
+.btn-secondary:hover,
+.social-btn:hover,
+.instance-btn:hover,
+.console-action-btn:hover,
+.action-btn:hover,
+.sign-in-link:hover {
+  color: var(--text-primary);
+  background: rgba(15, 23, 42, 0.05);
+  border-color: rgba(107, 114, 128, 0.80);
+  transform: translateY(-1px);
+}
+[data-theme="dark"] .btn-outline,
+[data-theme="dark"] .btn-secondary,
+[data-theme="dark"] .social-btn,
+[data-theme="dark"] .instance-btn,
+[data-theme="dark"] .console-action-btn,
+[data-theme="dark"] .action-btn,
+[data-theme="dark"] .sign-in-link {
+  color: var(--text-on-accent);
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+[data-theme="dark"] .btn-outline:hover,
+[data-theme="dark"] .btn-secondary:hover,
+[data-theme="dark"] .social-btn:hover,
+[data-theme="dark"] .instance-btn:hover,
+[data-theme="dark"] .console-action-btn:hover,
+[data-theme="dark"] .action-btn:hover,
+[data-theme="dark"] .sign-in-link:hover {
+  color: var(--text-on-accent);
+  background: rgba(255, 255, 255, 0.035);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+/* Compact action buttons (rows of small buttons: play/stop/logs/console etc.) */
+.instance-btn,
+.console-action-btn,
+.action-btn {
+  font-size: var(--font-size-xs) !important;
+  text-transform: uppercase !important;
+}
+
+/* ===== BUTTON SIZE CLASSES — border-radius system =====
+   Four height categories: 46 / 42 / 38 / 30 px.
+   Three corners = exactly half the button height (no clamping: sum never exceeds height).
+   Bottom-right corner is a fixed small radius per size class.
+   Radius system: 46px→23 23 5 23, 42px→21 21 4 21, 38px→19 19 4 19, 30px→15 15 3 15. */
+.btn-sm,
+.btn-primary.btn-sm,
+.btn-outline.btn-sm,
+.instance-btn,
+.console-action-btn,
+.action-btn {
+  border-radius: 15px 15px 3px 15px !important;
+}
+.btn-lg,
+.btn-primary.btn-lg,
+.btn-outline.btn-lg,
+.hero .btn {
+  border-radius: 23px 23px 5px 23px !important;
+}
+.btn-danger {
+  border-radius: 19px 19px 4px 19px;
+}
+
+/* ===== UNIFIED INPUT FIELD appearance (shared across all pages) =====
+   Background, border, text colour, font-family, focus ring — shared.
+   Sizes (width, height, padding, border-radius) stay page-specific — font-size is shared. */
+.form-input,
+.form-textarea,
+.search-input,
+.input-search,
+textarea {
+  box-sizing: border-box;
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 14px 14px 5px 14px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.form-textarea,
+textarea {
+  border-radius: 14px 14px 5px 14px;
+}
+.search-input {
+  border-radius: 19px 19px 4px 19px;
+}
+.input-search {
+  border-radius: 19px 19px 4px 19px;
+}
+
+[data-theme="light"] .form-input,
+[data-theme="light"] .form-textarea,
+[data-theme="light"] .search-input,
+[data-theme="light"] .input-search,
+[data-theme="light"] textarea {
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+}
+
+.search-input {
+  font-size: var(--font-size-sm);
+}
+.input-search {
+  font-size: var(--font-size-sm);
+}
+
+.form-input::placeholder,
+.form-textarea::placeholder,
+.search-input::placeholder,
+.input-search::placeholder,
+textarea::placeholder {
+  color: var(--text-dim);
+}
+
+.form-input:focus,
+.form-textarea:focus,
+.search-input:focus,
+.input-search:focus,
+textarea:focus {
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px rgba(0, 114, 255, 0.15);
+}
+
+.form-input:disabled {
+  color: var(--text-primary);
+  background: var(--bg-input);
+  border-color: var(--border-muted);
+}
+[data-theme="light"] .form-input:disabled {
+  background: var(--bg-input);
+}
+
+/* ===== AUTH CARD dark-mode gradient border overlay (shared) =====
+   Thin gradient outline on .auth-card in dark theme via ::before.
+   Uses mask-composite so only the 1px border ring is painted. */
+.auth-card {
+  position: relative;
+}
+[data-theme="dark"] .auth-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.3) 0%, rgba(255, 255, 255, 0.3) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.3;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ===== DARK-MODE GRADIENT FIELD RING (shared, mix-blend-mode: overlay) =====
+   Masked 1px gradient ring painted on the field's wrapper: input/textarea
+   can't host pseudo-elements, and element-level mix-blend-mode would blend
+   the field text. Wrapped fields (auth inputs, search boxes) get this true
+   overlay-blended ring; bare fields keep the layer-technique ring from the
+   unified input rule above. Scope excludes light-mode pages. */
+:root:not([data-theme="light"]) .input-wrap,
+:root:not([data-theme="light"]) .search-wrap {
+  position: relative;
+}
+:root:not([data-theme="light"]) .input-wrap::after,
+:root:not([data-theme="light"]) .search-wrap::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.6) 0%, rgba(255, 255, 255, 0.6) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.6;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: 1;
+}
+:root:not([data-theme="light"]) .input-wrap::after {
+  border-radius: var(--field-ring-radius, 14px 14px 5px 14px);
+}
+:root:not([data-theme="light"]) .search-wrap::after {
+  border-radius: 19px 19px 4px 19px;
+}
+/* Wrapped fields: drop the input-level ring so only the overlay ring shows. */
+:root:not([data-theme="light"]) .auth-form .form-input,
+:root:not([data-theme="light"]) .search-input,
+:root:not([data-theme="light"]) .input-search,
+:root:not([data-theme="light"]) .input-wrap .form-input,
+:root:not([data-theme="light"]) .input-wrap .form-textarea {
+  background: #060814;
+  border: 1px solid var(--border-muted);
+}
+
+/* ===== UNIFIED LOADING BAR fill (shared across all pages) =====
+   Gradient matches the primary button brand gradient (rotated to 90deg).
+   Sizes (height, border-radius, transition) stay page-specific. */
+.instance-bar-fill,
+.ss-bar-fill,
+.metric-bar-fill {
+  --grad-angle: 90deg;
+  position: relative;
+  height: 100%;
+  overflow: visible;
+  background: linear-gradient(var(--grad-angle), var(--brand-stops));
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateZ(0);
+}
+
+.instance-bar-track,
+.ss-bar,
+.metric-bar-track {
+  position: relative;
+  overflow: hidden;
+  --accent: var(--accent-sky);
+  --accent-glow: rgba(56, 189, 248, 0.75);
+}
+
+.pulse-burst-up .instance-bar-fill::after,
+.pulse-burst-up .ss-bar-fill::after,
+.pulse-burst-up .metric-bar-fill::after,
+.pulse-burst-down .instance-bar-fill::after,
+.pulse-burst-down .ss-bar-fill::after,
+.pulse-burst-down .metric-bar-fill::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 24px;
+  background: linear-gradient(90deg, transparent, #ffffff, transparent);
+  box-shadow: 0 0 12px var(--accent-cyan, #00f0ff), 0 0 24px var(--accent-cyan, #00f0ff);
+  filter: blur(1px);
+  z-index: 2;
+  pointer-events: none;
+  left: 0;
+  opacity: 0;
+  box-shadow:
+    0 0 8px var(--accent-cyan, #00f0ff),
+    0 0 16px var(--accent-cyan, #00f0ff),
+    0 0 24px var(--accent-glow, rgba(56, 189, 248, 0.75));
+  filter: blur(1px);
+}
+
+.pulse-burst-up .instance-bar-fill::after,
+.pulse-burst-up .ss-bar-fill::after,
+.pulse-burst-up .metric-bar-fill::after {
+  animation: clump-sweep-up 1.2s ease-in-out 1;
+}
+
+.pulse-burst-down .instance-bar-fill::after,
+.pulse-burst-down .ss-bar-fill::after,
+.pulse-burst-down .metric-bar-fill::after {
+  animation: clump-sweep-down 1.2s ease-in-out 1;
+}
+
+@keyframes clump-sweep-up {
+  0%, 4% { left: -24px; opacity: 0; }
+  7% { left: -24px; opacity: 0.95; }
+  25% { left: calc(100% - 24px); opacity: 0.95; }
+  29% { left: calc(100% - 24px); opacity: 0; }
+  34%, 38% { left: -24px; opacity: 0; }
+  41% { left: -24px; opacity: 0.45; }
+  59% { left: calc(100% - 24px); opacity: 0.45; }
+  63% { left: calc(100% - 24px); opacity: 0; }
+  68%, 72% { left: -24px; opacity: 0; }
+  75% { left: -24px; opacity: 0.18; }
+  93% { left: calc(100% - 24px); opacity: 0.18; }
+  100% { left: calc(100% - 24px); opacity: 0; }
+}
+
+@keyframes clump-sweep-down {
+  0%, 4% { left: calc(100% - 24px); opacity: 0; }
+  7% { left: calc(100% - 24px); opacity: 0.95; }
+  25% { left: -24px; opacity: 0.95; }
+  29% { left: -24px; opacity: 0; }
+  34%, 38% { left: calc(100% - 24px); opacity: 0; }
+  41% { left: calc(100% - 24px); opacity: 0.45; }
+  59% { left: -24px; opacity: 0.45; }
+  63% { left: -24px; opacity: 0; }
+  68%, 72% { left: calc(100% - 24px); opacity: 0; }
+  75% { left: calc(100% - 24px); opacity: 0.18; }
+  93% { left: -24px; opacity: 0.18; }
+  100% { left: -24px; opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .instance-bar-fill,
+  .ss-bar-fill,
+  .metric-bar-fill {
+    transition: none;
+  }
+  .pulse-burst-up .instance-bar-fill::after,
+  .pulse-burst-up .ss-bar-fill::after,
+  .pulse-burst-up .metric-bar-fill::after,
+  .pulse-burst-down .instance-bar-fill::after,
+  .pulse-burst-down .ss-bar-fill::after,
+  .pulse-burst-down .metric-bar-fill::after {
+    animation: none;
+  }
+}
+
+/* ===== BRAND LOGO theme swap =====
+   Logo.svg is the white wordmark variant for dark surfaces;
+   light theme swaps to Logo-light.svg (dark wordmark, colored mark). */
+img.brand-logo[data-logo-theme] {
+  content: url('Logo.svg');
+}
+[data-theme="light"] img.brand-logo[data-logo-theme] {
+  content: url('Logo-light.svg');
+}
+
+/* ===== LARGE-SCREEN LAYOUT GUARDRAILS =====
+   Full-width surfaces stay full bleed; their inner layout blocks use the same
+   centered rail so wide displays do not turn cards and text into banners. */
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.container,
+.support-container,
+.header-inner,
+.footer-inner {
+  width: 100%;
+  max-width: 1600px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 2rem;
+  padding-right: 2rem;
+}
+
+.main-content {
+  min-width: 0;
+}
+
+.main-content > .top-bar,
+.main-content > .content-body {
+  width: 100%;
+  max-width: 1600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.content-body {
+  min-width: 0;
+}
+
+.pricing-grid,
+.instances-grid,
+.features-grid,
+.keys-grid,
+.related-grid,
+.config-grid,
+.module-cards,
+.analytics-grid,
+.support-grid,
+.onboarding-grid {
+  min-width: 0;
+}
+
+.pricing-card,
+.instance-card,
+.feature-card,
+.key-card,
+.case-card,
+.config-card,
+.module-card,
+.metric-panel,
+.support-card,
+.onboarding-card {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Center the complete authenticated workspace on large displays. The shell
+   includes the fixed sidebar, so the content rail stays attached to it while
+   the whole application remains centered in the viewport. */
+@media (min-width: 1856px) {
+  .sidebar {
+    left: calc((100vw - 1856px) / 2);
+  }
+
+  .main-content {
+    width: 1600px;
+    flex: 0 0 1600px;
+    margin-left: calc((100vw - 1856px) / 2 + 256px) !important;
+  }
+}
+
+/* ===== PAGE HEADER TITLING (shared across pages) =====
+   Typography only — margins/spacing stay page-specific.
+   Used by Dashboard, Metrics, Instances, System Logs, API Keys, Settings, Support. */
+.top-bar-left h1 {
+  font-family: var(--font-head);
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.page-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  font-weight: 400;
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+/* ===== UNIFIED STATUS DOT (shared across all pages) =====
+   Etalon: the pulsing "API Active" dot from instance-wizard.html.
+   8px, brand-teal fill, glow, pulse-dot animation (2s, infinite).
+   Colour modifiers: .success / .danger / .warning / .neutral.
+   Legacy class aliases (.server-dot, .ss-dot, .counter-dot) share the base. */
+.status-dot,
+.server-dot,
+.ss-dot,
+.counter-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-teal);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent-teal) 50%, transparent);
+  flex-shrink: 0;
+  vertical-align: middle;
+  animation: pulse-dot 2s infinite;
+}
+.status-dot.success,
+.ss-dot {
+  background: var(--status-success);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--status-success) 55%, transparent);
+}
+.status-dot.danger {
+  background: var(--status-danger);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--status-danger) 35%, transparent);
+}
+.status-dot.warning {
+  background: var(--status-warning);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--status-warning) 40%, transparent);
+}
+.status-dot.neutral {
+  background: var(--text-muted);
+  box-shadow: 0 0 8px rgba(138, 143, 168, 0.18);
+}
+@keyframes pulse-dot {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.40); }
+  50% { box-shadow: 0 0 0 6px transparent; }
+}
+
+/* ===== TERMINAL HEADER RADIUS (shared across all pages) =====
+   Terminal chrome (window + its header strip) uses a reduced top radius:
+   16px instead of the page-capsule 34px. Header corners must match the
+   container corners, otherwise the container background peeks out in the
+   corners (headers are clipped by the container's overflow: hidden). */
+.terminal-window,
+.terminal-wrap,
+.ssh-modal,
+.terminal-block,
+.docs-hero {
+  border-radius: 16px 16px 5px 34px !important;
+}
+.terminal-header,
+.ssh-modal-header,
+.terminal-block-header,
+.docs-hero-terminal-header {
+  border-radius: 16px 16px 0 0 !important;
+}
+
+/* ===== SCROLLBARS (shared across pages) =====
+   Master style from index.html — single source for page scrollbars.
+   Component scroll areas keep their own scrollbar props locally. */
+html {
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--scroll-track); }
+::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scroll-thumb-hover); }
+
+/* ===== VIEW TRANSITIONS — Circular Theme Reveal =====
+   Disable the default cross-fade so our JS-driven clip-path circle
+   is the only visual effect during a theme switch.
+   z-index ensures the new snapshot (revealed by clip-path) sits
+   above the old snapshot. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-old(root) {
+  z-index: 1;
+}
+::view-transition-new(root) {
+  z-index: 9999;
+}

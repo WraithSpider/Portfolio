@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#060814">
+  <meta name="color-scheme" content="light dark">
+  <title>GridNode — Support Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet">
+
+  <link rel="icon" href="FAV.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="theme.css">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('gridnode-theme');
+        if (saved === 'light' || saved === 'dark') {
+          document.documentElement.setAttribute('data-theme', saved);
+        }
+      } catch (e) {}
+    })();
+  </script>
+<style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      font-size: var(--font-size-base);
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-body);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    a { text-decoration: none; }
+
+    /* ===== CENTERED CONTAINER ===== */
+    .support-container {
+      width: 100%;
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    /* ===== HEADER (structure & styles copied from index.html hero-top) ===== */
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 72px;
+      padding: 0;
+      background: rgba(6, 8, 20, 0.82);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    [data-theme="light"] .site-header {
+      background: rgba(255, 255, 255, 0.82);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .site-header .support-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-head);
+      font-weight: 700;
+      font-size: var(--font-size-base);
+      color: var(--text-primary);
+      letter-spacing: 0.02em;
+      text-decoration: none;
+    }
+
+    .brand-logo {
+      height: 42px;
+      width: auto;
+      display: block;
+    }
+
+    .top-nav-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* .sign-in-link appearance (bg/border/color/font) unified in theme.css as secondary */
+    .sign-in-link {
+      height: 38px;
+      padding: 0 20px;
+    }
+
+    .theme-toggle {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-on-accent);
+      transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+    }
+
+    .theme-toggle svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+    }
+    .theme-toggle .icon-sun { display: block; }
+    .theme-toggle .icon-moon { display: none; }
+    [data-theme="light"] .theme-toggle .icon-sun { display: none; }
+    [data-theme="light"] .theme-toggle .icon-moon { display: block; }
+
+    .theme-toggle:hover {
+      border-color: rgba(255, 255, 255, 0.28);
+      background: rgba(255, 255, 255, 0.035);
+    }
+    [data-theme="light"] .theme-toggle {
+      background: rgba(15, 23, 42, 0.03);
+      border-color: rgba(154, 164, 178, 0.80);
+      color: var(--text-primary);
+    }
+    [data-theme="light"] .theme-toggle:hover {
+      background: rgba(15, 23, 42, 0.05);
+      border-color: rgba(107, 114, 128, 0.80);
+    }
+
+    /* ===== MAIN CONTENT ===== */
+    .main-content {
+      flex: 1;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .top-bar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      min-height: 72px;
+      padding: 24px 0;
+      border-bottom: 1px solid var(--border-soft);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .top-bar-left {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .content-body {
+      padding: 28px 0 110px;
+      flex: 1;
+    }
+
+    /* ===== SUPPORT LAYOUT ===== */
+    .support-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    .support-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 24px 24px 5px 24px;
+      padding: 24px 28px;
+    }
+
+    .group-heading {
+      font-size: var(--font-size-lg);
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .group-sub {
+      color: var(--text-muted);
+      font-size: var(--font-size-sm);
+      margin-top: 4px;
+      line-height: 1.5;
+    }
+
+    /* ===== SEARCH ===== */
+    .search-wrap {
+      position: relative;
+      margin: 18px 0 6px;
+    }
+
+    .search-wrap .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      color: var(--text-dim);
+      pointer-events: none;
+    }
+
+    .search-wrap .search-icon svg {
+      width: 16px;
+      height: 16px;
+      display: block;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .search-input {
+      width: 100%;
+      height: 38px;
+      padding: 0 14px 0 40px;
+    }
+
+    /* ===== FAQ ===== */
+    .faq-list {
+      margin-top: 14px;
+    }
+
+    .faq-item {
+      border-bottom: 1px solid var(--border-soft);
+      padding: 16px 0;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .faq-item:last-child {
+      border-bottom: none;
+    }
+
+    .faq-question {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.4;
+    }
+
+    .faq-icon {
+      flex-shrink: 0;
+      width: 16px;
+      height: 16px;
+      color: var(--text-muted);
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: transform 0.2s;
+    }
+
+    .faq-item.open .faq-icon {
+      transform: rotate(180deg);
+    }
+
+    .faq-answer {
+      margin-top: 10px;
+      font-size: var(--font-size-sm);
+      color: var(--text-muted);
+      line-height: 1.6;
+      display: none;
+    }
+
+    .faq-item.open .faq-answer {
+      display: block;
+    }
+
+    /* ===== CONTACT ===== */
+    .contact-box {
+      margin: 18px 0 6px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 18px;
+      background: rgba(0, 114, 255, 0.08);
+      border: 1px solid rgba(0, 114, 255, 0.20);
+      border-radius: 14px 14px 4px 14px;
+    }
+
+    .contact-info h4 {
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .contact-info p {
+      font-size: var(--font-size-sm);
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .contact-info strong {
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    /* ===== FORM ===== */
+    .support-form {
+      margin-top: 24px;
+    }
+
+    .form-group {
+      margin-bottom: 26px;
+    }
+
+    label {
+      display: block;
+      font-size: var(--font-size-sm);
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    /* Issue Category dropdown: align selected-option text with label left
+       edge column and standard text inputs (form-input = 14px).
+       Options match the trigger so menu text lines up too. */
+    .support-form .custom-select-trigger {
+      padding-left: 14px;
+    }
+    .support-form .custom-select-option {
+      padding-left: 14px;
+    }
+
+    /* Email field styled like the signup page inputs (.form-input) */
+    .support-form .form-input {
+      width: 100%;
+      height: 46px;
+      padding: 0 14px;
+      border-radius: 14px 14px 5px 14px;
+    }
+
+    textarea {
+      width: 100%;
+      line-height: 1.6;
+      padding: 12px 16px;
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    .helper-text {
+      display: block;
+      margin-top: 6px;
+      font-size: var(--font-size-sm);
+      color: var(--text-dim);
+      opacity: 0.7;
+      font-weight: 400;
+      line-height: 1.5;
+    }
+
+    .btn-primary {
+      width: 100%;
+      margin-top: 10px;
+      height: 38px;
+      padding: 0 20px;
+      gap: 6px;
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    /* ===== TOAST ===== */
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 40px;
+      transform: translate(-50%, 20px);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg-tooltip);
+      border: 1px solid color-mix(in srgb, var(--status-success) 35%, transparent);
+      border-radius: 12px 12px 3px 12px;
+      padding: 12px 18px;
+      font-size: var(--font-size-sm);
+      color: var(--text-on-accent);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      z-index: 1200;
+    }
+
+    .toast svg {
+      width: 16px;
+      height: 16px;
+      display: block;
+      flex-shrink: 0;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    /* ===== FOOTER (copied from index.html) ===== */
+    .container {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 0 32px;
+    }
+
+    .container--narrow {
+      max-width: 900px;
+    }
+
+    .footer {
+      border-top: 1px solid var(--border-faint);
+      padding: 48px 0 56px;
+      margin-top: 40px;
+    }
+
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 28px;
+      flex-wrap: wrap;
+    }
+
+    .footer-copy {
+      font-size: var(--font-size-base);
+      color: var(--text-muted);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 32px;
+    }
+
+    .footer-links a {
+      font-size: var(--font-size-base);
+      color: var(--text-muted);
+      transition: color 0.15s ease;
+      letter-spacing: 0.02em;
+    }
+
+    .footer-links a:hover {
+      color: var(--text-primary);
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1000px) {
+      .support-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 780px) {
+      .support-container { padding: 0 18px; }
+      .top-bar {
+        height: auto;
+        min-height: 72px;
+        padding: 16px 0;
+      }
+      .content-body { padding: 18px 0 90px; }
+    }
+
+    @media (max-width: 620px) {
+      .container { padding: 0 20px; }
+      .container--narrow { padding: 0 20px; }
+      .top-nav-right { gap: 8px; }
+    }
+  </style>
+  <link rel="stylesheet" href="shared-dropdown.css">
+</head>
+<body>
+
+  <!-- ===== HEADER (copied from index.html hero-top) ===== -->
+  <header class="site-header">
+    <div class="support-container">
+      <a class="brand" href="index.html" aria-label="GridNode home">
+        <img src="Logo.svg" alt="GridNode" class="brand-logo" data-logo-theme />
+      </a>
+      <div class="top-nav-right">
+        <a class="sign-in-link" href="login.html">Sign In</a>
+        <button class="theme-toggle" id="themeToggle" type="button" title="Toggle theme" aria-label="Toggle theme" aria-pressed="false">
+          <svg class="icon-sun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+          <svg class="icon-moon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== MAIN ===== -->
+  <main class="main-content">
+
+    <header class="top-bar">
+      <div class="support-container">
+        <div class="top-bar-left">
+          <h1>Support Center</h1>
+          <p class="page-subtitle">Find quick answers to common questions and reach our team when you need help.</p>
+        </div>
+      </div>
+    </header>
+
+    <div class="content-body">
+      <div class="support-container">
+      <div class="support-grid">
+
+        <!-- Knowledge Base -->
+        <section class="support-card">
+          <h2 class="group-heading">Knowledge Base</h2>
+          <p class="group-sub">Find quick answers to common questions.</p>
+
+          <div class="search-wrap">
+            <span class="search-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.5" y2="16.5"></line></svg></span>
+            <input type="text" class="search-input" placeholder="Search documentation...">
+          </div>
+
+          <div class="faq-list">
+            <div class="faq-item">
+              <div class="faq-question">
+                How do I reset my API key?
+                <svg class="faq-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+              </div>
+              <div class="faq-answer">
+                Navigate to the API Keys tab in the sidebar. Locate your active key and click the "Revoke" button, then click "+ Generate New Key" at the top right of the page.
+              </div>
+            </div>
+
+            <div class="faq-item">
+              <div class="faq-question">
+                What should I do if a server instance goes offline?
+                <svg class="faq-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+              </div>
+              <div class="faq-answer">
+                First, check the System Logs for any critical errors before the crash. If the instance is unresponsive, you can trigger a hard reboot from the Cloud Instances panel.
+              </div>
+            </div>
+
+            <div class="faq-item">
+              <div class="faq-question">
+                How do I change my notification preferences?
+                <svg class="faq-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+              </div>
+              <div class="faq-answer">
+                Head over to the Settings page. Under the "Notifications & Alerts" section, you can toggle critical alerts and weekly email digests.
+              </div>
+            </div>
+
+            <div class="faq-item">
+              <div class="faq-question">
+                How are cloud instances billed?
+                <svg class="faq-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+              </div>
+              <div class="faq-answer">
+                Instances are billed on an hourly basis. You can track your usage in real-time under Billing &amp; Plan.
+              </div>
+            </div>
+
+            <div class="faq-item">
+              <div class="faq-question">
+                Which regions are available for deployment?
+                <svg class="faq-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+              </div>
+              <div class="faq-answer">
+                We currently support US-East, US-West, EU-Central, and AP-South regions.
+              </div>
+            </div>
+
+            <div class="faq-item">
+              <div class="faq-question">
+                What are the default API rate limits?
+                <svg class="faq-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+              </div>
+              <div class="faq-answer">
+                Starter plans include up to 1,000 requests/min. Pro plans have higher limits customizable in settings.
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Contact Support -->
+        <section class="support-card">
+          <h2 class="group-heading">Contact Support</h2>
+          <p class="group-sub">Can't find what you're looking for? We're here to help.</p>
+
+          <div class="contact-box">
+            <div class="contact-info">
+              <h4>Direct Assistance</h4>
+              <p>Email us directly at <strong>support@gridnode.io</strong></p>
+              <p>Average response time: under 2 hours.</p>
+            </div>
+          </div>
+
+          <form id="support-form" class="support-form">
+            <div class="form-group">
+              <label for="guest-email">Email</label>
+              <div class="input-wrap">
+                <input type="email" id="guest-email" class="form-input" placeholder="your.name@company.com" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="issue-type">Issue Category</label>
+                          <div class="custom-select">
+              <button type="button" class="custom-select-trigger" aria-haspopup="listbox" aria-expanded="false">
+                <span class="cs-label">General Inquiry</span>
+                <span class="chevron">&#9662;</span>
+              </button>
+              <div class="custom-select-menu" role="listbox">
+              <div class="custom-select-option" data-value="general" role="option">General Inquiry</div>
+              <div class="custom-select-option" data-value="presales" role="option">Pre-sales &amp; Pricing</div>
+              <div class="custom-select-option" data-value="access" role="option">Account Access / Login Issue</div>
+              <div class="custom-select-option" data-value="bug" role="option">Report a Bug</div>
+              </div>
+              <select id="issue-type" class="custom-select-hidden" tabindex="-1" aria-hidden="true">
+                <option value="general">General Inquiry</option>
+                <option value="presales">Pre-sales &amp; Pricing</option>
+                <option value="access">Account Access / Login Issue</option>
+                <option value="bug">Report a Bug</option>
+              </select>
+            </div>
+            </div>
+
+            <div class="form-group">
+              <label for="message">Message</label>
+              <div class="input-wrap"><textarea id="message" class="form-textarea" placeholder="Describe what you're experiencing in your own words..."></textarea></div>
+              <span class="helper-text">Please include server names or error codes if applicable.</span>
+            </div>
+
+            <button type="submit" class="btn-primary" id="submit-btn" disabled>Send Message</button>
+          </form>
+        </section>
+
+      </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ===== FOOTER (copied from index.html) ===== -->
+  <footer class="footer">
+    <div class="container container--narrow">
+      <div class="footer-inner" style="flex-direction:column; align-items:center; justify-content:center; text-align:center;">
+        <nav class="footer-links" aria-label="Footer" style="justify-content:center; gap:32px; flex-wrap:wrap;">
+          <a href="docs.html">Docs</a>
+          <a href="legal/terms.html">Terms</a>
+          <a href="legal/privacy.html">Privacy</a>
+          <a href="public-support.html">Support</a>
+          <a href="pricing.html">Pricing</a>
+          <a href="https://instagram.com" target="_blank" rel="noopener">Instagram</a>
+          <a href="https://twitter.com" target="_blank" rel="noopener">Twitter</a>
+        </nav>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="success-toast">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+    <span>Message sent! Our support team will get back to you shortly.</span>
+  </div>
+
+  <script src="theme-transition.js" defer></script>
+  <script>
+    (function() {
+      const KEY = 'gridnode-theme';
+      const btn = document.getElementById('themeToggle');
+      const html = document.documentElement;
+      function apply(theme) {
+        html.setAttribute('data-theme', theme);
+        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#060814' : '#fafbfc');
+        btn?.setAttribute('aria-pressed', theme === 'dark' ? 'false' : 'true');
+        try { localStorage.setItem(KEY, theme); } catch(e) {}
+      }
+      let saved = null;
+      try { saved = localStorage.getItem(KEY); } catch(e) {}
+      if (saved === 'light' || saved === 'dark') {
+        apply(saved);
+      }
+      btn?.addEventListener('click', () => {
+        const cur = html.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+        const next = cur === 'dark' ? 'light' : 'dark';
+        window.themeTransition(btn, () => apply(next));
+      });
+    })();
+  </script>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // FAQ Accordion
+      document.querySelectorAll('.faq-item').forEach(function (item) {
+        item.addEventListener('click', function () {
+          item.classList.toggle('open');
+        });
+      });
+
+      // Form & dirty state
+      var supportForm = document.getElementById('support-form');
+      var messageInput = document.getElementById('message');
+      var emailInput = document.getElementById('guest-email');
+      var submitBtn = document.getElementById('submit-btn');
+      var toast = document.getElementById('success-toast');
+      var isDirty = false;
+
+      function updateSubmitState() {
+        var hasEmail = emailInput.value.trim().length > 0 && emailInput.validity.valid;
+        submitBtn.disabled = !hasEmail;
+      }
+
+      emailInput.addEventListener('input', function () {
+        isDirty = emailInput.value.trim().length > 0 || messageInput.value.trim().length > 0;
+        updateSubmitState();
+      });
+
+      messageInput.addEventListener('input', function () {
+        isDirty = emailInput.value.trim().length > 0 || messageInput.value.trim().length > 0;
+      });
+
+      supportForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        toast.classList.add('show');
+        setTimeout(function () {
+          toast.classList.remove('show');
+        }, 3000);
+        supportForm.reset();
+        submitBtn.disabled = true;
+        isDirty = false;
+      });
+    })();
+  </script>
+
+  <script src="shared-dropdown.js" defer></script>
+</body>
+</html>

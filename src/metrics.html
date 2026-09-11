@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GridNode — Metrics Analytics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet">
+  
+  <link rel="icon" href="FAV.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="theme.css">
+  <script>
+    (function () {
+      try {
+        var s = JSON.parse(localStorage.getItem('gridnode_settings') || '{}');
+        document.documentElement.setAttribute('data-theme', s.theme === 'light' ? 'light' : 'dark');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
+<style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      font-size: var(--font-size-base);
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-body);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      overflow-x: hidden;
+    }
+
+    .grounded-capsule { border-radius: 34px 34px 5px 34px; }
+    .grounded-capsule-sm { border-radius: 12px 12px 3px 12px; }
+    .grounded-capsule-xs { border-radius: 8px 8px 2px 8px; }
+
+    /* ===== SIDEBAR (styles centralized in shared-sidebar.css) ===== */
+
+    /* Standardized chevron and icon micro-alignment (matches server-selector) */
+    .chevron { font-size: var(--font-size-base); color: var(--text-muted); line-height: 1; transform: translateY(1px); }
+    .icon-shift, .nav-item .nav-icon, .support-link .support-icon, .action-btn .icon, .search-icon { display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; transform: none; }
+
+    /* Increase spacing between search icon and input text */
+    .search-wrap .search-icon { left: 16px; }
+    .search-wrap .search-input { padding-left: 40px; }
+
+    /* ===== MAIN CONTENT ===== */
+    .main-content {
+      margin-left: 256px;
+      flex: 1;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Bar */
+    .top-bar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      min-height: 72px;
+      padding: 24px 32px;
+      border-bottom: 1px solid var(--border-soft);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .top-bar-left { display: flex; flex-direction: column; }
+
+    .top-bar-right { display: flex; align-items: center; gap: 14px; }
+
+    .time-pill {
+      font-family: var(--font-head);
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      height: 38px;
+      padding: 0 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      background: transparent;
+      color: var(--text-dim);
+      border: 1px solid var(--border-muted);
+      border-radius: 19px 19px 4px 19px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+
+    .time-pill:hover { background: rgba(0, 114, 255, 0.08); color: var(--text-secondary); border-color: rgba(0, 114, 255, 0.25); }
+
+    .time-pill.active {
+      background: linear-gradient(135deg, var(--brand-soft-stops));
+      color: var(--text-primary);
+      border-color: color-mix(in srgb, var(--accent-teal) 30%, transparent);
+    }
+
+    /* ===== SERVER SELECTOR ===== */
+     .server-selector {
+       position: relative;
+       display: inline-flex;
+       align-items: center;
+       gap: 8px;
+       height: 38px;
+       padding: 0 14px;
+       box-sizing: border-box;
+       background: var(--bg-card);
+       border-radius: 19px 19px 4px 19px;
+       cursor: pointer;
+       transition: background 0.2s;
+       font-size: var(--font-size-sm);
+       font-weight: 500;
+       color: var(--text-secondary);
+       white-space: nowrap;
+     }
+    .server-selector:focus-visible {
+      box-shadow: 0 0 0 3px rgba(0, 114, 255, 0.15);
+      outline: none;
+    }
+
+    /* .server-dot is unified in theme.css (.status-dot base) */
+
+    .server-selector .server-name {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .server-selector .server-conn {
+      color: var(--text-muted);
+      font-size: var(--font-size-xs);
+    }
+
+    .server-selector .chevron {
+      font-size: var(--font-size-base);
+      color: var(--text-muted);
+      margin-left: 6px;
+      line-height: 1;
+      transform: translateY(1px);
+    }
+
+    /* Global icon micro-alignment for standalone icons (shift up slightly) */
+    .icon-shift, .nav-item .nav-icon, .support-link .support-icon, .action-btn .icon, .btn-new-instance .plus-icon, .search-icon {
+      display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; transform: none;
+    }
+
+    /* Make action buttons align icons and text with a small gap */
+    .action-btn, .instance-btn { gap: 8px; }
+    .btn-new-instance { gap: 6px; }
+
+    /* Increase spacing between search icon and input text */
+    .search-wrap .search-icon { left: 14px; }
+    .search-wrap .search-input { padding-left: 36px; }
+
+    .server-dropdown {
+      position: absolute;
+      left: 0;
+      width: max-content;
+      min-width: 100%;
+      top: calc(100% + 8px);
+      background: var(--bg-card);
+      border-radius: 34px 34px 5px 34px;
+      padding: 6px;
+      display: none;
+      flex-direction: column;
+      gap: 4px;
+      z-index: 999;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.30);
+    }
+
+    .server-dropdown.show {
+      display: flex;
+    }
+
+    .server-option {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px; border-radius: 12px 12px 2px 12px;
+      cursor: pointer; transition: background 0.15s; font-size: var(--font-size-sm); color: var(--text-secondary);
+      white-space: nowrap; text-overflow: ellipsis; overflow: hidden; line-height: 1.4;
+    }
+
+    .server-option .title-row { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .server-option .title-row > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+    /* .server-dot base from theme.css; small contextual nudge inside dropdown rows */
+    .server-option .server-dot { transform: translateY(1px); box-shadow: 0 0 4px rgba(0, 180, 167, 0.40); }
+
+    .server-option .server-name { font-weight: 600; color: var(--text-primary); display: block; font-size: var(--font-size-sm); }
+
+    .server-option .server-conn { color: var(--text-muted); font-size: var(--font-size-xs); }
+
+    .content-body { padding: 28px 32px 32px; flex: 1; }
+
+    .analytics-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      width: 100%;
+      max-width: 1600px;
+      margin-left: auto;
+      margin-right: auto;
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    .analytics-panel {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 34px 34px 5px 34px;
+      padding: 24px 24px 20px;
+      transition: border-color 0.25s, box-shadow 0.25s;
+    }
+
+    .analytics-panel:hover { border-color: rgba(0, 114, 255, 0.25); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.30); }
+
+    .panel-header { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px; margin-bottom: 16px; min-width: 0; }
+    .panel-header h2 { font-size: var(--font-size-lg); font-weight: 600; color: var(--text-primary); white-space: nowrap; }
+    .panel-header-right { display: flex; align-items: center; gap: 10px; min-width: 0; }
+
+.stat-badge {
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      color: var(--text-faint);
+      background: var(--bg-hover);
+      padding: 4px 12px;
+      border: 1px solid var(--border-muted);
+      border-radius: 12px 12px 3px 12px;
+      white-space: nowrap;
+    }
+
+    .legend { display: flex; align-items: center; gap: 12px; }
+    .legend-item { display: inline-flex; align-items: center; gap: 6px; font-size: var(--font-size-xs); font-weight: 600; color: var(--text-faint); white-space: nowrap; }
+    .legend-line { width: 16px; height: 2px; border-radius: 1px; display: inline-block; }
+
+.fs-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 30px; height: 30px; flex-shrink: 0;
+      background: var(--bg-hover);
+      border: 1px solid var(--border-muted);
+      border-radius: 15px 15px 3px 15px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+    .fs-btn:hover { background: rgba(0, 114, 255, 0.12); color: var(--text-primary); border-color: rgba(0, 114, 255, 0.30); }
+
+    .chart-area { position: relative; width: 100%; height: 220px; }
+    .chart-area svg { width: 100%; height: 100%; display: block; }
+
+    .analytics-panel svg line.grid-line { stroke: rgba(255, 255, 255, 0.05); }
+    [data-theme="light"] .analytics-panel svg line.grid-line { stroke: rgba(0, 0, 0, 0.06); }
+
+.axis-label {
+      font-family: var(--font-head);
+      font-size: var(--font-size-xs);
+      fill: var(--text-faint);
+      opacity: 0.6;
+    }
+
+    .chart-tooltip {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      background: var(--bg-chart-tooltip);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      border-radius: 6px;
+      padding: 8px 12px;
+font-size: var(--font-size-sm);
+      font-weight: 600;
+      color: var(--text-chart-tooltip);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.12s ease;
+      z-index: 100;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.40);
+    }
+    [data-theme="light"] .chart-tooltip { border-color: rgba(0, 0, 0, 0.12); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
+    .chart-tooltip.visible { opacity: 1; }
+    .tt-row { display: flex; align-items: center; gap: 6px; }
+    .tt-row b { font-weight: 700; margin-left: auto; padding-left: 16px; }
+    .tt-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+    .chart-cursor-line {
+      position: absolute;
+      top: 0; bottom: 0;
+      width: 1px;
+      background: rgba(255, 255, 255, 0.18);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.12s ease;
+      z-index: 95;
+    }
+    [data-theme="light"] .chart-cursor-line { background: rgba(0, 0, 0, 0.18); }
+    .chart-cursor-line.visible { opacity: 1; }
+
+    .chart-dot {
+      position: absolute;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      border: 2px solid var(--bg-surface);
+      box-shadow: 0 0 6px rgba(0, 0, 0, 0.35);
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.12s ease;
+      z-index: 96;
+    }
+    .chart-dot.visible { opacity: 1; }
+
+    .analytics-panel.fs {
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      margin: 0;
+      border-radius: 0;
+      padding: 28px 32px 24px;
+      display: flex;
+      flex-direction: column;
+    }
+    .analytics-panel.fs .panel-header { margin-bottom: 20px; }
+    .analytics-panel.fs .chart-area { height: auto; flex: 1; min-height: 300px; }
+    .analytics-panel.fs .axis-label { font-size: var(--font-size-sm); }
+
+    .storage-status-panel {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 32px;
+      height: 72px;
+      padding: 0 28px;
+      overflow: hidden;
+    }
+    .ss-storage { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 9px; }
+    .ss-label { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px; min-width: 0; }
+    .ss-title { font-size: var(--font-size-xs); font-weight: 600; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.05em; }
+    .ss-value { font-size: var(--font-size-sm); font-weight: 600; color: var(--text-primary); white-space: nowrap; }
+    .ss-bar { height: 6px; border-radius: 3px; background: var(--bg-hover); border: 1px solid var(--border-muted); overflow: visible; }
+    .ss-bar-fill { height: 100%; border-radius: 3px; /* gradient unified in theme.css */ }
+    .ss-item { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+    .ss-ping { font-size: var(--font-size-xs); font-weight: 600; color: var(--text-muted); }
+
+    /* .ss-dot uses the unified .status-dot base from theme.css (success variant) */
+
+    /* Below 740px the SSD bar stays on top (full width) and the status data
+       (Uptime / Healthy / Ping) sits BELOW it in ONE horizontal row */
+    @media (max-width: 740px) {
+      .storage-status-panel { flex-direction: row; flex-wrap: wrap; align-items: center; height: auto; padding: 18px 22px; row-gap: 14px; column-gap: 18px; }
+      .ss-storage {
+        order: 0;
+        flex: 1 1 100%;
+        width: 100%;
+      }
+      .storage-status-panel .ss-item {
+        order: 1;
+        width: auto;
+        flex: 0 0 auto;
+        justify-content: flex-start;
+      }
+    }
+
+    /* Mobile header time-range group - hidden by default, shown only when the
+       sidebar collapses into the mobile header (same breakpoint as shared-sidebar.css) */
+    .mobile-header .time-range--mobile {
+      display: none;
+    }
+
+    @media (max-width: 1000px) {
+      .analytics-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 999px) {
+      .main-content { margin-left: 256px; }
+      .top-bar {
+      height: auto;
+      min-height: 72px;
+      padding: 16px 18px;
+    }
+      .content-body { padding: 18px 18px 24px; }
+
+      /* Hide the time range selector (1h/24h/7d/30d) inside the page content body on mobile -
+         it moves into the global mobile header instead */
+      .top-bar-right .time-pill {
+        display: none !important;
+      }
+
+      .mobile-header {
+        justify-content: space-between;
+      }
+
+      .mobile-header .time-range--mobile {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-left: auto;
+        flex-shrink: 0;
+      }
+
+      .mobile-header .time-range--mobile .time-pill {
+        display: inline-flex;
+        height: 34px;
+        padding: 0 12px;
+        font-size: var(--font-size-sm);
+      }
+    }
+
+    @media (max-width: 620px) {
+      .main-content { margin-left: 256px; }
+      .top-bar-right { flex-wrap: wrap; }
+    }
+  </style>
+  <link rel="stylesheet" href="shared-dropdown.css">
+  <link rel="stylesheet" href="shared-sidebar.css">
+</head>
+<body>
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+    <a href="saas_dashboard.html" class="sidebar-brand-link">
+      <div class="sidebar-brand">
+        <img src="Logo.svg" alt="GridNode" class="brand-logo" data-logo-theme />
+<img src="brand-logo-icon.svg" alt="GridNode icon" class="brand-logo-icon" />
+      </div>
+    </a>
+
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="saas_dashboard.html">
+        <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-6l-2-2H5a2 2 0 0 0-2 2z"></path><line x1="3" y1="12" x2="21" y2="12"></line></svg></span>
+        <span>Dashboard</span>
+      </a>
+      <a class="nav-item" href="instances.html">
+        <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg></span>
+        <span>Cloud Instances</span>
+      </a>
+      <a class="nav-item active" href="metrics.html">
+        <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line><line x1="3" y1="20" x2="21" y2="20"></line></svg></span>
+        <span>Metrics Analytics</span>
+      </a>
+      <a class="nav-item" href="system_logs.html">
+        <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"></rect><line x1="7" y1="9" x2="17" y2="9"></line><line x1="7" y1="12.5" x2="14" y2="12.5"></line><line x1="7" y1="16" x2="10" y2="16"></line></svg></span>
+        <span>System Logs</span>
+      </a>
+      <a class="nav-item" href="api_keys.html">
+        <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><circle cx="12" cy="10" r="1.8"></circle><path d="M12 11.8V16"></path></svg></span>
+        <span>API Keys</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-profile" id="profileDropdown">
+      <div class="profile-avatar">DU</div>
+      <div class="profile-info">
+        <span class="profile-name">DemoTest User</span>
+        <span class="user-plan-badge">Starter Plan</span>
+      </div>
+      <div class="profile-action-btn">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </div>
+      <div class="profile-popover" id="profilePopover">
+        <a href="pricing.html?mode=app" class="popover-link">
+          <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          Billing &amp; Plan
+        </a>
+        <a href="settings.html" class="popover-link">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Settings
+        </a>
+        <div class="dropdown-divider"></div>
+        <a href="login.html" class="popover-link text-danger">
+          <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Log Out
+        </a>
+      </div>
+    </div>
+
+    <a class="nav-item support-link" href="support.html" title="Tech Support">
+      <span class="nav-icon support-icon">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+      </span>
+      <span>Support</span>
+    </a>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <main class="main-content">
+
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <h1>Metrics Analytics</h1>
+      </div>
+      <div class="top-bar-right">
+        <div class="server-selector" title="Active server: ubuntu-24-04-lts-oracle">
+          <span class="server-dot"></span>
+          <span class="server-name">ubuntu-24-04-lts-oracle</span>
+          <span class="server-conn">via OpenSSH Key</span>
+          <span class="chevron">▾</span>
+          <div class="server-dropdown">
+            <div class="server-option" data-server="ubuntu-24-04-lts-oracle">
+              <div class="title-row"><span class="server-dot"></span><span class="server-name">ubuntu-24-04-lts-oracle</span></div>
+              <span class="server-conn">via OpenSSH Key</span>
+            </div>
+            <div class="server-option" data-server="ubuntu-24-04-vps-02">
+              <div class="title-row"><span class="server-dot"></span><span class="server-name">ubuntu-24-04-vps-02</span></div>
+              <span class="server-conn">via OpenSSH Key</span>
+            </div>
+            <div class="server-option" data-server="debian-12-database">
+              <div class="title-row"><span class="server-dot"></span><span class="server-name">debian-12-database</span></div>
+              <span class="server-conn">via OpenSSH Key</span>
+            </div>
+            <div class="server-option" data-server="centos-8-gateway">
+              <div class="title-row"><span class="server-dot"></span><span class="server-name">centos-8-gateway</span></div>
+              <span class="server-conn">via OpenSSH Key</span>
+            </div>
+          </div>
+        </div>
+        <button class="time-pill active" data-range="1h">1h</button>
+        <button class="time-pill" data-range="24h">24h</button>
+        <button class="time-pill" data-range="7d">7d</button>
+        <button class="time-pill" data-range="30d">30d</button>
+      </div>
+    </header>
+
+    <div class="content-body">
+      <div class="analytics-grid">
+
+        <!-- CPU -->
+        <section class="analytics-panel" id="cpu">
+          <div class="panel-header">
+            <h2>CPU Usage</h2>
+            <div class="panel-header-right">
+              <span class="stat-badge" id="cpu-badge">Avg 42%</span>
+              <button class="fs-btn" title="Expand to full screen" aria-label="Expand to full screen"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
+            </div>
+          </div>
+          <div class="chart-area" data-metric="cpu"></div>
+        </section>
+
+        <!-- RAM -->
+        <section class="analytics-panel" id="ram">
+          <div class="panel-header">
+            <h2>RAM Allocation</h2>
+            <div class="panel-header-right">
+              <span class="stat-badge" id="ram-badge">38% used</span>
+              <button class="fs-btn" title="Expand to full screen" aria-label="Expand to full screen"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
+            </div>
+          </div>
+          <div class="chart-area" data-metric="ram"></div>
+        </section>
+
+        <!-- VRAM / GPU -->
+        <section class="analytics-panel" id="vram">
+          <div class="panel-header">
+            <h2>VRAM / GPU Load</h2>
+            <div class="panel-header-right">
+              <span class="stat-badge" id="vram-badge">Peak 88%</span>
+              <button class="fs-btn" title="Expand to full screen" aria-label="Expand to full screen"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
+            </div>
+          </div>
+          <div class="chart-area" data-metric="vram"></div>
+        </section>
+
+        <!-- Network -->
+        <section class="analytics-panel" id="network">
+          <div class="panel-header">
+            <h2>Network</h2>
+            <div class="panel-header-right">
+              <div class="legend">
+<span class="legend-item"><span class="legend-line" style="background:var(--chart-5)"></span>Download</span>
+                  <span class="legend-item"><span class="legend-line" style="background:var(--chart-4)"></span>Upload</span>
+              </div>
+              <button class="fs-btn" title="Expand to full screen" aria-label="Expand to full screen"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
+            </div>
+          </div>
+<div class="chart-area" data-metric="net"></div>
+        </section>
+
+        <!-- System Storage & Status -->
+        <section class="analytics-panel storage-status-panel">
+          <div class="ss-storage">
+            <div class="ss-label">
+              <span class="ss-title">SSD Storage</span>
+              <span class="ss-value">45GB / 100GB</span>
+            </div>
+            <div class="ss-bar"><div class="ss-bar-fill" style="width:45%"></div></div>
+          </div>
+          <div class="ss-item">
+            <span class="ss-title">Uptime</span>
+            <span class="ss-value">14 days, 5 hrs</span>
+          </div>
+          <div class="ss-item">
+            <span class="ss-dot"></span>
+            <span class="ss-value">System Healthy</span>
+            <span class="ss-ping">Ping: 12ms</span>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      'use strict';
+
+var PROFILES = {
+        'ubuntu-24-04-lts-oracle': { cpu: 42, ram: 38, vram: 88, net: 56, disk: { used: 45, total: 100 } },
+        'ubuntu-24-04-vps-02':     { cpu: 15, ram: 38, vram: 0,  net: 14, disk: { used: 18, total: 50 } },
+        'debian-12-database':      { cpu: 68, ram: 84, vram: 0,  net: 85, disk: { used: 72, total: 120 } },
+        'centos-8-gateway':        { cpu: 12, ram: 47, vram: 0,  net: 21, disk: { used: 12, total: 40 } }
+      };
+      var RANGES = { '1h': 30, '24h': 96, '7d': 168, '30d': 240 };
+var VARS = { cpu: 15, ram: 10, vram: 8, net: 20 };
+      function token(name, fallback) {
+        return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
+      }
+      var DEFS = {
+        cpu:  { title: 'CPU Usage',       c1: token('--chart-1', '#0072ff'), c2: token('--chart-2', '#00B4A7'), gradId: 'cpuGrad',  multi: false },
+        ram:  { title: 'RAM Allocation',  c1: token('--chart-2', '#00B4A7'), c2: token('--chart-1', '#0072ff'), gradId: 'ramGrad',  multi: false },
+        vram: { title: 'VRAM / GPU Load', c1: token('--chart-3', '#e879f9'), c2: token('--chart-4', '#a855f7'), gradId: 'vramGrad', multi: false },
+        net:  { title: 'Network',         c1: token('--chart-5', '#38bdf8'), c2: token('--chart-4', '#a855f7'), gradId: 'netGrad',  multi: true }
+      };
+
+      var PLOT_L = 40, PLOT_R_OFF = 8, PLOT_T = 5, PLOT_B_OFF = 5;
+
+      var currentServer = 'ubuntu-24-04-lts-oracle';
+      var currentRange = '1h';
+      var cache = {};
+
+      function hashSeed(s) {
+        var h = 2166136261;
+        for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+        return h >>> 0;
+      }
+
+      function mulberry32(a) {
+        return function () {
+          a |= 0; a = (a + 0x6D2B79F5) | 0;
+          var t = Math.imul(a ^ (a >>> 15), 1 | a);
+          t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+
+      function genSeries(metric) {
+        var key = currentServer + '|' + currentRange + '|' + metric;
+        if (cache[key]) return cache[key];
+        var base = PROFILES[currentServer][metric];
+        var variance = base === 0 ? 0 : VARS[metric];
+        var n = RANGES[currentRange];
+        var rnd = mulberry32(hashSeed(key));
+        var out = [];
+        for (var i = 0; i < n; i++) {
+          var v = variance === 0 ? 0 : base + (rnd() - 0.5) * variance * 2;
+          out.push(Math.max(0, Math.min(100, v)));
+        }
+        cache[key] = out;
+        return out;
+      }
+
+      function smoothPath(pts) {
+        var n = pts.length;
+        if (n === 0) return '';
+        var d = 'M' + pts[0][0].toFixed(2) + ',' + pts[0][1].toFixed(2);
+        if (n === 1) return d;
+        var m = monotoneTangents(pts);
+        for (var i = 0; i < n - 1; i++) {
+          var x0 = pts[i][0], y0 = pts[i][1], x1 = pts[i + 1][0], y1 = pts[i + 1][1];
+          var h = x1 - x0;
+          if (h <= 0) { d += 'L' + x1.toFixed(2) + ',' + y1.toFixed(2); continue; }
+          var c1x = x0 + h / 3, c1y = y0 + h * m[i] / 3;
+          var c2x = x1 - h / 3, c2y = y1 - h * m[i + 1] / 3;
+          d += 'C' + c1x.toFixed(2) + ',' + c1y.toFixed(2) + ' ' + c2x.toFixed(2) + ',' + c2y.toFixed(2) + ' ' + x1.toFixed(2) + ',' + y1.toFixed(2);
+        }
+        return d;
+      }
+
+      // Monotone cubic Hermite (Fritsch-Carlson / Steffen 1990).
+      function monotoneTangents(pts) {
+        var n = pts.length;
+        var m = new Array(n);
+        var sl = new Array(n - 1);
+        for (var i = 0; i < n - 1; i++) {
+          var h = pts[i + 1][0] - pts[i][0];
+          sl[i] = h > 0 ? (pts[i + 1][1] - pts[i][1]) / h : 0;
+        }
+        m[0] = 0;
+        m[n - 1] = 0;
+        for (var k = 1; k < n - 1; k++) {
+          var s0 = sl[k - 1], s1 = sl[k];
+          if (s0 === 0 || s1 === 0) { m[k] = 0; continue; }
+          var h0 = pts[k][0] - pts[k - 1][0], h1 = pts[k + 1][0] - pts[k][0];
+          var p = (s0 * h1 + s1 * h0) / (h0 + h1);
+          m[k] = (Math.sign(s0) + Math.sign(s1)) * Math.min(Math.abs(s0), Math.abs(s1), 0.5 * Math.abs(p));
+        }
+        if (n > 2) {
+          if (sl[0] !== 0) m[0] = (3 * sl[0] - m[1]) / 2;
+          if (sl[n - 2] !== 0) m[n - 1] = (3 * sl[n - 2] - m[n - 2]) / 2;
+        }
+        return m;
+      }
+
+      function plotRect(w, h) {
+        return { L: PLOT_L, R: w - PLOT_R_OFF, T: PLOT_T, B: h - PLOT_B_OFF };
+      }
+
+      function seriesPoints(vals, w, h) {
+        var r = plotRect(w, h);
+        var span = r.R - r.L;
+        var pts = [];
+        for (var i = 0; i < vals.length; i++) {
+          pts.push([r.L + i / (vals.length - 1) * span, r.B - vals[i] / 100 * (r.B - r.T)]);
+        }
+        return pts;
+      }
+
+      function svgMarkup(metric, w, h) {
+        var def = DEFS[metric];
+        var vals = genSeries(metric);
+        var pts = seriesPoints(vals, w, h);
+        var r = plotRect(w, h);
+        var line = smoothPath(pts);
+        var s = '<svg width="' + w + '" height="' + h + '" xmlns="http://www.w3.org/2000/svg">';
+        if (!def.multi) {
+          s += '<defs><linearGradient id="' + def.gradId + '" x1="0" y1="0" x2="0" y2="1">' +
+               '<stop offset="5%" stop-color="' + def.c1 + '" stop-opacity="0.30"/>' +
+               '<stop offset="95%" stop-color="' + def.c2 + '" stop-opacity="0.02"/>' +
+               '</linearGradient></defs>';
+        }
+        for (var k = 0; k <= 4; k++) {
+          var gy = r.T + k / 4 * (r.B - r.T);
+          s += '<line x1="' + r.L + '" y1="' + gy + '" x2="' + r.R + '" y2="' + gy + '" class="grid-line" stroke-dasharray="3 3" stroke-width="1"/>';
+          s += '<text x="' + (r.L - 6) + '" y="' + (gy + 3.5) + '" class="axis-label" text-anchor="end">' + (100 - k * 25) + '%</text>';
+        }
+        if (def.multi) {
+          var down = [], up = [];
+          for (var i = 0; i < vals.length; i++) {
+            down.push([pts[i][0], r.B - Math.min(100, vals[i] * 0.6) / 100 * (r.B - r.T)]);
+            up.push([pts[i][0], r.B - Math.min(100, vals[i] * 0.37) / 100 * (r.B - r.T)]);
+          }
+          s += '<path class="line" d="' + smoothPath(down) + '" fill="none" stroke="' + def.c1 + '" stroke-width="1.5"/>';
+          s += '<path class="line" d="' + smoothPath(up) + '" fill="none" stroke="' + def.c2 + '" stroke-width="1.5"/>';
+        } else {
+          s += '<path class="area" d="' + line + 'L' + r.R + ',' + r.B + 'L' + r.L + ',' + r.B + 'Z" fill="url(#' + def.gradId + ')"/>';
+          s += '<path class="line" d="' + line + '" fill="none" stroke="' + def.c1 + '" stroke-width="1.5"/>';
+        }
+        s += '</svg>';
+        return s;
+      }
+
+      function badgeText(metric, vals) {
+        var sum = 0, max = 0;
+        for (var i = 0; i < vals.length; i++) { sum += vals[i]; if (vals[i] > max) max = vals[i]; }
+        var avg = Math.round(sum / vals.length);
+        if (metric === 'cpu') return 'Avg ' + avg + '%';
+        if (metric === 'ram') return avg + '% used';
+        return 'Peak ' + Math.round(max) + '%';
+      }
+
+      function panelSize(container) {
+        var w = container.clientWidth, h = container.clientHeight;
+        if (!w || !h) {
+          var rect = container.getBoundingClientRect();
+          if (!w) w = rect.width;
+          if (!h) h = rect.height;
+        }
+        return { w: Math.max(200, Math.round(w)), h: Math.max(80, Math.round(h)) };
+      }
+
+      function renderPanel(metric) {
+        var container = document.querySelector('.chart-area[data-metric="' + metric + '"]');
+        if (!container) return;
+        var vals = genSeries(metric);
+        var size = panelSize(container);
+        container._vals = vals;
+        container._W = size.w;
+        container._H = size.h;
+        var svg = container.querySelector('svg');
+        if (svg) svg.remove();
+        container.insertAdjacentHTML('afterbegin', svgMarkup(metric, size.w, size.h));
+        if (metric !== 'net') {
+          var badge = document.getElementById(metric + '-badge');
+          if (badge) badge.textContent = badgeText(metric, vals);
+        }
+      }
+
+      function attachTooltip(container) {
+        var metric = container.getAttribute('data-metric');
+        var def = DEFS[metric];
+
+        var tooltip = document.createElement('div');
+        tooltip.className = 'chart-tooltip';
+        container.appendChild(tooltip);
+
+        var cursorLine = document.createElement('div');
+        cursorLine.className = 'chart-cursor-line';
+        container.appendChild(cursorLine);
+
+        var dotsWrap = document.createElement('div');
+        container.appendChild(dotsWrap);
+
+      container.addEventListener('mousemove', function (e) {
+          var svg = container.querySelector('svg');
+          var vals = container._vals;
+          if (!svg || !vals || vals.length < 2) return;
+          var w = container._W || svg.clientWidth;
+          var h = container._H || svg.clientHeight;
+          var rect = svg.getBoundingClientRect();
+          if (rect.width === 0 || rect.height === 0 || w < 50 || h < 50) return;
+          var r = plotRect(w, h);
+          var sx = e.clientX - rect.left;
+          var idx = Math.round((sx - r.L) / (r.R - r.L) * (vals.length - 1));
+          idx = Math.max(0, Math.min(vals.length - 1, idx));
+          var pts = seriesPoints(vals, w, h);
+          var px = pts[idx][0];
+
+          dotsWrap.innerHTML = '';
+          var py;
+          if (def.multi) {
+            var down = Math.min(100, vals[idx] * 0.6);
+            var up = Math.min(100, vals[idx] * 0.37);
+            tooltip.innerHTML =
+              '<div class="tt-row"><span class="tt-dot" style="background:' + def.c1 + '"></span><span>Download</span><b>' + down.toFixed(1) + '%</b></div>' +
+              '<div class="tt-row"><span class="tt-dot" style="background:' + def.c2 + '"></span><span>Upload</span><b>' + up.toFixed(1) + '%</b></div>';
+            py = r.B - Math.max(down, up) / 100 * (r.B - r.T);
+            var d1 = document.createElement('div');
+            d1.className = 'chart-dot';
+            d1.style.background = def.c1;
+            d1.style.left = px + 'px';
+            d1.style.top = (r.B - down / 100 * (r.B - r.T)) + 'px';
+            var d2 = document.createElement('div');
+            d2.className = 'chart-dot';
+            d2.style.background = def.c2;
+            d2.style.left = px + 'px';
+            d2.style.top = (r.B - up / 100 * (r.B - r.T)) + 'px';
+            dotsWrap.appendChild(d1);
+            dotsWrap.appendChild(d2);
+          } else {
+            py = pts[idx][1];
+            tooltip.innerHTML = '<div class="tt-row"><span class="tt-dot" style="background:' + def.c1 + '"></span><span>' + def.title + '</span><b>' + vals[idx].toFixed(1) + '%</b></div>';
+            var dot = document.createElement('div');
+            dot.className = 'chart-dot';
+            dot.style.background = def.c1;
+            dot.style.left = px + 'px';
+            dot.style.top = py + 'px';
+            dotsWrap.appendChild(dot);
+          }
+          [].forEach.call(dotsWrap.children, function (d) { d.classList.add('visible'); });
+
+          cursorLine.style.left = px + 'px';
+          cursorLine.classList.add('visible');
+
+          var tw = tooltip.offsetWidth, th = tooltip.offsetHeight;
+          var left = px + 14;
+          if (left + tw > rect.width) left = px - 14 - tw;
+          var top = py - th - 10;
+          if (top < 0) top = py + 14;
+          tooltip.style.left = left + 'px';
+          tooltip.style.top = top + 'px';
+          tooltip.classList.add('visible');
+        });
+
+        container.addEventListener('mouseleave', function () {
+          tooltip.classList.remove('visible');
+          cursorLine.classList.remove('visible');
+          [].forEach.call(dotsWrap.children, function (d) { d.classList.remove('visible'); });
+        });
+      }
+
+      var FS_ICON = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>';
+      var CLOSE_ICON = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+
+      function exitFullscreen() {
+        [].forEach.call(document.querySelectorAll('.analytics-panel.fs'), function (p) {
+          p.classList.remove('fs');
+          var b = p.querySelector('.fs-btn');
+          if (b) { b.innerHTML = FS_ICON; b.title = 'Expand to full screen'; }
+        });
+      }
+
+      document.querySelectorAll('.fs-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var panel = btn.closest('.analytics-panel');
+          if (!panel) return;
+          var willFs = !panel.classList.contains('fs');
+          if (willFs) exitFullscreen();
+          panel.classList.toggle('fs', willFs);
+          btn.innerHTML = willFs ? CLOSE_ICON : FS_ICON;
+          btn.title = willFs ? 'Close full screen' : 'Expand to full screen';
+          renderAll();
+        });
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') exitFullscreen();
+      });
+
+      // ===== Timeframe pills =====
+      var pills = document.querySelectorAll('.time-pill');
+      var pulseDurations = {
+        '1h': '0.8s',
+        '24h': '2s',
+        '7d': '4s',
+        '30d': '4s'
+      };
+      function updatePulseDuration(range) {
+        document.documentElement.style.setProperty(
+          '--pulse-duration',
+          pulseDurations[range] || '1.5s'
+        );
+      }
+      updatePulseDuration(currentRange);
+      pills.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          pills.forEach(function (b) { b.classList.remove('active'); });
+          btn.classList.add('active');
+          currentRange = btn.getAttribute('data-range');
+          updatePulseDuration(currentRange);
+          renderAll();
+        });
+      });
+
+      // ===== Server dropdown =====
+      var serverSelector = document.querySelector('.server-selector');
+      var serverDropdown = document.querySelector('.server-dropdown');
+      if (serverSelector && serverDropdown) {
+        serverSelector.addEventListener('click', function (e) {
+          if (e.target.closest('.server-option')) return;
+          e.stopPropagation();
+          serverDropdown.classList.toggle('show');
+        });
+        document.addEventListener('click', function () { serverDropdown.classList.remove('show'); });
+        serverDropdown.addEventListener('click', function (e) { e.stopPropagation(); });
+        [].forEach.call(serverDropdown.querySelectorAll('.server-option'), function (option) {
+          option.addEventListener('click', function () {
+            var name = this.getAttribute('data-server');
+            if (!name) return;
+            currentServer = name;
+            var nameEl = serverSelector.querySelector('.server-name');
+            if (nameEl) nameEl.textContent = name;
+            serverSelector.setAttribute('title', 'Active server: ' + name);
+            serverDropdown.classList.remove('show');
+            renderAll();
+          });
+        });
+      }
+
+function renderStorage() {
+        var d = PROFILES[currentServer].disk;
+        var pct = Math.round((d.used / d.total) * 100);
+        var ssValue = document.querySelector('.ss-storage .ss-value');
+        var ssFill = document.querySelector('.ss-storage .ss-bar-fill');
+  if (ssValue) ssValue.textContent = d.used + 'GB / ' + d.total + 'GB';
+  if (ssFill) {
+    ssFill.style.width = pct + '%';
+  }
+}
+
+      function renderAll() {
+        ['cpu', 'ram', 'vram', 'net'].forEach(renderPanel);
+        renderStorage();
+      }
+
+      var chartContainers = document.querySelectorAll('.chart-area');
+      [].forEach.call(chartContainers, attachTooltip);
+      renderAll();
+
+      if (typeof ResizeObserver === 'function') {
+        var ro = new ResizeObserver(function (entries) {
+          entries.forEach(function (entry) {
+            renderPanel(entry.target.getAttribute('data-metric'));
+          });
+        });
+        [].forEach.call(chartContainers, function (c) { ro.observe(c); });
+      }
+      window.addEventListener('resize', function () { renderAll(); });
+    })();
+  </script>
+
+
+  <script src="shared-sidebar.js" defer></script>
+  <script src="auth-links.js" defer></script>
+
+  <script>
+    // Move the time range selector (1h/24h/7d/30d) into the global mobile header
+    // (which replaces the sidebar on screens <= 999px). shared-sidebar.js is deferred,
+    // so it has already created .mobile-header by the time DOMContentLoaded fires.
+    // Mobile pills forward clicks to the originals so the existing timeframe
+    // logic keeps working unchanged, and active state is mirrored both ways.
+    document.addEventListener('DOMContentLoaded', function () {
+      var header = document.querySelector('.mobile-header');
+      var sourcePills = document.querySelectorAll('.top-bar-right .time-pill');
+      if (!header || !sourcePills.length || header.querySelector('.time-range--mobile')) return;
+
+      var wrap = document.createElement('div');
+      wrap.className = 'time-range--mobile';
+      wrap.setAttribute('role', 'group');
+      wrap.setAttribute('aria-label', 'Time range');
+      [].forEach.call(sourcePills, function (pill) {
+        var clone = pill.cloneNode(true);
+        clone.addEventListener('click', function (e) {
+          e.preventDefault();
+          var range = clone.getAttribute('data-range');
+          var original = document.querySelector('.top-bar-right .time-pill[data-range="' + range + '"]');
+          if (original) original.click();
+        });
+        wrap.appendChild(clone);
+      });
+      header.appendChild(wrap);
+
+      function syncMobilePills() {
+        [].forEach.call(wrap.querySelectorAll('.time-pill'), function (clone) {
+          var original = document.querySelector('.top-bar-right .time-pill[data-range="' + clone.getAttribute('data-range') + '"]');
+          clone.classList.toggle('active', !!(original && original.classList.contains('active')));
+        });
+      }
+      document.addEventListener('click', function (e) {
+        if (e.target.closest && e.target.closest('.time-pill')) syncMobilePills();
+      });
+    });
+  </script>
+</body>
+</html>
